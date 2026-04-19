@@ -55,7 +55,7 @@ export const BLOCS: Bloc[] = [
   {
     id: "ecarlate-et-violet",
     name: "Ecarlate et Violet",
-    tagline: "La 9e generation, de Paldea aux DLC.",
+    tagline: "2023 - 2025 ",
     coverColor: "from-rose-500 to-violet-600",
     image: "/blocs/ecarlate-violet.jpg", // exemple - remplace par ta propre image
   },
