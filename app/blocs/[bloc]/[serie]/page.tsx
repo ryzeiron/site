@@ -1,0 +1,72 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import CardTile from "@/components/CardTile";
+import {
+  SERIES,
+  cardsForSerie,
+  getBloc,
+  getSerie,
+} from "@/lib/catalog";
+
+type Params = { bloc: string; serie: string };
+
+export function generateStaticParams(): Params[] {
+  return SERIES.map((s) => ({ bloc: s.blocId, serie: s.id }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<Params>;
+}): Promise<Metadata> {
+  const { serie: serieId } = await params;
+  const serie = getSerie(serieId);
+  return { title: serie ? `${serie.code} - ${serie.name}` : "Serie" };
+}
+
+export default async function SeriePage({
+  params,
+}: {
+  params: Promise<Params>;
+}) {
+  const { bloc: blocId, serie: serieId } = await params;
+  const bloc = getBloc(blocId);
+  const serie = getSerie(serieId);
+  if (!bloc || !serie || serie.blocId !== bloc.id) notFound();
+  const cards = cardsForSerie(serie.id);
+
+  return (
+    <div>
+      <nav className="text-sm text-gray-500">
+        <Link href="/blocs" className="hover:underline">Blocs</Link> /{" "}
+        <Link href={`/blocs/${bloc.id}`} className="hover:underline">
+          {bloc.name}
+        </Link>{" "}
+        / <span>{serie.code}</span>
+      </nav>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <span
+          className={`rounded bg-gradient-to-br ${bloc.coverColor} text-white text-sm font-semibold px-3 py-1`}
+        >
+          {serie.code}
+        </span>
+        <h1 className="text-2xl md:text-3xl font-bold">{serie.name}</h1>
+        <span className="text-sm text-gray-500">({serie.releaseYear})</span>
+      </div>
+
+      {cards.length === 0 ? (
+        <p className="mt-8 text-gray-500">
+          Aucune carte disponible dans cette serie pour le moment.
+        </p>
+      ) : (
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {cards.map((c) => (
+            <CardTile key={c.id} card={c} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
