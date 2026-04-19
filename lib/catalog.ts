@@ -115,6 +115,35 @@ export const SERIES: Serie[] = [
 ];
 
 export const CARDS: Card[] = [
+  // ===========================================================
+  // EXEMPLE DE CARTE - A DUPLIQUER POUR AJOUTER VOS PROPRES CARTES
+  // -----------------------------------------------------------
+  // Pour ajouter une carte :
+  //   1. Copie tout le bloc entre { } ci-dessous (y compris la virgule finale)
+  //   2. Colle-le juste apres, et modifie les valeurs
+  //   3. "id" doit etre UNIQUE pour chaque carte (ex: ev09-004, ev09-005...)
+  //   4. "serieId" doit correspondre a l'id d'une serie definie plus haut
+  //        Blocs/series disponibles : voir BLOCS et SERIES au-dessus
+  //   5. "priceCents" est en CENTIMES (1500 = 15,00 EUR)
+  //   6. "stock" = nombre d'exemplaires en vente
+  //   7. "rarity" doit etre l'une des valeurs du type Rarity (ligne 7)
+  //   8. "condition" doit etre l'une des valeurs du type Condition (ligne 6)
+  //   9. "language" : "FR", "EN" ou "JP"
+  //  10. Sauvegarde le fichier -> le site se met a jour automatiquement
+  // ===========================================================
+  {
+    id: "ev09-exemple",                // identifiant unique (bloc-serie-numero suffit)
+    serieId: "ev09",                   // la carte appartient a la serie EV09
+    name: "Nom de la carte",           // ex: "Pikachu ex"
+    number: "001/159",                 // numero imprime sur la carte
+    rarity: "Rare Holo",               // rarete (voir type Rarity)
+    condition: "Near Mint",            // etat de la carte (voir type Condition)
+    language: "FR",                    // langue : FR, EN ou JP
+    priceCents: 1000,                  // prix en centimes : 1000 = 10,00 EUR
+    stock: 3,                          // nombre d'exemplaires en stock
+    description: "Description libre de la carte (facultatif).",
+  },
+
   // EV09 - Aventures Ensemble
   {
     id: "ev09-001",

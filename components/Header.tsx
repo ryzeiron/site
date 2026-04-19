@@ -2,7 +2,7 @@ import Link from "next/link";
 import CartButton from "./CartButton";
 
 export default function Header() {
-  const shopName = process.env.NEXT_PUBLIC_SHOP_NAME ?? "Boutique Pokemon";
+  const shopName = process.env.NEXT_PUBLIC_SHOP_NAME ?? "PokeDel";
   return (
     <header className="border-b border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">

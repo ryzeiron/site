@@ -5,11 +5,11 @@ import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: {
-    default: "Boutique Pokemon",
-    template: "%s - Boutique Pokemon",
+    default: "PokeDel",
+    template: "%s - PokeDel",
   },
   description:
-    "Vente de cartes Pokemon : blocs, series, cartes rares et singles a l'unite.",
+    "PokeDel - vente de cartes Pokemon : blocs, series, cartes rares et singles a l'unite.",
 };
 
 export default function RootLayout({
