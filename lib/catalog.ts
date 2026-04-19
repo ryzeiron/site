@@ -17,6 +17,7 @@ export type Bloc = {
   tagline: string;
   coverColor: string; // classes tailwind gradient
   image?: string;
+  imageFit?: "cover" | "contain"; // cover (par defaut) remplit, contain affiche l'image entiere
 };
 
 export type Serie = {
@@ -65,6 +66,7 @@ export const BLOCS: Bloc[] = [
     tagline: "Galar, V, VMAX, VSTAR.",
     coverColor: "from-sky-500 to-indigo-600",
     image: "/blocs/SWSH1.jpg",
+    imageFit: "contain",
   },
   {
     id: "soleil-et-lune",
