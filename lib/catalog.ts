@@ -148,7 +148,7 @@ export const CARDS: Card[] = [
     language: "FR",                    // langue : FR, EN ou JP
     priceCents: 100000,                // prix en centimes : 1000 = 10,00 EUR
     stock: 1,                          // nombre d'exemplaires en stock
-    image: "https://images.pokemontcg.io/sv8/6_hires.png", // photo de la carte
+    image: "/cartes/TEST.jpg", // photo de la carte
     description: "Description libre de la carte (facultatif).",
   },
 
