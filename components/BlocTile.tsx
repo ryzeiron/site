@@ -17,7 +17,7 @@ export default function BlocTile({ bloc }: { bloc: Bloc }) {
           <img
             src={bloc.image}
             alt={bloc.name}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain p-4"
           />
         )}
         {bloc.image && (
