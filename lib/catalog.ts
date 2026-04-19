@@ -64,6 +64,7 @@ export const BLOCS: Bloc[] = [
     name: "Epee et Bouclier",
     tagline: "Galar, V, VMAX, VSTAR.",
     coverColor: "from-sky-500 to-indigo-600",
+    image: "/blocs/SWSH1.png",
   },
   {
     id: "soleil-et-lune",
@@ -98,7 +99,7 @@ export const SERIES: Serie[] = [
   { id: "ev09", blocId: "ecarlate-et-violet", code: "EV09", name: "Aventures Ensemble", releaseYear: 2025 },
 
   // Epee et Bouclier
-  { id: "eb01", blocId: "epee-et-bouclier", code: "EB01", name: "Epee et Bouclier", releaseYear: 2020 },
+  { id: "eb01", blocId: "epee-et-bouclier", code: "EB01", name: "Epee et Bouclier", releaseYear: 2020, image: "/blocs/SWSH1.png", },
   { id: "eb05", blocId: "epee-et-bouclier", code: "EB05", name: "Styles de Combat", releaseYear: 2021 },
   { id: "eb07", blocId: "epee-et-bouclier", code: "EB07", name: "Evolution Celeste", releaseYear: 2021 },
   { id: "eb10", blocId: "epee-et-bouclier", code: "EB10", name: "Astres Radieux", releaseYear: 2022 },
