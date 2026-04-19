@@ -8,7 +8,7 @@ export default function SiteBackground() {
       <img
         src="/logo.jpg"
         alt=""
-        className="opacity-15 max-w-[80%] max-h-[80%] object-contain"
+        className="opacity-30 max-w-[80%] max-h-[80%] object-contain"
       />
     </div>
   );
