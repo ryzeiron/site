@@ -45,3 +45,16 @@ body {
 .splash-spin {
   animation: splashSpin 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  animation: marquee 40s linear infinite;
+  width: max-content;
+}
+.marquee-container:hover .marquee-track {
+  animation-play-state: paused;
+}

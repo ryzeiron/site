@@ -4,7 +4,8 @@ import CardTile from "@/components/CardTile";
 import { BLOCS, featuredCards } from "@/lib/catalog";
 
 export default function HomePage() {
-  const top = featuredCards(8);
+  const top = featuredCards(12);
+  const loop = [...top, ...top];
   return (
     <div className="space-y-12">
       <section className="rounded-2xl bg-gradient-to-br from-violet-900/60 via-purple-900/50 to-zinc-950/70 backdrop-blur-sm border border-white/10 p-6 md:p-10 text-gray-100">
@@ -24,10 +25,14 @@ export default function HomePage() {
             Tout parcourir
           </Link>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {top.map((c) => (
-            <CardTile key={c.id} card={c} />
-          ))}
+        <div className="marquee-container relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+          <div className="marquee-track flex gap-4">
+            {loop.map((c, i) => (
+              <div key={`${c.id}-${i}`} className="w-48 sm:w-56 shrink-0">
+                <CardTile card={c} />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
