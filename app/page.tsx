@@ -4,29 +4,30 @@ import CardTile from "@/components/CardTile";
 import { BLOCS, featuredCards } from "@/lib/catalog";
 
 export default function HomePage() {
+  const top = featuredCards(8);
   return (
     <div className="space-y-12">
-      <section className="rounded-2xl bg-gradient-to-br from-violet-900/60 via-purple-900/50 to-zinc-950/70 backdrop-blur-sm border border-white/10 p-8 md:p-12 text-gray-100">
-        <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
-          Cartes Pokemon a l&apos;unite
-        </h1>
-        <p className="mt-3 max-w-2xl text-gray-300">
-          Collection triee par blocs et series. Des classiques XY aux dernieres sorties
-          Ecarlate et Violet, trouve la carte qu&apos;il te manque.
-        </p>
-        <div className="mt-6 flex gap-3">
+      <section className="rounded-2xl bg-gradient-to-br from-violet-900/60 via-purple-900/50 to-zinc-950/70 backdrop-blur-sm border border-white/10 p-6 md:p-10 text-gray-100">
+        <div className="flex items-end justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+              Nos meilleures cartes
+            </h1>
+            <p className="mt-2 text-gray-300">
+              Les pieces les plus recherchees de la boutique.
+            </p>
+          </div>
           <Link
             href="/blocs"
-            className="rounded-full bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 font-medium transition"
+            className="hidden sm:inline-flex rounded-full bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 font-medium transition"
           >
-            Parcourir les blocs
+            Tout parcourir
           </Link>
-          <Link
-            href="/contact"
-            className="rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-3 font-medium transition"
-          >
-            Nous contacter
-          </Link>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {top.map((c) => (
+            <CardTile key={c.id} card={c} />
+          ))}
         </div>
       </section>
 
@@ -40,15 +41,6 @@ export default function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {BLOCS.slice(0, 3).map((b) => (
             <BlocTile key={b.id} bloc={b} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-2xl font-bold mb-4 text-white">Cartes en vedette</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {featuredCards(8).map((c) => (
-            <CardTile key={c.id} card={c} />
           ))}
         </div>
       </section>
