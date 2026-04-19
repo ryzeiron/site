@@ -17,7 +17,7 @@ export default function HomePage() {
         <div className="mt-6 flex gap-3">
           <Link
             href="/blocs"
-            className="rounded-full bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 font-medium"
+            className="rounded-full bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 font-medium transition"
           >
             Parcourir les blocs
           </Link>
@@ -33,7 +33,7 @@ export default function HomePage() {
       <section>
         <div className="flex items-end justify-between mb-4">
           <h2 className="text-2xl font-bold text-white">Les blocs</h2>
-          <Link href="/blocs" className="text-sm text-brand-500 hover:underline">
+          <Link href="/blocs" className="text-sm text-violet-400 hover:text-violet-300 hover:underline">
             Voir tout
           </Link>
         </div>
