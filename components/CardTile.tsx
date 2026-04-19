@@ -21,7 +21,7 @@ export default function CardTile({ card }: { card: Card }) {
         )}
       </div>
       <div className="p-3">
-        <div className="text-xs text-gray-500">n {card.number} - {card.rarity}</div>
+        <div className="text-xs text-gray-500">{card.number} - {card.rarity}</div>
         <div className="font-semibold truncate text-white">{card.name}</div>
         <div className="flex items-center justify-between mt-2">
           <span className="font-bold text-brand-500">{formatPrice(card.priceCents)}</span>

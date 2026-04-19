@@ -69,7 +69,7 @@ export default async function CardPage({
 
         <div>
           <div className="text-sm text-gray-400">
-            {serie?.code} - n {card.number}
+            {serie?.code} - {card.number}
           </div>
           <h1 className="text-3xl font-bold mt-1 text-white">{card.name}</h1>
           <div className="mt-2 flex flex-wrap gap-2 text-xs">

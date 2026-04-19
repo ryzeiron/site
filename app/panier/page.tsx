@@ -88,7 +88,7 @@ export default function CartPage() {
                   {card.name}
                 </Link>
                 <div className="text-xs text-gray-400">
-                  n {card.number} - {card.rarity} - {card.condition}
+                  {card.number} - {card.rarity} - {card.condition}
                 </div>
                 <div className="text-sm mt-1 text-gray-200">{formatPrice(card.priceCents)}</div>
               </div>
