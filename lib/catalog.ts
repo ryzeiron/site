@@ -149,17 +149,17 @@ export const CARDS: Card[] = [
   //   - Si tu ne mets pas de champ "image", le nom s'affiche a la place.
   // ===========================================================
   {
-    id: "ev09-exemple",                // identifiant unique (bloc-serie-numero suffit)
+    id: "ev09-001",                // identifiant unique (bloc-serie-numero suffit)
     serieId: "ev09",                   // la carte appartient a la serie EV09
-    name: "TEST",           // ex: "Pikachu ex"
+    name: "Chenipan",           // ex: "Pikachu ex"
     number: "001/159",                 // numero imprime sur la carte
-    rarity: "Rare Holo",               // rarete (voir type Rarity)
+    rarity: "Commune",               // rarete (voir type Rarity)
     condition: "Near Mint",            // etat de la carte (voir type Condition)
     language: "FR",                    // langue : FR, EN ou JP
-    priceCents: 100000,                // prix en centimes : 1000 = 10,00 EUR
+    priceCents: 0.50,                // prix en centimes : 1000 = 10,00 EUR
     stock: 1,                          // nombre d'exemplaires en stock
-    image: "/cartes/TEST.jpg", // photo de la carte
-    description: "Description libre de la carte (facultatif).",
+    image: "/cartes/chenipan.jpg", // photo de la carte
+  //  description: "Description libre de la carte (facultatif).", //
   },
 
   // EV09 - Aventures Ensemble
