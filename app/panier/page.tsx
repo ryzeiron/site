@@ -40,14 +40,14 @@ export default function CartPage() {
   }
 
   if (!mounted) {
-    return <div className="py-12 text-center text-gray-500">Chargement du panier...</div>;
+    return <div className="py-12 text-center text-gray-400">Chargement du panier...</div>;
   }
 
   if (items.length === 0) {
     return (
       <div className="py-12 text-center">
-        <h1 className="text-2xl font-bold">Votre panier est vide</h1>
-        <p className="mt-2 text-gray-600">Decouvrez nos cartes par bloc.</p>
+        <h1 className="text-2xl font-bold text-white">Votre panier est vide</h1>
+        <p className="mt-2 text-gray-300">Decouvrez nos cartes par bloc.</p>
         <Link
           href="/blocs"
           className="mt-6 inline-block rounded-full bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 font-medium"
@@ -60,7 +60,7 @@ export default function CartPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold">Votre panier</h1>
+      <h1 className="text-3xl font-bold text-white">Votre panier</h1>
 
       <div className="mt-6 space-y-3">
         {items.map((item) => {
@@ -69,9 +69,9 @@ export default function CartPage() {
           return (
             <div
               key={item.cardId}
-              className="flex items-center gap-4 rounded-lg border border-amber-100 bg-white p-4"
+              className="flex items-center gap-4 rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-4 text-gray-200"
             >
-              <div className="w-16 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded flex items-center justify-center text-xs font-semibold text-amber-800 text-center px-1 overflow-hidden">
+              <div className="w-16 h-20 bg-gradient-to-br from-zinc-800 to-zinc-950 rounded flex items-center justify-center text-xs font-semibold text-gray-300 text-center px-1 overflow-hidden">
                 {card.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -84,41 +84,41 @@ export default function CartPage() {
                 )}
               </div>
               <div className="flex-1">
-                <Link href={`/carte/${card.id}`} className="font-semibold hover:underline">
+                <Link href={`/carte/${card.id}`} className="font-semibold hover:underline text-white">
                   {card.name}
                 </Link>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-400">
                   n {card.number} - {card.rarity} - {card.condition}
                 </div>
-                <div className="text-sm mt-1">{formatPrice(card.priceCents)}</div>
+                <div className="text-sm mt-1 text-gray-200">{formatPrice(card.priceCents)}</div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setQuantity(card.id, item.quantity - 1)}
-                  className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200"
+                  className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white"
                   aria-label="Diminuer"
                 >
                   -
                 </button>
-                <span className="w-8 text-center">{item.quantity}</span>
+                <span className="w-8 text-center text-white">{item.quantity}</span>
                 <button
                   type="button"
                   onClick={() => setQuantity(card.id, item.quantity + 1)}
                   disabled={item.quantity >= card.stock}
-                  className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                  className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white"
                   aria-label="Augmenter"
                 >
                   +
                 </button>
               </div>
-              <div className="w-20 text-right font-semibold">
+              <div className="w-20 text-right font-semibold text-white">
                 {formatPrice(card.priceCents * item.quantity)}
               </div>
               <button
                 type="button"
                 onClick={() => remove(card.id)}
-                className="text-xs text-gray-500 hover:text-red-600"
+                className="text-xs text-gray-400 hover:text-red-400"
               >
                 Retirer
               </button>
@@ -127,17 +127,17 @@ export default function CartPage() {
         })}
       </div>
 
-      <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+      <div className="mt-6 rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-4 text-gray-200">
         <div className="flex items-center justify-between text-lg">
           <span>Total</span>
-          <strong>{formatPrice(totalCents)}</strong>
+          <strong className="text-white">{formatPrice(totalCents)}</strong>
         </div>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-400 mt-1">
           Les frais de livraison sont calcules a l&apos;etape de paiement.
         </p>
 
         {error && (
-          <p className="mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2">
+          <p className="mt-3 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded p-2">
             {error}
           </p>
         )}
@@ -154,7 +154,7 @@ export default function CartPage() {
           <button
             type="button"
             onClick={() => clear()}
-            className="rounded-full bg-white border border-gray-300 hover:bg-gray-50 px-6 py-3 text-sm"
+            className="rounded-full bg-white/10 border border-white/20 hover:bg-white/20 text-white px-6 py-3 text-sm"
           >
             Vider le panier
           </button>

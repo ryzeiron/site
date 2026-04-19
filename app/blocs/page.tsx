@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 export default function BlocsPage() {
   return (
     <div>
-      <h1 className="text-3xl font-bold">Les blocs Pokemon</h1>
-      <p className="text-gray-600 mt-2">
+      <h1 className="text-3xl font-bold text-white">Les blocs Pokemon</h1>
+      <p className="text-gray-300 mt-2">
         Chaque bloc correspond a une generation de cartes. Clique pour voir les
         series et les cartes disponibles a la vente.
       </p>

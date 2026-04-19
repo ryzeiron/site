@@ -3,8 +3,8 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="py-16 text-center">
-      <h1 className="text-3xl font-bold">Page introuvable</h1>
-      <p className="mt-2 text-gray-600">
+      <h1 className="text-3xl font-bold text-white">Page introuvable</h1>
+      <p className="mt-2 text-gray-300">
         Cette page n&apos;existe pas ou a ete deplacee.
       </p>
       <Link

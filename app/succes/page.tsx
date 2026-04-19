@@ -12,8 +12,8 @@ export default function SuccessPage() {
 
   return (
     <div className="py-16 text-center">
-      <h1 className="text-3xl font-bold">Merci pour votre commande !</h1>
-      <p className="mt-3 text-gray-600 max-w-xl mx-auto">
+      <h1 className="text-3xl font-bold text-white">Merci pour votre commande !</h1>
+      <p className="mt-3 text-gray-300 max-w-xl mx-auto">
         Le paiement a bien ete recu. Vous allez recevoir un email de confirmation.
         Votre commande sera expediee sous 48h.
       </p>

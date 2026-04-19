@@ -3,8 +3,8 @@ import Link from "next/link";
 export default function CancelPage() {
   return (
     <div className="py-16 text-center">
-      <h1 className="text-3xl font-bold">Paiement annule</h1>
-      <p className="mt-3 text-gray-600 max-w-xl mx-auto">
+      <h1 className="text-3xl font-bold text-white">Paiement annule</h1>
+      <p className="mt-3 text-gray-300 max-w-xl mx-auto">
         Aucun montant n&apos;a ete preleve. Votre panier est toujours disponible
         si vous souhaitez reprendre votre commande.
       </p>
@@ -17,7 +17,7 @@ export default function CancelPage() {
         </Link>
         <Link
           href="/"
-          className="rounded-full bg-white border border-gray-300 hover:bg-gray-50 px-6 py-3"
+          className="rounded-full bg-white/10 border border-white/20 hover:bg-white/20 text-white px-6 py-3"
         >
           Accueil
         </Link>

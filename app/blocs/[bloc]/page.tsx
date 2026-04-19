@@ -32,9 +32,9 @@ export default async function BlocPage({
 
   return (
     <div>
-      <nav className="text-sm text-gray-500">
-        <Link href="/blocs" className="hover:underline">Blocs</Link> /{" "}
-        <span>{bloc.name}</span>
+      <nav className="text-sm text-gray-400">
+        <Link href="/blocs" className="hover:underline hover:text-white">Blocs</Link> /{" "}
+        <span className="text-gray-200">{bloc.name}</span>
       </nav>
       <div
         className={`relative mt-4 rounded-2xl bg-gradient-to-br ${bloc.coverColor} text-white p-8 overflow-hidden`}
@@ -55,9 +55,9 @@ export default async function BlocPage({
         </div>
       </div>
 
-      <h2 className="mt-8 text-xl font-bold">Series</h2>
+      <h2 className="mt-8 text-xl font-bold text-white">Series</h2>
       {series.length === 0 ? (
-        <p className="text-gray-500 mt-2">Aucune serie pour le moment.</p>
+        <p className="text-gray-400 mt-2">Aucune serie pour le moment.</p>
       ) : (
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {series.map((s) => (

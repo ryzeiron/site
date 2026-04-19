@@ -7,7 +7,7 @@ export default function BlocTile({ bloc }: { bloc: Bloc }) {
   return (
     <Link
       href={`/blocs/${bloc.id}`}
-      className="card-hover group relative block rounded-xl overflow-hidden shadow-sm border border-amber-100"
+      className="card-hover group relative block rounded-xl overflow-hidden shadow-sm border border-white/10 bg-zinc-900/70 backdrop-blur-sm"
     >
       <div
         className={`relative bg-gradient-to-br ${bloc.coverColor} h-40 flex items-end p-4 overflow-hidden`}
@@ -28,8 +28,8 @@ export default function BlocTile({ bloc }: { bloc: Bloc }) {
           <div className="text-2xl font-bold drop-shadow">{bloc.name}</div>
         </div>
       </div>
-      <div className="p-4 bg-white">
-        <p className="text-sm text-gray-600">{bloc.tagline}</p>
+      <div className="p-4 text-gray-200">
+        <p className="text-sm text-gray-300">{bloc.tagline}</p>
         <p className="mt-2 text-xs text-gray-500">
           {seriesCount} serie{seriesCount > 1 ? "s" : ""} disponible
           {seriesCount > 1 ? "s" : ""}

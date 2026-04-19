@@ -6,9 +6,9 @@ export default function CardTile({ card }: { card: Card }) {
   return (
     <Link
       href={`/carte/${card.id}`}
-      className="card-hover block rounded-lg border border-amber-100 bg-white overflow-hidden"
+      className="card-hover block rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm overflow-hidden text-gray-200"
     >
-      <div className="aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-amber-800 font-semibold overflow-hidden">
+      <div className="aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center text-gray-300 font-semibold overflow-hidden">
         {card.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -22,9 +22,9 @@ export default function CardTile({ card }: { card: Card }) {
       </div>
       <div className="p-3">
         <div className="text-xs text-gray-500">n {card.number} - {card.rarity}</div>
-        <div className="font-semibold truncate">{card.name}</div>
+        <div className="font-semibold truncate text-white">{card.name}</div>
         <div className="flex items-center justify-between mt-2">
-          <span className="font-bold text-brand-700">{formatPrice(card.priceCents)}</span>
+          <span className="font-bold text-brand-500">{formatPrice(card.priceCents)}</span>
           <span className="text-xs text-gray-500">{card.condition}</span>
         </div>
       </div>
