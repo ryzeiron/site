@@ -149,7 +149,7 @@ export const CARDS: Card[] = [
   //   - Si tu ne mets pas de champ "image", le nom s'affiche a la place.
   // ===========================================================
   {
-    id: "ev09-001",                // identifiant unique (bloc-serie-numero suffit)
+    id: "ev09-000",                // identifiant unique (bloc-serie-numero suffit)
     serieId: "ev09",                   // la carte appartient a la serie EV09
     name: "Chenipan",           // ex: "Pikachu ex"
     number: "001/159",                 // numero imprime sur la carte
