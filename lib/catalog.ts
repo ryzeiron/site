@@ -42,12 +42,22 @@ export type Card = {
   description?: string;
 };
 
+// ===========================================================
+// POUR AJOUTER UNE IMAGE A UN BLOC :
+//   - Ajoute une ligne image: "..." dans l'objet du bloc
+//   - Soit un fichier depose dans public/cartes/ (ou public/blocs/) :
+//       image: "/blocs/ecarlate-violet.jpg"
+//   - Soit une URL d'image deja en ligne :
+//       image: "https://exemple.com/photo.jpg"
+//   - Si tu n'en mets pas, le degrade de couleur coverColor s'affiche tout seul.
+// ===========================================================
 export const BLOCS: Bloc[] = [
   {
     id: "ecarlate-et-violet",
     name: "Ecarlate et Violet",
     tagline: "La 9e generation, de Paldea aux DLC.",
     coverColor: "from-rose-500 to-violet-600",
+    image: "/blocs/ecarlate-et-violet.jpg", // exemple - remplace par ta propre image
   },
   {
     id: "epee-et-bouclier",

@@ -10,9 +10,20 @@ export default function BlocTile({ bloc }: { bloc: Bloc }) {
       className="card-hover group relative block rounded-xl overflow-hidden shadow-sm border border-amber-100"
     >
       <div
-        className={`bg-gradient-to-br ${bloc.coverColor} h-40 flex items-end p-4`}
+        className={`relative bg-gradient-to-br ${bloc.coverColor} h-40 flex items-end p-4 overflow-hidden`}
       >
-        <div className="text-white">
+        {bloc.image && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={bloc.image}
+            alt={bloc.name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+        {bloc.image && (
+          <div className="absolute inset-0 bg-black/40" />
+        )}
+        <div className="relative text-white">
           <div className="text-xs uppercase opacity-80">Bloc</div>
           <div className="text-2xl font-bold drop-shadow">{bloc.name}</div>
         </div>

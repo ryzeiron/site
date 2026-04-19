@@ -37,11 +37,22 @@ export default async function BlocPage({
         <span>{bloc.name}</span>
       </nav>
       <div
-        className={`mt-4 rounded-2xl bg-gradient-to-br ${bloc.coverColor} text-white p-8`}
+        className={`relative mt-4 rounded-2xl bg-gradient-to-br ${bloc.coverColor} text-white p-8 overflow-hidden`}
       >
-        <div className="text-xs uppercase opacity-80">Bloc</div>
-        <h1 className="text-3xl md:text-4xl font-bold">{bloc.name}</h1>
-        <p className="mt-2 opacity-90 max-w-2xl">{bloc.tagline}</p>
+        {bloc.image && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={bloc.image}
+            alt={bloc.name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+        {bloc.image && <div className="absolute inset-0 bg-black/50" />}
+        <div className="relative">
+          <div className="text-xs uppercase opacity-80">Bloc</div>
+          <h1 className="text-3xl md:text-4xl font-bold">{bloc.name}</h1>
+          <p className="mt-2 opacity-90 max-w-2xl">{bloc.tagline}</p>
+        </div>
       </div>
 
       <h2 className="mt-8 text-xl font-bold">Series</h2>
