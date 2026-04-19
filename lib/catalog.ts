@@ -156,7 +156,7 @@ export const CARDS: Card[] = [
     rarity: "Commune",               // rarete (voir type Rarity)
     condition: "Near Mint",            // etat de la carte (voir type Condition)
     language: "FR",                    // langue : FR, EN ou JP
-    priceCents: 0.50,                // prix en centimes : 1000 = 10,00 EUR
+    priceCents: 50,                // prix en centimes : 1000 = 10,00 EUR
     stock: 1,                          // nombre d'exemplaires en stock
     image: "/cartes/chenipan.jpg", // photo de la carte
   //  description: "Description libre de la carte (facultatif).", //
