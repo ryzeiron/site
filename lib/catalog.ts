@@ -298,7 +298,7 @@ export const CARDS: Card[] = [
   { id: "crown-zenith-008", serieId: "crown-zenith", name: "Yanma", number: "008/230", rarity: "Commune", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, "/cartes/8.jpg" },
   { id: "crown-zenith-009", serieId: "crown-zenith", name: "Yanmega", number: "009/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, "/cartes/9.jpg" },
   { id: "crown-zenith-010", serieId: "crown-zenith", name: "Crikzik", number: "010/230", rarity: "Commune", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, "/cartes/10.jpg" },
-  { id: "crown-zenith-011", serieId: "crown-zenith", name: "Carte 11", number: "011/230", rarity: "Commune", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1 },
+  { id: "crown-zenith-011", serieId: "crown-zenith", name: "TEST", number: "011/230", rarity: "Commune", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1 },
   { id: "crown-zenith-012", serieId: "crown-zenith", name: "Carte 12", number: "012/230", rarity: "Commune", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1 },
   { id: "crown-zenith-013", serieId: "crown-zenith", name: "Carte 13", number: "013/230", rarity: "Commune", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1 },
   { id: "crown-zenith-014", serieId: "crown-zenith", name: "Carte 14", number: "014/230", rarity: "Commune", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1 },
