@@ -130,6 +130,13 @@ export const CARDS: Card[] = [
   //   8. "condition" doit etre l'une des valeurs du type Condition (ligne 6)
   //   9. "language" : "FR", "EN" ou "JP"
   //  10. Sauvegarde le fichier -> le site se met a jour automatiquement
+  //
+  // POUR AJOUTER UNE PHOTO DE CARTE :
+  //   - Option A (la plus simple) : mets ta photo dans le dossier public/cartes/
+  //     puis ecris image: "/cartes/mon-fichier.jpg"
+  //   - Option B : utilise une URL d'image deja en ligne, ex:
+  //     image: "https://images.pokemontcg.io/sv8/6_hires.png"
+  //   - Si tu ne mets pas de champ "image", le nom s'affiche a la place.
   // ===========================================================
   {
     id: "ev09-exemple",                // identifiant unique (bloc-serie-numero suffit)
@@ -139,8 +146,9 @@ export const CARDS: Card[] = [
     rarity: "Rare Holo",               // rarete (voir type Rarity)
     condition: "Near Mint",            // etat de la carte (voir type Condition)
     language: "FR",                    // langue : FR, EN ou JP
-    priceCents: 100000,                  // prix en centimes : 1000 = 10,00 EUR
+    priceCents: 100000,                // prix en centimes : 1000 = 10,00 EUR
     stock: 1,                          // nombre d'exemplaires en stock
+    image: "https://images.pokemontcg.io/sv8/6_hires.png", // photo de la carte
     description: "Description libre de la carte (facultatif).",
   },
 

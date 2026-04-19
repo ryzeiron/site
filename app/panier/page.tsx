@@ -71,8 +71,17 @@ export default function CartPage() {
               key={item.cardId}
               className="flex items-center gap-4 rounded-lg border border-amber-100 bg-white p-4"
             >
-              <div className="w-16 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded flex items-center justify-center text-xs font-semibold text-amber-800 text-center px-1">
-                {card.name}
+              <div className="w-16 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded flex items-center justify-center text-xs font-semibold text-amber-800 text-center px-1 overflow-hidden">
+                {card.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={card.image}
+                    alt={card.name}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <span>{card.name}</span>
+                )}
               </div>
               <div className="flex-1">
                 <Link href={`/carte/${card.id}`} className="font-semibold hover:underline">

@@ -8,8 +8,17 @@ export default function CardTile({ card }: { card: Card }) {
       href={`/carte/${card.id}`}
       className="card-hover block rounded-lg border border-amber-100 bg-white overflow-hidden"
     >
-      <div className="aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-amber-800 font-semibold">
-        {card.name}
+      <div className="aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-amber-800 font-semibold overflow-hidden">
+        {card.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={card.image}
+            alt={card.name}
+            className="w-full h-full object-contain"
+          />
+        ) : (
+          <span className="px-2 text-center">{card.name}</span>
+        )}
       </div>
       <div className="p-3">
         <div className="text-xs text-gray-500">n {card.number} - {card.rarity}</div>

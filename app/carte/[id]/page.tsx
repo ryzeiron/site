@@ -54,8 +54,17 @@ export default async function CardPage({
       )}
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center text-amber-900 text-2xl font-bold">
-          {card.name}
+        <div className="aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center text-amber-900 text-2xl font-bold overflow-hidden">
+          {card.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={card.image}
+              alt={card.name}
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <span className="px-4 text-center">{card.name}</span>
+          )}
         </div>
 
         <div>
