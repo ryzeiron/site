@@ -14,8 +14,8 @@ export default function ContactPage() {
       <div className="mt-8 rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-6 space-y-3 text-gray-200">
         <div>
           <div className="text-xs uppercase text-gray-400">Email</div>
-          <a href="mailto:Del6.2@gmail.com" className="text-brand-500 hover:underline">
-            Del6.2@gmail.com
+          <a href="mailto:Del6.2pokemon@gmail.com" className="text-brand-500 hover:underline">
+            Del6.2pokemon@gmail.com
           </a>
         </div>
       </div>
