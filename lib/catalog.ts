@@ -92,15 +92,33 @@ export const BLOCS: Bloc[] = [
     tagline: "Unys, ere des Pokemon EX modernes.",
     coverColor: "from-slate-600 to-slate-900",
   },
+  {
+    id: "appel-des-legendes",
+    name: "L'appel Des Legendes",
+    tagline: "Unys, ere des Pokemon EX modernes.",
+    coverColor: "from-slate-600 to-slate-900",
+  },
+  {
+    id: "heartgold-soulsilver",
+    name: "HeartGold SoulSilver",
+    tagline: "Unys, ere des Pokemon EX modernes.",
+    coverColor: "from-slate-600 to-slate-900",
+  },
+  {
+    id: "platine",
+    name: "Platine",
+    tagline: "Unys, ere des Pokemon EX modernes.",
+    coverColor: "from-slate-600 to-slate-900",
+  },
 ];
 
 export const SERIES: Serie[] = [
   // Mega Evolution
-  { id: "me01", blocId: "mega-evolution", code: "me01", name: "Mega-Evolution", releaseYear: 2025 },
-  { id: "me02", blocId: "mega-evolution", code: "me02", name: "Flammes Fantasmagoriques", releaseYear: 2025 },
-  { id: "me02.5", blocId: "mega-evolution", code: "m02.5", name: "Heros Transcendants", releaseYear: 2026 },
-  { id: "me03", blocId: "mega-evolution", code: "me03", name: "Equilibre Parfait", releaseYear: 2026 },
-  { id: "me04", blocId: "mega-evolution", code: "me04", name: "Chaos Ascendant", releaseYear: 2026 },
+  { id: "me01", blocId: "mega-evolution", code: "ME01", name: "Mega-Evolution", releaseYear: 2025 },
+  { id: "me02", blocId: "mega-evolution", code: "ME02", name: "Flammes Fantasmagoriques", releaseYear: 2025 },
+  { id: "me02.5", blocId: "mega-evolution", code: "ME02.5", name: "Heros Transcendants", releaseYear: 2026 },
+  { id: "me03", blocId: "mega-evolution", code: "ME03", name: "Equilibre Parfait", releaseYear: 2026 },
+  { id: "me04", blocId: "mega-evolution", code: "ME04", name: "Chaos Ascendant", releaseYear: 2026 },
   
   // Ecarlate et Violet
   { id: "ev01", blocId: "ecarlate-et-violet", code: "EV01", name: "Ecarlate et Violet", releaseYear: 2023 },
@@ -139,21 +157,65 @@ export const SERIES: Serie[] = [
 
   // Soleil et Lune
   { id: "sl01", blocId: "soleil-et-lune", code: "SL01", name: "Soleil et Lune", releaseYear: 2017 },
+  { id: "sl01.5", blocId: "soleil-et-lune", code: "SL01.5", name: "Gardiens Ascendants", releaseYear: 2017 },
+  { id: "sl02", blocId: "soleil-et-lune", code: "SL02", name: "Ombres Ardentes", releaseYear: 2017 },
   { id: "sl03", blocId: "soleil-et-lune", code: "SL03", name: "Ombres Ardentes", releaseYear: 2017 },
-  { id: "sl07", blocId: "soleil-et-lune", code: "SL07", name: "Tempete Celeste", releaseYear: 2018 },
-  { id: "sl10", blocId: "soleil-et-lune", code: "SL10", name: "Alliance Infaillible", releaseYear: 2019 },
+  { id: "sl03.5", blocId: "soleil-et-lune", code: "SL03.5", name: "Legendes Brillantes", releaseYear: 2017 },
+  { id: "sl04", blocId: "soleil-et-lune", code: "SL04", name: "Ultra Prisme", releaseYear: 2018 },
+  { id: "sl05", blocId: "soleil-et-lune", code: "SL05", name: "Lumiere Interdite", releaseYear: 2018 },
+  { id: "sl06", blocId: "soleil-et-lune", code: "SL06", name: "Tempete Celeste", releaseYear: 2018 },
+  { id: "sl06.5", blocId: "soleil-et-lune", code: "SL06.5", name: "Majeste Des Dragons", releaseYear: 2018 },
+  { id: "sl07", blocId: "soleil-et-lune", code: "SL07", name: "Tonnerre Perdu", releaseYear: 2018 },
+  { id: "sl08", blocId: "soleil-et-lune", code: "SL08", name: "Duo De Choc", releaseYear: 2019 },
+  { id: "sl09", blocId: "soleil-et-lune", code: "SL09", name: "Alliance Infaillibe", releaseYear: 2019 },
+  { id: "sl10", blocId: "soleil-et-lune", code: "SL10", name: "Harmonie Des Esprits", releaseYear: 2019 },
+  { id: "sl11", blocId: "soleil-et-lune", code: "SL11", name: "Destinees Occultes", releaseYear: 2019 },
   { id: "sl12", blocId: "soleil-et-lune", code: "SL12", name: "Eclipse Cosmique", releaseYear: 2019 },
 
   // XY
+  { id: "xy00", blocId: "xy", code: "XY00", name: "Bienvenue à Kalos", releaseYear: 2013 },
   { id: "xy01", blocId: "xy", code: "XY01", name: "XY", releaseYear: 2014 },
+  { id: "xy02", blocId: "xy", code: "XY02", name: "Etincelles", releaseYear: 2014 },
+  { id: "xy03", blocId: "xy", code: "XY03", name: "Poings Furieux", releaseYear: 2014 },
+  { id: "xy04", blocId: "xy", code: "XY04", name: "Vigueur Spectrale", releaseYear: 2014 },
+  { id: "xy05", blocId: "xy", code: "XY05", name: "Primo Choc", releaseYear: 2015 },
+  { id: "xy05.5", blocId: "xy", code: "XY05.5", name: "Double Danger", releaseYear: 2015 },
   { id: "xy06", blocId: "xy", code: "XY06", name: "Ciel Rugissant", releaseYear: 2015 },
+  { id: "xy07", blocId: "xy", code: "XY07", name: "Origines Antiques", releaseYear: 2015 },
+  { id: "xy08", blocId: "xy", code: "XY08", name: "Impulsion Turbo", releaseYear: 2015 },
   { id: "xy09", blocId: "xy", code: "XY09", name: "Rupture Turbo", releaseYear: 2016 },
+  { id: "xy09.5", blocId: "xy", code: "XY09.5", name: "Generations", releaseYear: 2016 },
+  { id: "xy10", blocId: "xy", code: "XY10", name: "Impact Des Destins", releaseYear: 2016 },
   { id: "xy11", blocId: "xy", code: "XY11", name: "Offensive Vapeur", releaseYear: 2016 },
+  { id: "xy12", blocId: "xy", code: "XY12", name: "Evolutions", releaseYear: 2016 },
 
   // Noir et Blanc
   { id: "nb01", blocId: "noir-et-blanc", code: "NB01", name: "Noir et Blanc", releaseYear: 2011 },
-  { id: "nb05", blocId: "noir-et-blanc", code: "NB05", name: "Destinees Futures", releaseYear: 2012 },
+  { id: "nb02", blocId: "noir-et-blanc", code: "NB02", name: "Pouvoirs Emergents", releaseYear: 2011 },
+  { id: "nb03", blocId: "noir-et-blanc", code: "NB03", name: "Nobles Victoires", releaseYear: 2012 },
+  { id: "nb04", blocId: "noir-et-blanc", code: "NB04", name: "Destinees Futures", releaseYear: 2012 },
+  { id: "nb05", blocId: "noir-et-blanc", code: "NB05", name: "Explorateur Obscurs", releaseYear: 2012 },
+  { id: "nb06", blocId: "noir-et-blanc", code: "NB06", name: "Dragons Exaltes", releaseYear: 2012 },
+  { id: "nb07", blocId: "noir-et-blanc", code: "NB07", name: "Coffre Des Dragon", releaseYear: 2012 },
+  { id: "nb07.5", blocId: "noir-et-blanc", code: "NB07.5", name: "Frontieres Franchies", releaseYear: 2013 },
+  { id: "nb08", blocId: "noir-et-blanc", code: "NB08", name: "Tempete Plasma", releaseYear: 2013 },
+  { id: "nb09", blocId: "noir-et-blanc", code: "NB09", name: "Glaciation Plasma", releaseYear: 2013 },
   { id: "nb10", blocId: "noir-et-blanc", code: "NB10", name: "Explosion Plasma", releaseYear: 2013 },
+
+  // L'appel Des legendes
+  { id: "hs04", blocId: "appel-des-legendes", code: "HS04", name: "L'appel Des Legendes", releaseYear: 2011 },
+
+  // HeartGold SoulSilver
+  { id: "HGSS01", blocId: "heartgold-soulsilver", code: "HGSS01", name: "HeartGold SoulSilver", releaseYear: 2010 },
+  { id: "HGSS02", blocId: "heartgold-soulsilver", code: "HGSS02", name: "Dechainement", releaseYear: 2010 },
+  { id: "HGSS03", blocId: "heartgold-soulsilver", code: "HGSS03", name: "Indomptable", releaseYear: 2010 },
+  { id: "HGSS04", blocId: "heartgold-soulsilver", code: "HGSS04", name: "Triomphe", releaseYear: 2011 },
+
+  // Platine
+  { id: "PT01", blocId: "platine", code: "PT01", name: "Platine", releaseYear: 2010 },
+  { id: "PT02", blocId: "platine", code: "PT02", name: "Rivaux Emergants", releaseYear: 2010 },
+  { id: "PT03", blocId: "platine", code: "PT03", name: "Vainqueurs ", releaseYear: 2010 },
+
 ];
 
 export const CARDS: Card[] = [
