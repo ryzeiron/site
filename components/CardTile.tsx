@@ -3,21 +3,29 @@ import type { Card } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
 export default function CardTile({ card }: { card: Card }) {
+  const outOfStock = card.stock <= 0;
   return (
     <Link
       href={`/carte/${card.id}`}
       className="card-hover block rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm overflow-hidden text-gray-200"
     >
-      <div className="aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center text-gray-300 font-semibold overflow-hidden">
+      <div className="relative aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center text-gray-300 font-semibold overflow-hidden">
         {card.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={card.image}
             alt={card.name}
-            className="w-full h-full object-contain"
+            className={`w-full h-full object-contain ${outOfStock ? "opacity-40 grayscale" : ""}`}
           />
         ) : (
           <span className="px-2 text-center">{card.name}</span>
+        )}
+        {outOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 shadow-lg -rotate-12 border-2 border-white/90">
+              Rupture
+            </span>
+          </div>
         )}
       </div>
       <div className="p-3">

@@ -71,16 +71,23 @@ export default function CartPage() {
               key={item.cardId}
               className="flex items-center gap-4 rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-4 text-gray-200"
             >
-              <div className="w-16 h-20 bg-gradient-to-br from-zinc-800 to-zinc-950 rounded flex items-center justify-center text-xs font-semibold text-gray-300 text-center px-1 overflow-hidden">
+              <div className="relative w-16 h-20 bg-gradient-to-br from-zinc-800 to-zinc-950 rounded flex items-center justify-center text-xs font-semibold text-gray-300 text-center px-1 overflow-hidden">
                 {card.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={card.image}
                     alt={card.name}
-                    className="w-full h-full object-contain"
+                    className={`w-full h-full object-contain ${card.stock <= 0 ? "opacity-40 grayscale" : ""}`}
                   />
                 ) : (
                   <span>{card.name}</span>
+                )}
+                {card.stock <= 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <span className="rounded bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 shadow -rotate-12">
+                      Rupture
+                    </span>
+                  </div>
                 )}
               </div>
               <div className="flex-1">

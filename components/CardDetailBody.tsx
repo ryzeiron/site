@@ -12,16 +12,23 @@ export default function CardDetailBody({ card }: { card: Card }) {
 
   return (
     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 border border-white/10 rounded-xl flex items-center justify-center text-gray-300 text-2xl font-bold overflow-hidden">
+      <div className="relative aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 border border-white/10 rounded-xl flex items-center justify-center text-gray-300 text-2xl font-bold overflow-hidden">
         {card.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={card.image}
             alt={card.name}
-            className="w-full h-full object-contain"
+            className={`w-full h-full object-contain ${outOfStock ? "opacity-40 grayscale" : ""}`}
           />
         ) : (
           <span className="px-4 text-center">{card.name}</span>
+        )}
+        {outOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="rounded-full bg-red-600 text-white text-base font-bold uppercase tracking-wider px-6 py-2 shadow-lg -rotate-12 border-2 border-white/90">
+              Rupture
+            </span>
+          </div>
         )}
       </div>
 
