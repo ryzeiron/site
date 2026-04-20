@@ -328,7 +328,7 @@ export const CARDS: Card[] = [
   // Zenith Supreme (EB12.5) - 230 cartes a completer
   { id: "crown-zenith-001", serieId: "crown-zenith", name: "Mystherbe", number: "001/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/1.jpg",},
   { id: "crown-zenith-002", serieId: "crown-zenith", name: "Ortide", number: "002/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/2.jpg",},
-  { id: "crown-zenith-003", serieId: "crown-zenith", name: "Joliflor", number: "003/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/3.jpg",},
+  { id: "crown-zenith-003", serieId: "crown-zenith", name: "Joliflor", number: "003/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 2, image: "/cartes/3.jpg", rareHolo: { priceCents: 250, stock: 1 }, },
   { id: "crown-zenith-004", serieId: "crown-zenith", name: "Saquedeneu", number: "004/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/4.jpg",},
   { id: "crown-zenith-005", serieId: "crown-zenith", name: "Bouldeneu", number: "005/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/5.jpg", },
   { id: "crown-zenith-006", serieId: "crown-zenith", name: "Insécateur", number: "006/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image:"/cartes/6.jpg",},
