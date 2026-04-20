@@ -54,7 +54,7 @@ export type Card = {
 // ===========================================================
 export const BLOCS: Bloc[] = [
   {
-    id: "Mega-evolution",
+    id: "mega-evolution",
     name: "Mega Evolution",
     tagline: "2025 - 2028",
     coverColor: "from-amber-400 to-orange-600",
@@ -96,11 +96,11 @@ export const BLOCS: Bloc[] = [
 
 export const SERIES: Serie[] = [
   // Mega Evolution
-  { id: "me01", blocId: "Mega-Evolution", code: "me01", name: "Mega-Evolution", releaseYear: 2025 },
-  { id: "me02", blocId: "Mega-Evolution", code: "me02", name: "Flammes Fantasmagoriques", releaseYear: 2025 },
-  { id: "me02.5", blocId: "Mega-Evolution", code: "m02.5", name: "Heros Transcendants", releaseYear: 2026 },
-  { id: "me03", blocId: "Mega-Evolution", code: "me03", name: "Equilibre Parfait", releaseYear: 2026 },
-  { id: "me04", blocId: "Mega-Evolution", code: "me04", name: "Chaos Ascendant", releaseYear: 2026 },
+  { id: "me01", blocId: "mega-evolution", code: "me01", name: "Mega-Evolution", releaseYear: 2025 },
+  { id: "me02", blocId: "mega-evolution", code: "me02", name: "Flammes Fantasmagoriques", releaseYear: 2025 },
+  { id: "me02.5", blocId: "mega-evolution", code: "m02.5", name: "Heros Transcendants", releaseYear: 2026 },
+  { id: "me03", blocId: "mega-evolution", code: "me03", name: "Equilibre Parfait", releaseYear: 2026 },
+  { id: "me04", blocId: "mega-evolution", code: "me04", name: "Chaos Ascendant", releaseYear: 2026 },
   
   // Ecarlate et Violet
   { id: "ev01", blocId: "ecarlate-et-violet", code: "EV01", name: "Ecarlate et Violet", releaseYear: 2023 },
