@@ -54,6 +54,12 @@ export type Card = {
 // ===========================================================
 export const BLOCS: Bloc[] = [
   {
+    id: "Mega-evolution",
+    name: "Mega Evolution",
+    tagline: "2025 - 2028",
+    coverColor: "from-amber-400 to-orange-600",
+  },
+  {
     id: "ecarlate-et-violet",
     name: "Ecarlate et Violet",
     tagline: "2023 - 2025 ",
@@ -89,6 +95,13 @@ export const BLOCS: Bloc[] = [
 ];
 
 export const SERIES: Serie[] = [
+  // Mega Evolution
+  { id: "me01", blocId: "ecarlate-et-violet", code: "me01", name: "Mega-Evolution", releaseYear: 2025 },
+  { id: "me02", blocId: "ecarlate-et-violet", code: "me02", name: "Flammes Fantasmagoriques", releaseYear: 2025 },
+  { id: "me02.5", blocId: "ecarlate-et-violet", code: "m02.5", name: "Heros Transcendants", releaseYear: 2026 },
+  { id: "me03", blocId: "ecarlate-et-violet", code: "me03", name: "Equilibre Parfait", releaseYear: 2026 },
+  { id: "me04", blocId: "ecarlate-et-violet", code: "me04", name: "Chaos Ascendant", releaseYear: 2026 },
+  
   // Ecarlate et Violet
   { id: "ev01", blocId: "ecarlate-et-violet", code: "EV01", name: "Ecarlate et Violet", releaseYear: 2023 },
   { id: "ev02", blocId: "ecarlate-et-violet", code: "EV02", name: "Evolutions a Paldea", releaseYear: 2023 },
@@ -96,9 +109,14 @@ export const SERIES: Serie[] = [
   { id: "ev04", blocId: "ecarlate-et-violet", code: "EV04", name: "Faille Paradoxe", releaseYear: 2024 },
   { id: "ev05", blocId: "ecarlate-et-violet", code: "EV05", name: "Forces Temporelles", releaseYear: 2024 },
   { id: "ev06", blocId: "ecarlate-et-violet", code: "EV06", name: "Masques du Crepuscule", releaseYear: 2024 },
+  { id: "ev06.5", blocId: "ecarlate-et-violet", code: "EV06.5", name: "Fable Nebuleuse", releaseYear: 2024 },
   { id: "ev07", blocId: "ecarlate-et-violet", code: "EV07", name: "Fable Nebuleuse", releaseYear: 2024 },
   { id: "ev08", blocId: "ecarlate-et-violet", code: "EV08", name: "Etincelles Deferlantes", releaseYear: 2024 },
+  { id: "ev08.5", blocId: "ecarlate-et-violet", code: "EV08.5", name: "Evolutions Prismatiques", releaseYear: 2025 },
   { id: "ev09", blocId: "ecarlate-et-violet", code: "EV09", name: "Aventures Ensemble", releaseYear: 2025 },
+  { id: "ev10", blocId: "ecarlate-et-violet", code: "EV10", name: "Rivalites Destines", releaseYear: 2025 },
+  { id: "ev10.5", blocId: "ecarlate-et-violet", code: "EV10.5", name: "Flamme Blanche", releaseYear: 2025 },
+  { id: "ev10.5", blocId: "ecarlate-et-violet", code: "EV10.5", name: "Flamme Noire", releaseYear: 2025 },
 
   // Epee et Bouclier
   { id: "eb01", blocId: "epee-et-bouclier", code: "EB01", name: "Epee et Bouclier", releaseYear: 2020, image: "/blocs/SWSH1.jpg",},
