@@ -112,7 +112,7 @@ export const SERIES: Serie[] = [
   { id: "eb07", blocId: "epee-et-bouclier", code: "EB07", name: "Evolution Celeste", releaseYear: 2021 },
   { id: "eb07.5", blocId: "epee-et-bouclier", code: "EB07.5", name: "Celebrations", releaseYear: 2021 },
   { id: "eb08", blocId: "epee-et-bouclier", code: "EB08", name: "Poing De Fusion", releaseYear: 2021 },
-  { id: "eb9", blocId: "epee-et-bouclier", code: "EB9", name: "Stars Etincelantes", releaseYear: 2022 },
+  { id: "eb09", blocId: "epee-et-bouclier", code: "EB09", name: "Stars Etincelantes", releaseYear: 2022 },
   { id: "eb10", blocId: "epee-et-bouclier", code: "EB10", name: "Astres Radieux", releaseYear: 2022 },
   { id: "eb10.5", blocId: "epee-et-bouclier", code: "EB10.5", name: "Pokemon Go", releaseYear: 2022 },
   { id: "eb11", blocId: "epee-et-bouclier", code: "EB11", name: "Origine Perdue", releaseYear: 2022 },
