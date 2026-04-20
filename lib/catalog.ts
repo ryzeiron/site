@@ -6,6 +6,7 @@ export type Condition = "Mint" | "Near Mint" | "Excellent" | "Good" | "Played";
 export type Rarity =
   | "Reverse"
   | "Holo"
+  | "Rare Reverse"
   | "Rare Holo"
   | "Ultra Rare"
   | "Secrete";
