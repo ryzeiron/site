@@ -11,7 +11,8 @@ export default function SiteBackground() {
         loop
         muted
         playsInline
-        className="opacity-[0.45] w-[90vmin] h-[90vmin] rounded-full object-cover"
+        preload="auto"
+        className="opacity-[0.45] w-full h-full object-cover"
       />
     </div>
   );

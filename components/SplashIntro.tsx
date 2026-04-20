@@ -38,7 +38,8 @@ export default function SplashIntro() {
         loop
         muted
         playsInline
-        className="w-[60vmin] h-[60vmin] rounded-full object-cover splash-spin"
+        preload="auto"
+        className="w-[70vmin] h-[70vmin] object-contain splash-spin"
       />
     </div>
   );
