@@ -41,7 +41,42 @@ export type Card = {
   stock: number;
   image?: string;
   description?: string;
+  // Pour les cartes rares disponibles aussi en version Rare Holo :
+  // rareHolo: { priceCents: 500, stock: 1, image: "/cartes/xxx-holo.jpg" },
+  rareHolo?: { priceCents: number; stock: number; image?: string };
 };
+
+export type Variant = "base" | "holo";
+
+export type ResolvedVariant = {
+  card: Card;
+  variant: Variant;
+  priceCents: number;
+  stock: number;
+  image?: string;
+  rarityLabel: string;
+};
+
+export function resolveVariant(card: Card, variant: Variant = "base"): ResolvedVariant {
+  if (variant === "holo" && card.rareHolo) {
+    return {
+      card,
+      variant: "holo",
+      priceCents: card.rareHolo.priceCents,
+      stock: card.rareHolo.stock,
+      image: card.rareHolo.image ?? card.image,
+      rarityLabel: "Rare Holo",
+    };
+  }
+  return {
+    card,
+    variant: "base",
+    priceCents: card.priceCents,
+    stock: card.stock,
+    image: card.image,
+    rarityLabel: card.rarity,
+  };
+}
 
 // ===========================================================
 // POUR AJOUTER UNE IMAGE A UN BLOC :
