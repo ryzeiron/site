@@ -20,7 +20,7 @@ export default function HomePage() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Del6.2 en live sur Voggt"
-          className="absolute left-1/2 -translate-x-1/2 bottom-[10%] w-[15%] h-[35%] rounded-full border-2 border-white/70 hover:border-white hover:bg-white/10 transition"
+          className="absolute left-1/2 -translate-x-1/2 bottom-[10%] w-[15%] h-[20%] rounded-full border-2 border-white/70 hover:border-white hover:bg-white/10 transition"
         />
       </section>
 
