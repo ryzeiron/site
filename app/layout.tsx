@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SiteBackground from "@/components/SiteBackground";
 import SplashIntro from "@/components/SplashIntro";
+import BackButton from "@/components/BackButton";
 
 export const metadata: Metadata = {
   title: {
@@ -25,7 +26,12 @@ export default function RootLayout({
         <SiteBackground />
         <SplashIntro />
         <Header />
-        <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">{children}</main>
+        <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+          <div className="mb-4">
+            <BackButton />
+          </div>
+          {children}
+        </main>
         <Footer />
       </body>
     </html>
