@@ -6,6 +6,7 @@ import { BLOCS, featuredCards } from "@/lib/catalog";
 export default function HomePage() {
   const top = featuredCards(12);
   const loop = [...top, ...top];
+  const blocsLoop = [...BLOCS, ...BLOCS];
   return (
     <div className="space-y-12">
       <section className="relative overflow-hidden rounded-2xl border border-white/10 shadow-lg">
@@ -69,10 +70,14 @@ export default function HomePage() {
             Tout parcourir
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {BLOCS.slice(0, 3).map((b) => (
-            <BlocTile key={b.id} bloc={b} />
-          ))}
+        <div className="marquee-container relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+          <div className="marquee-track flex gap-4">
+            {blocsLoop.map((b, i) => (
+              <div key={`${b.id}-${i}`} className="w-72 sm:w-80 shrink-0">
+                <BlocTile bloc={b} />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>
