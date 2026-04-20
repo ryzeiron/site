@@ -35,7 +35,7 @@ export default function SplashIntro() {
       <img
         src="/logo.jpg"
         alt=""
-        className="w-[60vmin] h-[60vmin] object-contain splash-spin"
+        className="w-[60vmin] h-[60vmin] rounded-full object-cover splash-spin"
       />
     </div>
   );
