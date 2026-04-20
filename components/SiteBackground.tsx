@@ -4,14 +4,10 @@ export default function SiteBackground() {
       aria-hidden
       className="fixed inset-0 -z-10 pointer-events-none flex items-center justify-center overflow-hidden"
     >
-      <video
-        src="/logo.mp4"
-        poster="/logo.jpg"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo.png"
+        alt=""
         className="opacity-[0.45] w-full h-full object-cover"
       />
     </div>
