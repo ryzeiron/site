@@ -31,10 +31,13 @@ export default function SplashIntro() {
         fadingOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/logo.jpg"
-        alt=""
+      <video
+        src="/logo.mp4"
+        poster="/logo.jpg"
+        autoPlay
+        loop
+        muted
+        playsInline
         className="w-[60vmin] h-[60vmin] rounded-full object-cover splash-spin"
       />
     </div>
