@@ -33,7 +33,7 @@ export default function SplashIntro() {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/logo.png"
+        src="/logo.jpg"
         alt=""
         className="w-[70vmin] h-[70vmin] object-contain splash-spin"
       />
