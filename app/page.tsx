@@ -8,27 +8,13 @@ export default function HomePage() {
   const loop = [...top, ...top];
   return (
     <div className="space-y-12">
-      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-violet-700 via-fuchsia-600 to-violet-700 px-6 py-6 md:px-10 md:py-8 text-white shadow-lg">
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_50%,white_0,transparent_40%),radial-gradient(circle_at_80%_50%,white_0,transparent_40%)] pointer-events-none" />
-        <div className="relative flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl md:text-4xl">✨</span>
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-violet-200">
-                Bienvenue chez PokeDel
-              </p>
-              <h2 className="text-xl md:text-2xl font-extrabold">
-                La boutique des dresseurs passionnes
-              </h2>
-            </div>
-          </div>
-          <Link
-            href="/blocs"
-            className="rounded-full bg-white/15 hover:bg-white/25 border border-white/30 px-5 py-2 text-sm font-semibold backdrop-blur transition"
-          >
-            Decouvrir le catalogue
-          </Link>
-        </div>
+      <section className="overflow-hidden rounded-2xl border border-white/10 shadow-lg">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/banniere.png"
+          alt="Banniere PokeDel"
+          className="w-full h-auto block"
+        />
       </section>
 
       <section className="rounded-2xl bg-gradient-to-br from-violet-900/60 via-purple-900/50 to-zinc-950/70 backdrop-blur-sm border border-white/10 p-6 md:p-10 text-gray-100">
