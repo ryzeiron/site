@@ -102,9 +102,20 @@ export const SERIES: Serie[] = [
 
   // Epee et Bouclier
   { id: "eb01", blocId: "epee-et-bouclier", code: "EB01", name: "Epee et Bouclier", releaseYear: 2020, image: "/blocs/SWSH1.jpg",},
+  { id: "eb02", blocId: "epee-et-bouclier", code: "EB02", name: "Clash Des Rebelles", releaseYear: 2020 },
+  { id: "eb03", blocId: "epee-et-bouclier", code: "EB03", name: "Tenebres Embrasees", releaseYear: 2020 },
+  { id: "eb03.5", blocId: "epee-et-bouclier", code: "EB03.5", name: "La Voie Du Maitre", releaseYear: 2020 },
+  { id: "eb04", blocId: "epee-et-bouclier", code: "EB04", name: "Voltage Eclatant", releaseYear: 2020 },
+  { id: "eb04.5", blocId: "epee-et-bouclier", code: "EB04.5", name: "Destinees Radieuse", releaseYear: 2021 },
   { id: "eb05", blocId: "epee-et-bouclier", code: "EB05", name: "Styles de Combat", releaseYear: 2021 },
+  { id: "eb06", blocId: "epee-et-bouclier", code: "EB06", name: "Regne De Glace", releaseYear: 2021 },
   { id: "eb07", blocId: "epee-et-bouclier", code: "EB07", name: "Evolution Celeste", releaseYear: 2021 },
+  { id: "eb07.5", blocId: "epee-et-bouclier", code: "EB07.5", name: "Celebrations", releaseYear: 2021 },
+  { id: "eb08", blocId: "epee-et-bouclier", code: "EB08", name: "Poing De Fusion", releaseYear: 2021 },
+  { id: "eb9", blocId: "epee-et-bouclier", code: "EB9", name: "Stars Etincelantes", releaseYear: 2022 },
   { id: "eb10", blocId: "epee-et-bouclier", code: "EB10", name: "Astres Radieux", releaseYear: 2022 },
+  { id: "eb10.5", blocId: "epee-et-bouclier", code: "EB10.5", name: "Pokemon Go", releaseYear: 2022 },
+  { id: "eb11", blocId: "epee-et-bouclier", code: "EB11", name: "Origine Perdue", releaseYear: 2022 },
   { id: "eb12", blocId: "epee-et-bouclier", code: "EB12", name: "Tempete Argentee", releaseYear: 2022 },
   { id: "crown-zenith", blocId: "epee-et-bouclier", code: "EB12.5", name: "Zenith Supreme", releaseYear: 2023 },
 
