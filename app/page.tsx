@@ -8,12 +8,19 @@ export default function HomePage() {
   const loop = [...top, ...top];
   return (
     <div className="space-y-12">
-      <section className="overflow-hidden rounded-2xl border border-white/10 shadow-lg">
+      <section className="relative overflow-hidden rounded-2xl border border-white/10 shadow-lg">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/banniere.png"
           alt="Banniere PokeDel"
           className="w-full h-auto block"
+        />
+        <a
+          href="https://voggt.com/fr/del6.2"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Del6.2 en live sur Voggt"
+          className="absolute left-1/2 -translate-x-1/2 bottom-[6%] w-[40%] h-[14%]"
         />
       </section>
 
