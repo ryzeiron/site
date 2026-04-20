@@ -110,6 +110,18 @@ export const BLOCS: Bloc[] = [
     tagline: "Unys, ere des Pokemon EX modernes.",
     coverColor: "from-slate-600 to-slate-900",
   },
+  {
+    id: "diamant-et-perle",
+    name: "Diamant Et Perle",
+    tagline: "Unys, ere des Pokemon EX modernes.",
+    coverColor: "from-slate-600 to-slate-900",
+  },
+  {
+    id: "ex",
+    name: "EX",
+    tagline: "Unys, ere des Pokemon EX modernes.",
+    coverColor: "from-slate-600 to-slate-900",
+  },
 ];
 
 export const SERIES: Serie[] = [
@@ -212,9 +224,35 @@ export const SERIES: Serie[] = [
   { id: "HGSS04", blocId: "heartgold-soulsilver", code: "HGSS04", name: "Triomphe", releaseYear: 2011 },
 
   // Platine
-  { id: "PT01", blocId: "platine", code: "PT01", name: "Platine", releaseYear: 2010 },
-  { id: "PT02", blocId: "platine", code: "PT02", name: "Rivaux Emergants", releaseYear: 2010 },
-  { id: "PT03", blocId: "platine", code: "PT03", name: "Vainqueurs ", releaseYear: 2010 },
+  { id: "PT01", blocId: "platine", code: "PT01", name: "Platine", releaseYear: 2009 },
+  { id: "PT02", blocId: "platine", code: "PT02", name: "Rivaux Emergants", releaseYear: 2009 },
+  { id: "PT03", blocId: "platine", code: "PT03", name: "Vainqueurs Supremes", releaseYear: 2010 },
+
+  // Diamant Et Perle
+  { id: "DP01", blocId: "diamant-et-perle", code: "DP01", name: "Diamant Et Perle", releaseYear: 2007 },
+  { id: "DP01.5", blocId: "diamant-et-perle", code: "DP01.5", name: "Tresors Mysterieux", releaseYear: 2008 },
+  { id: "DP02", blocId: "diamant-et-perle", code: "DP02", name: "Merveilles Secretes", releaseYear: 2008 },
+  { id: "DP03", blocId: "diamant-et-perle", code: "DP03", name: "Duels Au Sommet", releaseYear: 2008 },
+  { id: "DP04", blocId: "diamant-et-perle", code: "DP04", name: "Aube Majestueuse", releaseYear: 2008 },
+  { id: "DP05", blocId: "diamant-et-perle", code: "DP05", name: "Eveil Des Legendes", releaseYear: 2009 },
+  { id: "DP06", blocId: "diamant-et-perle", code: "DP06", name: "Tempete", releaseYear: 2009 },
+
+  // EX
+  { id: "EX01", blocId: "ex", code: "EX01", name: "Rubis Et Saphir", releaseYear: 2003 },
+  { id: "EX02", blocId: "ex", code: "EX02", name: "Tempete De Sable", releaseYear: 2004 },
+  { id: "EX03", blocId: "ex", code: "EX03", name: "Dragon", releaseYear: 2004 },
+  { id: "EX04", blocId: "ex", code: "EX04", name: "Legendes Oubliees", releaseYear: 2005 },
+  { id: "EX05", blocId: "ex", code: "EX05", name: "Rouge Feu & Vert Feuilles", releaseYear: 2005 },
+  { id: "EX06", blocId: "ex", code: "EX06", name: "Deoxys", releaseYear: 2005 },
+  { id: "EX07", blocId: "ex", code: "EX07", name: "Team Magma vs Team Aqua", releaseYear: 2005 },
+  { id: "EX08", blocId: "ex", code: "EX08", name: "Emeraude", releaseYear: 2005 },
+  { id: "EX09", blocId: "ex", code: "EX09", name: "Forces Cachees", releaseYear: 2006 },
+  { id: "EX010", blocId: "ex", code: "EX010", name: "Especes Delta", releaseYear: 2006 },
+  { id: "EX011", blocId: "ex", code: "EX011", name: "Createur De Legendes", releaseYear: 2006 },
+  { id: "EX012", blocId: "ex", code: "EX012", name: "Fantomes Holon", releaseYear: 2006 },
+  { id: "EX013", blocId: "ex", code: "EX013", name: "Gardiens De Cristal", releaseYear: 2007 },
+  { id: "EX014", blocId: "ex", code: "EX014", name: "Iles Des Dragon", releaseYear: 2007 },
+  { id: "EX015", blocId: "ex", code: "EX015", name: "Gardiens Du Pouvoir", releaseYear: 2007 },
 
 ];
 
