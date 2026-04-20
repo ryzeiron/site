@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
-import { getCard, resolveVariant } from "@/lib/catalog";
+import { getCard } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
 export default function CartPage() {
@@ -66,17 +66,16 @@ export default function CartPage() {
         {items.map((item) => {
           const card = getCard(item.cardId);
           if (!card) return null;
-          const resolved = resolveVariant(card, item.variant);
           return (
             <div
-              key={`${item.cardId}::${item.variant}`}
+              key={item.cardId}
               className="flex items-center gap-4 rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-4 text-gray-200"
             >
               <div className="w-16 h-20 bg-gradient-to-br from-zinc-800 to-zinc-950 rounded flex items-center justify-center text-xs font-semibold text-gray-300 text-center px-1 overflow-hidden">
-                {resolved.image ? (
+                {card.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={resolved.image}
+                    src={card.image}
                     alt={card.name}
                     className="w-full h-full object-contain"
                   />
@@ -89,14 +88,14 @@ export default function CartPage() {
                   {card.name}
                 </Link>
                 <div className="text-xs text-gray-400">
-                  {card.number} - {resolved.rarityLabel} - {card.condition}
+                  {card.number} - {card.rarity} - {card.condition}
                 </div>
-                <div className="text-sm mt-1 text-gray-200">{formatPrice(resolved.priceCents)}</div>
+                <div className="text-sm mt-1 text-gray-200">{formatPrice(card.priceCents)}</div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setQuantity(card.id, item.variant, item.quantity - 1)}
+                  onClick={() => setQuantity(card.id, item.quantity - 1)}
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white"
                   aria-label="Diminuer"
                 >
@@ -105,8 +104,8 @@ export default function CartPage() {
                 <span className="w-8 text-center text-white">{item.quantity}</span>
                 <button
                   type="button"
-                  onClick={() => setQuantity(card.id, item.variant, item.quantity + 1)}
-                  disabled={item.quantity >= resolved.stock}
+                  onClick={() => setQuantity(card.id, item.quantity + 1)}
+                  disabled={item.quantity >= card.stock}
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white"
                   aria-label="Augmenter"
                 >
@@ -114,11 +113,11 @@ export default function CartPage() {
                 </button>
               </div>
               <div className="w-20 text-right font-semibold text-white">
-                {formatPrice(resolved.priceCents * item.quantity)}
+                {formatPrice(card.priceCents * item.quantity)}
               </div>
               <button
                 type="button"
-                onClick={() => remove(card.id, item.variant)}
+                onClick={() => remove(card.id)}
                 className="text-xs text-gray-400 hover:text-red-400"
               >
                 Retirer

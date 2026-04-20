@@ -6,7 +6,6 @@ export type Condition = "Mint" | "Near Mint" | "Excellent" | "Good" | "Played";
 export type Rarity =
   | "Reverse"
   | "Holo"
-  | "Rare"
   | "Rare Holo"
   | "Ultra Rare"
   | "Secrete";
@@ -41,42 +40,7 @@ export type Card = {
   stock: number;
   image?: string;
   description?: string;
-  // Pour les cartes rares disponibles aussi en version Rare Holo :
-  // rareHolo: { priceCents: 500, stock: 1, image: "/cartes/xxx-holo.jpg" },
-  rareHolo?: { priceCents: number; stock: number; image?: string };
 };
-
-export type Variant = "base" | "holo";
-
-export type ResolvedVariant = {
-  card: Card;
-  variant: Variant;
-  priceCents: number;
-  stock: number;
-  image?: string;
-  rarityLabel: string;
-};
-
-export function resolveVariant(card: Card, variant: Variant = "base"): ResolvedVariant {
-  if (variant === "holo" && card.rareHolo) {
-    return {
-      card,
-      variant: "holo",
-      priceCents: card.rareHolo.priceCents,
-      stock: card.rareHolo.stock,
-      image: card.rareHolo.image ?? card.image,
-      rarityLabel: "Rare Holo",
-    };
-  }
-  return {
-    card,
-    variant: "base",
-    priceCents: card.priceCents,
-    stock: card.stock,
-    image: card.image,
-    rarityLabel: card.rarity,
-  };
-}
 
 // ===========================================================
 // POUR AJOUTER UNE IMAGE A UN BLOC :
@@ -291,12 +255,11 @@ export const CARDS: Card[] = [
     serieId: "eb07",
     name: "Amphinobi V",
     number: "040/203",
-    rarity: "Rare",
+    rarity: "Rare Holo",
     condition: "Mint",
     language: "FR",
     priceCents: 450,
     stock: 5,
-    rareHolo: { priceCents: 450, stock: 1 },
   },
 
   // SL03 - Ombres Ardentes
@@ -329,101 +292,101 @@ export const CARDS: Card[] = [
   // Zenith Supreme (EB12.5) - 230 cartes a completer
   { id: "crown-zenith-001", serieId: "crown-zenith", name: "Mystherbe", number: "001/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/1.jpg",},
   { id: "crown-zenith-002", serieId: "crown-zenith", name: "Ortide", number: "002/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/2.jpg",},
-  { id: "crown-zenith-003", serieId: "crown-zenith", name: "Joliflor", number: "003/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 2, image: "/cartes/3.jpg", rareHolo: { priceCents: 250, stock: 1 }, },
+  { id: "crown-zenith-003", serieId: "crown-zenith", name: "Joliflor", number: "003/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 2, image: "/cartes/3.jpg" },
   { id: "crown-zenith-004", serieId: "crown-zenith", name: "Saquedeneu", number: "004/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/4.jpg",},
-  { id: "crown-zenith-005", serieId: "crown-zenith", name: "Bouldeneu", number: "005/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/5.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-005", serieId: "crown-zenith", name: "Bouldeneu", number: "005/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/5.jpg" },
   { id: "crown-zenith-006", serieId: "crown-zenith", name: "Insécateur", number: "006/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image:"/cartes/6.jpg",},
   { id: "crown-zenith-007", serieId: "crown-zenith", name: "Tournegrin", number: "007/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/7.jpg", },
   { id: "crown-zenith-008", serieId: "crown-zenith", name: "Yanma", number: "008/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/8.jpg", },
-  { id: "crown-zenith-009", serieId: "crown-zenith", name: "Yanmega", number: "009/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/9.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-009", serieId: "crown-zenith", name: "Yanmega", number: "009/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/9.jpg" },
   { id: "crown-zenith-010", serieId: "crown-zenith", name: "Crikzik", number: "010/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/10.jpg", },
   { id: "crown-zenith-011", serieId: "crown-zenith", name: "Ceribou", number: "011/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/11.jpg", },
   { id: "crown-zenith-012", serieId: "crown-zenith", name: "Vortente", number: "012/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/12.jpg", },
   { id: "crown-zenith-013", serieId: "crown-zenith", name: "Phyllali V", number: "013/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/13.jpg", },
   { id: "crown-zenith-014", serieId: "crown-zenith", name: "Phyllali Vstar", number: "014/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/14.jpg", },
   { id: "crown-zenith-015", serieId: "crown-zenith", name: "Larvibule", number: "015/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/15.jpg", },
-  { id: "crown-zenith-016", serieId: "crown-zenith", name: "Zarude", number: "016/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/16.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
-  { id: "crown-zenith-017", serieId: "crown-zenith", name: "Sylveroy", number: "017/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/17.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-016", serieId: "crown-zenith", name: "Zarude", number: "016/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/16.jpg" },
+  { id: "crown-zenith-017", serieId: "crown-zenith", name: "Sylveroy", number: "017/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/17.jpg" },
   { id: "crown-zenith-018", serieId: "crown-zenith", name: "Dracaufeu V", number: "018/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/18.jpg", },
   { id: "crown-zenith-019", serieId: "crown-zenith", name: "Dracaufeu Vstar", number: "019/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/19.jpg", },
   { id: "crown-zenith-020", serieId: "crown-zenith", name: "Dracaufeu Radieux", number: "020/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/20.jpg", },
-  { id: "crown-zenith-021", serieId: "crown-zenith", name: "Entei", number: "021/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/21.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-021", serieId: "crown-zenith", name: "Entei", number: "021/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/21.jpg" },
   { id: "crown-zenith-022", serieId: "crown-zenith", name: "Flamoutan V", number: "022/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/22.jpg", },
   { id: "crown-zenith-023", serieId: "crown-zenith", name: "Flamoutan Vstar", number: "023/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/23.jpg", },
   { id: "crown-zenith-024", serieId: "crown-zenith", name: "Pyronille", number: "024/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/24.jpg", },
-  { id: "crown-zenith-025", serieId: "crown-zenith", name: "Pyrax", number: "025/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/25.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
-  { id: "crown-zenith-026", serieId: "crown-zenith", name: "Volcanion", number: "026/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/26.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-025", serieId: "crown-zenith", name: "Pyrax", number: "025/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/25.jpg" },
+  { id: "crown-zenith-026", serieId: "crown-zenith", name: "Volcanion", number: "026/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/26.jpg" },
   { id: "crown-zenith-027", serieId: "crown-zenith", name: "Tritox", number: "027/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/27.jpg", },
   { id: "crown-zenith-028", serieId: "crown-zenith", name: "Malamandre", number: "028/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/28.jpg", },
   { id: "crown-zenith-029", serieId: "crown-zenith", name: "Otaria", number: "029/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/29.jpg", },
   { id: "crown-zenith-030", serieId: "crown-zenith", name: "M. Mime de galar", number: "030/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/30.jpg", },
   { id: "crown-zenith-031", serieId: "crown-zenith", name: "Wailmer", number: "031/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/31.jpg", },
-  { id: "crown-zenith-032", serieId: "crown-zenith", name: "Wailord", number: "032/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/32.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-032", serieId: "crown-zenith", name: "Wailord", number: "032/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/32.jpg" },
   { id: "crown-zenith-033", serieId: "crown-zenith", name: "Ecrapince", number: "033/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/33.jpg", },
   { id: "crown-zenith-034", serieId: "crown-zenith", name: "Stalgamin", number: "034/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/34.jpg", },
   { id: "crown-zenith-035", serieId: "crown-zenith", name: "Lovdisc", number: "035/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/35.jpg", },
-  { id: "crown-zenith-036", serieId: "crown-zenith", name: "Kyogre", number: "036/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/36.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-036", serieId: "crown-zenith", name: "Kyogre", number: "036/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/36.jpg" },
   { id: "crown-zenith-037", serieId: "crown-zenith", name: "Kyogre V", number: "037/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/37.jpg", },
   { id: "crown-zenith-038", serieId: "crown-zenith", name: "Givrali V", number: "038/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/38.jpg", },
   { id: "crown-zenith-039", serieId: "crown-zenith", name: "Lixy", number: "039/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/39.jpg", },
   { id: "crown-zenith-040", serieId: "crown-zenith", name: "Lixy", number: "040/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/40.jpg", },
   { id: "crown-zenith-041", serieId: "crown-zenith", name: "Luxio", number: "041/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/41.jpg", },
   { id: "crown-zenith-042", serieId: "crown-zenith", name: "Luxio", number: "042/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/42.jpg", },
-  { id: "crown-zenith-043", serieId: "crown-zenith", name: "Luxray", number: "043/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/43.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
-  { id: "crown-zenith-044", serieId: "crown-zenith", name: "Luxray", number: "044/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/44.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-043", serieId: "crown-zenith", name: "Luxray", number: "043/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/43.jpg" },
+  { id: "crown-zenith-044", serieId: "crown-zenith", name: "Luxray", number: "044/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/44.jpg" },
   { id: "crown-zenith-045", serieId: "crown-zenith", name: "Motisma V", number: "045/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/45.jpg", },
   { id: "crown-zenith-046", serieId: "crown-zenith", name: "Motisma Vstar", number: "046/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/46.jpg", },
   { id: "crown-zenith-047", serieId: "crown-zenith", name: "Emolga", number: "047/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/47.jpg", },
   { id: "crown-zenith-048", serieId: "crown-zenith", name: "Lampéroie", number: "048/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/48.jpg", },
   { id: "crown-zenith-049", serieId: "crown-zenith", name: "Galvaran", number: "049/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/49.jpg", },
-  { id: "crown-zenith-050", serieId: "crown-zenith", name: "Igulta", number: "050/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/50.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-050", serieId: "crown-zenith", name: "Igulta", number: "050/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/50.jpg" },
   { id: "crown-zenith-051", serieId: "crown-zenith", name: "Chrysapile Radieux", number: "051/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/51.jpg", },
-  { id: "crown-zenith-052", serieId: "crown-zenith", name: "Zeraora", number: "052/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/52.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-052", serieId: "crown-zenith", name: "Zeraora", number: "052/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/52.jpg" },
   { id: "crown-zenith-053", serieId: "crown-zenith", name: "Zeraora V", number: "053/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/53.jpg", },
   { id: "crown-zenith-054", serieId: "crown-zenith", name: "Zeraora Vmax", number: "054/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/54.jpg", },
   { id: "crown-zenith-055", serieId: "crown-zenith", name: "Zeraoa Vstar", number: "055/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/55.jpg", },
   { id: "crown-zenith-056", serieId: "crown-zenith", name: "Wattpik", number: "056/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/56.jpg", },
   { id: "crown-zenith-057", serieId: "crown-zenith", name: "NoeuNoeuf", number: "057/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/57.jpg", },
-  { id: "crown-zenith-058", serieId: "crown-zenith", name: "Noadkoko", number: "058/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/58.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
-  { id: "crown-zenith-059", serieId: "crown-zenith", name: "Mewtwo", number: "059/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/89.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-058", serieId: "crown-zenith", name: "Noadkoko", number: "058/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/58.jpg" },
+  { id: "crown-zenith-059", serieId: "crown-zenith", name: "Mewtwo", number: "059/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/89.jpg" },
   { id: "crown-zenith-060", serieId: "crown-zenith", name: "Mew V", number: "060/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/60.jpg", },
   { id: "crown-zenith-061", serieId: "crown-zenith", name: "Girafarig", number: "061/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/61.jpg", },
   { id: "crown-zenith-062", serieId: "crown-zenith", name: "Séléroc", number: "062/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/62.jpg", },
   { id: "crown-zenith-063", serieId: "crown-zenith", name: "Téraclope", number: "063/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/63.jpg", },
-  { id: "crown-zenith-064", serieId: "crown-zenith", name: "Tokopyon", number: "064/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/64.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-064", serieId: "crown-zenith", name: "Tokopyon", number: "064/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/64.jpg" },
   { id: "crown-zenith-065", serieId: "crown-zenith", name: "Sorcilence V", number: "065/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/65.jpg", },
   { id: "crown-zenith-066", serieId: "crown-zenith", name: "Sorcilence Vmax", number: "066/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/66.jpg", },
-  { id: "crown-zenith-067", serieId: "crown-zenith", name: "Amovénus", number: "067/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/67.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-067", serieId: "crown-zenith", name: "Amovénus", number: "067/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/67.jpg" },
   { id: "crown-zenith-068", serieId: "crown-zenith", name: "Gravalanch", number: "068/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/68.jpg", },
   { id: "crown-zenith-069", serieId: "crown-zenith", name: "Solaroc", number: "069/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/69.jpg", },
   { id: "crown-zenith-070", serieId: "crown-zenith", name: "Balbuto", number: "070/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/70.jpg", },
   { id: "crown-zenith-071", serieId: "crown-zenith", name: "Riolu", number: "071/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/71.jpg", },
   { id: "crown-zenith-072", serieId: "crown-zenith", name: "Pandespiègle", number: "072/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/72.jpg", },
   { id: "crown-zenith-073", serieId: "crown-zenith", name: "Rocabot", number: "073/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/73.jpg", },
-  { id: "crown-zenith-074", serieId: "crown-zenith", name: "Lougaroc", number: "074/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/74.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-074", serieId: "crown-zenith", name: "Lougaroc", number: "074/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/74.jpg" },
   { id: "crown-zenith-075", serieId: "crown-zenith", name: "Smogo", number: "075/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/75.jpg", },
-  { id: "crown-zenith-076", serieId: "crown-zenith", name: "Absol", number: "076/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/76.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-076", serieId: "crown-zenith", name: "Absol", number: "076/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/76.jpg" },
   { id: "crown-zenith-077", serieId: "crown-zenith", name: "Chacripan", number: "077/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/77.jpg", },
-  { id: "crown-zenith-078", serieId: "crown-zenith", name: "Léopardus", number: "078/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/78.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-078", serieId: "crown-zenith", name: "Léopardus", number: "078/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/78.jpg" },
   { id: "crown-zenith-079", serieId: "crown-zenith", name: "Escroco", number: "079/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/79.jpg", },
-  { id: "crown-zenith-080", serieId: "crown-zenith", name: "Pandarbare", number: "080/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/80.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-080", serieId: "crown-zenith", name: "Pandarbare", number: "080/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/80.jpg" },
   { id: "crown-zenith-081", serieId: "crown-zenith", name: "Venalgue", number: "081/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/81.jpg", },
-  { id: "crown-zenith-082", serieId: "crown-zenith", name: "Kravarech", number: "082/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/82.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
-  { id: "crown-zenith-083", serieId: "crown-zenith", name: "Hoopa", number: "083/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/83.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-082", serieId: "crown-zenith", name: "Kravarech", number: "082/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/82.jpg" },
+  { id: "crown-zenith-083", serieId: "crown-zenith", name: "Hoopa", number: "083/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/83.jpg" },
   { id: "crown-zenith-084", serieId: "crown-zenith", name: "Miaouss de galar", number: "084/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/84.jpg", },
-  { id: "crown-zenith-085", serieId: "crown-zenith", name: "Berserkatt de galar", number: "085/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/85.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
-  { id: "crown-zenith-086", serieId: "crown-zenith", name: "Cizayox", number: "086/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/86.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-085", serieId: "crown-zenith", name: "Berserkatt de galar", number: "085/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/85.jpg" },
+  { id: "crown-zenith-086", serieId: "crown-zenith", name: "Cizayox", number: "086/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/86.jpg" },
   { id: "crown-zenith-087", serieId: "crown-zenith", name: "Galekid", number: "087/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/87.jpg", },
   { id: "crown-zenith-088", serieId: "crown-zenith", name: "Galegon", number: "088/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/88.jpg", },
-  { id: "crown-zenith-089", serieId: "crown-zenith", name: "Galeking", number: "089/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/89.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-089", serieId: "crown-zenith", name: "Galeking", number: "089/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/89.jpg" },
   { id: "crown-zenith-090", serieId: "crown-zenith", name: "Métang", number: "090/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/90.jpg", },
   { id: "crown-zenith-091", serieId: "crown-zenith", name: "Scalpion", number: "091/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/91.jpg", },
   { id: "crown-zenith-092", serieId: "crown-zenith", name: "Scalpion", number: "092/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/92.jpg", },
   { id: "crown-zenith-093", serieId: "crown-zenith", name: "Scalproie", number: "093/230", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/93.jpg", },
-  { id: "crown-zenith-094", serieId: "crown-zenith", name: "Zcian", number: "094/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/94.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-094", serieId: "crown-zenith", name: "Zcian", number: "094/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/94.jpg" },
   { id: "crown-zenith-095", serieId: "crown-zenith", name: "Zcian V", number: "095/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/95.jpg", },
   { id: "crown-zenith-096", serieId: "crown-zenith", name: "Zcian Vstar", number: "096/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/96.jpg", },
-  { id: "crown-zenith-097", serieId: "crown-zenith", name: "Zamazenta", number: "097/230", rarity: "Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/97.jpg", rareHolo: { priceCents: 100, stock: 1 }, },
+  { id: "crown-zenith-097", serieId: "crown-zenith", name: "Zamazenta", number: "097/230", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/97.jpg" },
   { id: "crown-zenith-098", serieId: "crown-zenith", name: "Zamazenta V", number: "098/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/98.jpg", },
   { id: "crown-zenith-099", serieId: "crown-zenith", name: "Zamazenta Vstar", number: "099/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/99.jpg", },
   { id: "crown-zenith-100", serieId: "crown-zenith", name: "Rayquaza V", number: "100/230", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/100.jpg", },
