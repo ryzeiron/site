@@ -843,7 +843,6 @@ export const CARDS: Card[] = [
   { id: "flamme-noire-170", serieId: "foudre-noire", name: "Carte 170/86", number: "170/86", rarity: "Secrete", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
   { id: "flamme-noire-171", serieId: "foudre-noire", name: "Carte 171/86", number: "171/86", rarity: "Secrete", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
   { id: "flamme-noire-172", serieId: "foudre-noire", name: "Carte 172/86", number: "172/86", rarity: "Secrete", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
-  { id: "flamme-noire-173", serieId: "foudre-noire", name: "Carte 173/86", number: "173/86", rarity: "Secrete", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
 
 ];
 
