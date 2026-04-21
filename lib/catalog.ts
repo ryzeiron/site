@@ -172,7 +172,7 @@ export const SERIES: Serie[] = [
   { id: "eb05", blocId: "epee-et-bouclier", code: "EB05", name: "Styles de Combat", releaseYear: 2021 },
   { id: "eb06", blocId: "epee-et-bouclier", code: "EB06", name: "Regne De Glace", releaseYear: 2021, image: "/series/CRE.jpg", },
   { id: "eb07", blocId: "epee-et-bouclier", code: "EB07", name: "Evolution Celeste", releaseYear: 2021, image: "/series/EVS.jpg", },
-  { id: "eb07.5", blocId: "epee-et-bouclier", code: "EB07.5", name: "Celebrations", releaseYear: 2021 },
+  { id: "eb07.5", blocId: "epee-et-bouclier", code: "EB07.5", name: "Celebrations", releaseYear: 2021, image: "/series/CEL.jpg", },
   { id: "eb08", blocId: "epee-et-bouclier", code: "EB08", name: "Poing De Fusion", releaseYear: 2021, image: "/series/FST.jpg", },
   { id: "eb09", blocId: "epee-et-bouclier", code: "EB09", name: "Stars Etincelantes", releaseYear: 2022, image: "/series/BRS.jpg", },
   { id: "eb10", blocId: "epee-et-bouclier", code: "EB10", name: "Astres Radieux", releaseYear: 2022 },
