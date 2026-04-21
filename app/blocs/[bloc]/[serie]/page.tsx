@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import CardTile from "@/components/CardTile";
+import SerieCardsGrid from "@/components/SerieCardsGrid";
 import {
   SERIES,
   cardsForSerie,
@@ -61,11 +61,7 @@ export default async function SeriePage({
           Aucune carte disponible dans cette serie pour le moment.
         </p>
       ) : (
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {cards.map((c) => (
-            <CardTile key={c.id} card={c} />
-          ))}
-        </div>
+        <SerieCardsGrid cards={cards} />
       )}
     </div>
   );
