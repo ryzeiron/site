@@ -17,7 +17,7 @@ type CartState = {
   setQuantity: (cardId: string, variant: VariantKey, quantity: number) => void;
   clear: () => void;
   totalItems: () => number;
-  totalCents: () => number;
+  totalEuros: () => number;
 };
 
 export const useCart = create<CartState>()(
@@ -76,12 +76,12 @@ export const useCart = create<CartState>()(
         }),
       clear: () => set({ items: [] }),
       totalItems: () => get().items.reduce((s, i) => s + i.quantity, 0),
-      totalCents: () =>
+      totalEuros: () =>
         get().items.reduce((sum, item) => {
           const card = getCard(item.cardId);
           if (!card) return sum;
           const v = resolveVariant(card, item.variant);
-          return sum + v.priceCents * item.quantity;
+          return sum + v.price * item.quantity;
         }, 0),
     }),
     { name: "pokemon-shop-cart-v4" },

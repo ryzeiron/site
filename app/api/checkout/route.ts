@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       return {
         price_data: {
           currency: "eur",
-          unit_amount: v.priceCents,
+          unit_amount: Math.round(v.price * 100),
           product_data: {
             name: `${card.name} (${card.number}) - ${v.rarity}`,
             description: `${v.rarity} - Etat: ${card.condition} - ${card.language}`,

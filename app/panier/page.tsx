@@ -11,7 +11,7 @@ export default function CartPage() {
   const setQuantity = useCart((s) => s.setQuantity);
   const remove = useCart((s) => s.remove);
   const clear = useCart((s) => s.clear);
-  const totalCents = useCart((s) => s.totalCents());
+  const totalEuros = useCart((s) => s.totalEuros());
 
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -99,7 +99,7 @@ export default function CartPage() {
                 <div className="text-xs text-gray-400">
                   {card.number} - {v.rarity} - {card.condition}
                 </div>
-                <div className="text-sm mt-1 text-gray-200">{formatPrice(v.priceCents)}</div>
+                <div className="text-sm mt-1 text-gray-200">{formatPrice(v.price)}</div>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -122,7 +122,7 @@ export default function CartPage() {
                 </button>
               </div>
               <div className="w-20 text-right font-semibold text-white">
-                {formatPrice(v.priceCents * item.quantity)}
+                {formatPrice(v.price * item.quantity)}
               </div>
               <button
                 type="button"
@@ -139,7 +139,7 @@ export default function CartPage() {
       <div className="mt-6 rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-4 text-gray-200">
         <div className="flex items-center justify-between text-lg">
           <span>Total</span>
-          <strong className="text-white">{formatPrice(totalCents)}</strong>
+          <strong className="text-white">{formatPrice(totalEuros)}</strong>
         </div>
         <p className="text-xs text-gray-400 mt-1">
           Les frais de livraison sont calcules a l&apos;etape de paiement.

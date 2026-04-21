@@ -36,7 +36,7 @@ export default function CardTile({ card }: { card: Card }) {
         </div>
         <div className="font-semibold truncate text-white">{card.name}</div>
         <div className="flex items-center justify-between mt-2">
-          <span className="font-bold text-brand-500">{formatPrice(card.priceCents)}</span>
+          <span className="font-bold text-brand-500">{formatPrice(card.price)}</span>
           <span className="text-xs text-gray-500">{card.condition}</span>
         </div>
       </div>

@@ -24,7 +24,7 @@ function VariantBlock({
           {v.rarity}
         </span>
         <span className="text-xl font-extrabold text-brand-500">
-          {formatPrice(v.priceCents)}
+          {formatPrice(v.price)}
         </span>
       </div>
       <div className="text-xs text-gray-400 mt-2">
