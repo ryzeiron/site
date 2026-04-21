@@ -159,8 +159,8 @@ export const SERIES: Serie[] = [
   { id: "ev08.5", blocId: "ecarlate-et-violet", code: "EV08.5", name: "Evolutions Prismatiques", releaseYear: 2025 },
   { id: "ev09", blocId: "ecarlate-et-violet", code: "EV09", name: "Aventures Ensemble", releaseYear: 2025 },
   { id: "ev10", blocId: "ecarlate-et-violet", code: "EV10", name: "Rivalites Destines", releaseYear: 2025 },
-  { id: "flamme-blanche", blocId: "ecarlate-et-violet", code: "EV10.5", name: "Flamme Blanche", releaseYear: 2025 },
-  { id: "flamme-noire", blocId: "ecarlate-et-violet", code: "EV10.5", name: "Flamme Noire", releaseYear: 2025 },
+  { id: "ev10.5", blocId: "ecarlate-et-violet", code: "EV10.5", name: "Flamme Blanche", releaseYear: 2025 },
+  { id: "ev10.5(2)", blocId: "ecarlate-et-violet", code: "EV10.5", name: "Flamme Noire", releaseYear: 2025 },
 
   // Epee et Bouclier
   { id: "eb01", blocId: "epee-et-bouclier", code: "EB01", name: "Epee et Bouclier", releaseYear: 2020, image: "/series/SWSH1.jpg",},
