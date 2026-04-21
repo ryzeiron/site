@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import SiteBackground from "@/components/SiteBackground";
 import SplashIntro from "@/components/SplashIntro";
 import BackButton from "@/components/BackButton";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
   title: {
@@ -33,6 +34,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <ScrollToTop />
       </body>
     </html>
   );
