@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { getCard } from "@/lib/catalog";
+import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 
 type Body = {
-  items: { cardId: string; quantity: number }[];
+  items: { cardId: string; variant: VariantKey; quantity: number }[];
 };
 
 export async function POST(request: Request) {
@@ -17,16 +17,17 @@ export async function POST(request: Request) {
       const card = getCard(item.cardId);
       if (!card) throw new Error(`Carte introuvable : ${item.cardId}`);
       if (item.quantity <= 0) throw new Error("Quantite invalide.");
-      if (item.quantity > card.stock) {
+      const v = resolveVariant(card, item.variant);
+      if (item.quantity > v.stock) {
         throw new Error(`Stock insuffisant pour ${card.name}.`);
       }
       return {
         price_data: {
           currency: "eur",
-          unit_amount: card.priceCents,
+          unit_amount: v.priceCents,
           product_data: {
-            name: `${card.name} (${card.number})`,
-            description: `${card.rarity} - Etat: ${card.condition} - ${card.language}`,
+            name: `${card.name} (${card.number}) - ${v.rarity}`,
+            description: `${v.rarity} - Etat: ${card.condition} - ${card.language}`,
           },
         },
         quantity: item.quantity,

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
-import { getCard } from "@/lib/catalog";
+import { getCard, resolveVariant } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
 export default function CartPage() {
@@ -66,9 +66,11 @@ export default function CartPage() {
         {items.map((item) => {
           const card = getCard(item.cardId);
           if (!card) return null;
+          const v = resolveVariant(card, item.variant);
+          const outOfStock = v.stock <= 0;
           return (
             <div
-              key={item.cardId}
+              key={`${item.cardId}-${item.variant}`}
               className="flex items-center gap-4 rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-4 text-gray-200"
             >
               <div className="relative w-16 h-20 bg-gradient-to-br from-zinc-800 to-zinc-950 rounded flex items-center justify-center text-xs font-semibold text-gray-300 text-center px-1 overflow-hidden">
@@ -77,12 +79,12 @@ export default function CartPage() {
                   <img
                     src={card.image}
                     alt={card.name}
-                    className={`w-full h-full object-contain ${card.stock <= 0 ? "opacity-40 grayscale" : ""}`}
+                    className={`w-full h-full object-contain ${outOfStock ? "opacity-40 grayscale" : ""}`}
                   />
                 ) : (
                   <span>{card.name}</span>
                 )}
-                {card.stock <= 0 && (
+                {outOfStock && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <span className="rounded bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 shadow -rotate-12">
                       Rupture
@@ -95,14 +97,14 @@ export default function CartPage() {
                   {card.name}
                 </Link>
                 <div className="text-xs text-gray-400">
-                  {card.number} - {card.rarity} - {card.condition}
+                  {card.number} - {v.rarity} - {card.condition}
                 </div>
-                <div className="text-sm mt-1 text-gray-200">{formatPrice(card.priceCents)}</div>
+                <div className="text-sm mt-1 text-gray-200">{formatPrice(v.priceCents)}</div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setQuantity(card.id, item.quantity - 1)}
+                  onClick={() => setQuantity(card.id, item.variant, item.quantity - 1)}
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white"
                   aria-label="Diminuer"
                 >
@@ -111,8 +113,8 @@ export default function CartPage() {
                 <span className="w-8 text-center text-white">{item.quantity}</span>
                 <button
                   type="button"
-                  onClick={() => setQuantity(card.id, item.quantity + 1)}
-                  disabled={item.quantity >= card.stock}
+                  onClick={() => setQuantity(card.id, item.variant, item.quantity + 1)}
+                  disabled={item.quantity >= v.stock}
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white"
                   aria-label="Augmenter"
                 >
@@ -120,11 +122,11 @@ export default function CartPage() {
                 </button>
               </div>
               <div className="w-20 text-right font-semibold text-white">
-                {formatPrice(card.priceCents * item.quantity)}
+                {formatPrice(v.priceCents * item.quantity)}
               </div>
               <button
                 type="button"
-                onClick={() => remove(card.id)}
+                onClick={() => remove(card.id, item.variant)}
                 className="text-xs text-gray-400 hover:text-red-400"
               >
                 Retirer

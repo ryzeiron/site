@@ -29,6 +29,14 @@ export type Serie = {
   image?: string;
 };
 
+export type CardVariant = {
+  rarity: Rarity;
+  priceCents: number;
+  stock: number;
+};
+
+export type VariantKey = "base" | "alt";
+
 export type Card = {
   id: string;
   serieId: string;
@@ -41,7 +49,13 @@ export type Card = {
   stock: number;
   image?: string;
   description?: string;
+  altVariant?: CardVariant; // deuxieme version (ex: Rare Holo a cote d'un Rare Reverse)
 };
+
+export function resolveVariant(card: Card, key: VariantKey = "base"): CardVariant {
+  if (key === "alt" && card.altVariant) return card.altVariant;
+  return { rarity: card.rarity, priceCents: card.priceCents, stock: card.stock };
+}
 
 // ===========================================================
 // POUR AJOUTER UNE IMAGE A UN BLOC :
