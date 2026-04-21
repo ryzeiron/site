@@ -160,7 +160,7 @@ export const SERIES: Serie[] = [
   { id: "ev09", blocId: "ecarlate-et-violet", code: "EV09", name: "Aventures Ensemble", releaseYear: 2025 },
   { id: "ev10", blocId: "ecarlate-et-violet", code: "EV10", name: "Rivalites Destines", releaseYear: 2025 },
   { id: "ev10.5", blocId: "ecarlate-et-violet", code: "EV10.5", name: "Flamme Blanche", releaseYear: 2025 },
-  { id: "foudre-noire", blocId: "ecarlate-et-violet", code: "EV10.5", name: "Foudre Noire", releaseYear: 2025 },
+  { id: "foudre-noire", blocId: "ecarlate-et-violet", code: "Foudre Noire", name: "Foudre Noire", releaseYear: 2025 },
 
   // Epee et Bouclier
   { id: "eb01", blocId: "epee-et-bouclier", code: "EB01", name: "Epee et Bouclier", releaseYear: 2020, image: "/series/SWSH1.jpg",},
@@ -671,12 +671,12 @@ export const CARDS: Card[] = [
 
 
   // Flamme Noire
-  { id: "foudre-noire-001", serieId: "flamme-noire", name: "Carte 01/86", number: "01/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
-  { id: "foudre-noire-002", serieId: "flamme-noire", name: "Carte 02/86", number: "02/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
-  { id: "foudre-noire-003", serieId: "flamme-noire", name: "Carte 03/86", number: "03/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
-  { id: "foudre-noire-004", serieId: "flamme-noire", name: "Carte 04/86", number: "04/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
-  { id: "foudre-noire-005", serieId: "flamme-noire", name: "Carte 05/86", number: "05/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
-  { id: "foudre-noire-006", serieId: "flamme-noire", name: "Carte 06/86", number: "06/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
+  { id: "foudre-noire-001", serieId: "foudre-noire", name: "Carte 01/86", number: "01/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
+  { id: "foudre-noire-002", serieId: "foudre-noire", name: "Carte 02/86", number: "02/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
+  { id: "foudre-noire-003", serieId: "foudre-noire", name: "Carte 03/86", number: "03/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
+  { id: "foudre-noire-004", serieId: "foudre-noire", name: "Carte 04/86", number: "04/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
+  { id: "foudre-noire-005", serieId: "foudre-noire", name: "Carte 05/86", number: "05/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
+  { id: "foudre-noire-006", serieId: "foudre-noire", name: "Carte 06/86", number: "06/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
   { id: "foudre-noire-007", serieId: "flamme-noire", name: "Carte 07/86", number: "07/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
   { id: "foudre-noire-008", serieId: "flamme-noire", name: "Carte 08/86", number: "08/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
   { id: "foudre-noire-009", serieId: "flamme-noire", name: "Carte 09/86", number: "09/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0 },
