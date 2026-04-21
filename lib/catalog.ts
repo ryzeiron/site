@@ -671,7 +671,7 @@ export const CARDS: Card[] = [
 
 
   // Flamme Noire
-  { id: "foudre-noire-001", serieId: "foudre-noire", name: "Carte 01/86", number: "01/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0, image: "/ev10.5(2)/1.webp", },
+  { id: "foudre-noire-001", serieId: "foudre-noire", name: "Carte 01/86", number: "01/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0, image: "/cartes/ev10.5(2)/1.webp", },
   { id: "foudre-noire-002", serieId: "foudre-noire", name: "Carte 02/86", number: "02/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0, image: "/cartes/2.webp", },
   { id: "foudre-noire-003", serieId: "foudre-noire", name: "Carte 03/86", number: "03/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0, image: "/cartes/3.webp", },
   { id: "foudre-noire-004", serieId: "foudre-noire", name: "Carte 04/86", number: "04/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0, image: "/cartes/4.webp", },
