@@ -671,7 +671,9 @@ export const CARDS: Card[] = [
 
 
   // Flamme Noire
-  { id: "foudre-noire-001", serieId: "foudre-noire", name: "Vipélierre", number: "01/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 50, stock: 1, image: "/cartes/ev10.5(2)/1.webp", },
+  { id: "foudre-noire-001", serieId: "foudre-noire", name: "Vipélierre", number: "01/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 50, stock: 1, image: "/cartes/ev10.5(2)/1.webp",
+    altVariant: { rarity: "Rare Holo", priceCents: 300, stock: 1 },
+  },
   { id: "foudre-noire-002", serieId: "foudre-noire", name: "Lianaja", number: "02/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 50, stock: 1, image: "/cartes/ev10.5(2)/2.webp", },
   { id: "foudre-noire-003", serieId: "foudre-noire", name: "Majaspic V", number: "03/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 50, stock: 0, image: "/cartes/ev10.5(2)/3.webp", },
   { id: "foudre-noire-004", serieId: "foudre-noire", name: "Feuillajou", number: "04/86", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 50, stock: 1, image: "/cartes/ev10.5(2)/4.webp", },
