@@ -17,12 +17,22 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   const [selected, setSelected] = useState<Rarity | "all">("all");
 
   const availableRarities = useMemo(() => {
-    const present = new Set(cards.map((c) => c.rarity));
+    const present = new Set<Rarity>();
+    for (const c of cards) {
+      present.add(c.rarity);
+      if (c.altVariant) present.add(c.altVariant.rarity);
+    }
     return RARITY_ORDER.filter((r) => present.has(r));
   }, [cards]);
 
   const filtered =
-    selected === "all" ? cards : cards.filter((c) => c.rarity === selected);
+    selected === "all"
+      ? cards
+      : cards.filter(
+          (c) =>
+            c.rarity === selected ||
+            (c.altVariant && c.altVariant.rarity === selected),
+        );
 
   const pillBase =
     "rounded-full border px-3 py-1.5 text-xs font-medium transition";
