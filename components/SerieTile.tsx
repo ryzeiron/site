@@ -7,18 +7,32 @@ export default function SerieTile({ bloc, serie }: { bloc: Bloc; serie: Serie })
   return (
     <Link
       href={`/blocs/${bloc.id}/${serie.id}`}
-      className="card-hover block rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-4 text-gray-200"
+      className="card-hover block rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm overflow-hidden text-gray-200"
     >
       <div
-        className={`inline-block rounded bg-gradient-to-br ${bloc.coverColor} text-white text-xs font-semibold px-2 py-1`}
+        className={`relative aspect-[4/3] bg-gradient-to-br ${bloc.coverColor} overflow-hidden`}
       >
-        {serie.code}
+        {serie.image && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={serie.image}
+            alt={serie.name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
       </div>
-      <h3 className="mt-2 font-semibold text-white">{serie.name}</h3>
-      <p className="text-xs text-gray-500 mt-1">{serie.releaseYear}</p>
-      <p className="text-sm text-gray-400 mt-2">
-        {count} carte{count > 1 ? "s" : ""} en vente
-      </p>
+      <div className="p-4">
+        <div
+          className={`inline-block rounded bg-gradient-to-br ${bloc.coverColor} text-white text-xs font-semibold px-2 py-1`}
+        >
+          {serie.code}
+        </div>
+        <h3 className="mt-2 font-semibold text-white">{serie.name}</h3>
+        <p className="text-xs text-gray-500 mt-1">{serie.releaseYear}</p>
+        <p className="text-sm text-gray-400 mt-2">
+          {count} carte{count > 1 ? "s" : ""} en vente
+        </p>
+      </div>
     </Link>
   );
 }
