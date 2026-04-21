@@ -17,7 +17,7 @@ export default function SerieTile({ bloc, serie }: { bloc: Bloc; serie: Serie })
           <img
             src={serie.image}
             alt={serie.name}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain p-2"
           />
         ) : (
           <div className="relative text-white text-center px-3 drop-shadow">
