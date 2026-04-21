@@ -516,7 +516,9 @@ export const CARDS: Card[] = [
   { id: "crown-zenith-080", serieId: "crown-zenith", name: "Pandarbare", number: "080/159", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0, image: "/cartes/80.jpg" },
   { id: "crown-zenith-081", serieId: "crown-zenith", name: "Venalgue", number: "081/159", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 1, image: "/cartes/81.jpg", },
   { id: "crown-zenith-082", serieId: "crown-zenith", name: "Kravarech", number: "082/159", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0, image: "/cartes/82.jpg" },
-  { id: "crown-zenith-083", serieId: "crown-zenith", name: "Hoopa", number: "083/159", rarity: "Rare Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 2, image: "/cartes/83.jpg" },
+  { id: "crown-zenith-083", serieId: "crown-zenith", name: "Hoopa", number: "083/159", rarity: "Rare Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 2, image: "/cartes/83.jpg"
+    altVariant: { rarity: "Rare Holo", priceCents: 300, stock: 1 },
+  },
   { id: "crown-zenith-084", serieId: "crown-zenith", name: "Miaouss de galar", number: "084/159", rarity: "Reverse", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0, image: "/cartes/84.jpg", },
   { id: "crown-zenith-085", serieId: "crown-zenith", name: "Berserkatt de galar", number: "085/159", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0, image: "/cartes/85.jpg" },
   { id: "crown-zenith-086", serieId: "crown-zenith", name: "Cizayox", number: "086/159", rarity: "Rare Holo", condition: "Near Mint", language: "FR", priceCents: 100, stock: 0, image: "/cartes/86.jpg" },
