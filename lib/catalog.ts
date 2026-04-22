@@ -5,6 +5,9 @@
 export type Condition = "Mint" | "Near Mint" | "Excellent" | "Good" | "Played";
 export type Rarity =
   | "Reverse"
+  | "Reverse Pokéball"
+  | "Reverse Masterball"
+  | "Tampon"
   | "Holo"
   | "Holo Cracked Ice"
   | "Holo ligne"
