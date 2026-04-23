@@ -62,11 +62,11 @@ export async function POST(request: Request) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: 690, currency: "eur" },
-            display_name: "Colissimo suivi",
+            fixed_amount: { amount: 490, currency: "eur" },
+            display_name: "Mondial Relay",
             delivery_estimate: {
-              minimum: { unit: "business_day", value: 1 },
-              maximum: { unit: "business_day", value: 3 },
+              minimum: { unit: "business_day", value: 3 },
+              maximum: { unit: "business_day", value: 6 },
             },
           },
         },
