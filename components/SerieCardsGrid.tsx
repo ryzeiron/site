@@ -6,7 +6,12 @@ import type { Card, Rarity } from "@/lib/catalog";
 
 const RARITY_ORDER: Rarity[] = [
   "Reverse",
+  "Reverse Pokéball",
+  "Reverse Masterball",
   "Holo",
+  "Holo Cracked Ice",
+  "Holo ligne",
+  "Stamp",
   "Rare Reverse",
   "Rare Holo",
   "Ultra Rare",
