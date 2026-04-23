@@ -6,7 +6,7 @@ export type Rarity =
   | "Reverse"
   | "Reverse Pokéball"
   | "Reverse Masterball"
-  | "Tampon"
+  | "Stamp"
   | "Holo"
   | "Holo Cracked Ice"
   | "Holo ligne"
