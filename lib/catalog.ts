@@ -751,7 +751,7 @@ export const CARDS: Card[] = [
   { id: "flamme-blanche-046", serieId: "ev10.5", name: "Nodulithe", number: "46/86", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 4, image: "/cartes/ev10.5/46.webp", },
   { id: "flamme-blanche-047", serieId: "ev10.5", name: "Géolithe", number: "47/86", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 6, image: "/cartes/ev10.5/47.webp", },
   { id: "flamme-blanche-048", serieId: "ev10.5", name: "Gigalithe", number: "48/86", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/ev10.5/48.webp", },
-  { id: "flamme-blanche-049", serieId: "ev10.5", name: "Karaclée", number: "49/86", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: , image: "/cartes/ev10.5/49.webp", },
+  { id: "flamme-blanche-049", serieId: "ev10.5", name: "Karaclée", number: "49/86", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/ev10.5/49.webp", },
   { id: "flamme-blanche-050", serieId: "ev10.5", name: "Arkéapti", number: "50/86", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 3, image: "/cartes/ev10.5/50.webp", },
   { id: "flamme-blanche-051", serieId: "ev10.5", name: "Aéroptéryx", number: "51/86", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 1, image: "/cartes/ev10.5/51.webp", },
   { id: "flamme-blanche-052", serieId: "ev10.5", name: "Kungfouine", number: "52/86", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 3, image: "/cartes/ev10.5/52.webp",
