@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/lib/cart";
-import { getCard, resolveVariant } from "@/lib/catalog";
+import { resolveVariant, type Card } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
 export default function CartPage() {
@@ -11,13 +11,47 @@ export default function CartPage() {
   const setQuantity = useCart((s) => s.setQuantity);
   const remove = useCart((s) => s.remove);
   const clear = useCart((s) => s.clear);
-  const totalEuros = useCart((s) => s.totalEuros());
 
   const [mounted, setMounted] = useState(false);
+  const [loadingCards, setLoadingCards] = useState(true);
+  const [cards, setCards] = useState<Record<string, Card>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const ids = Array.from(new Set(items.map((i) => i.cardId)));
+    if (ids.length === 0) {
+      setCards({});
+      setLoadingCards(false);
+      return;
+    }
+    setLoadingCards(true);
+    fetch("/api/cards/batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    })
+      .then((r) => r.json())
+      .then((data: { cards?: Card[] }) => {
+        const map: Record<string, Card> = {};
+        for (const c of data.cards ?? []) map[c.id] = c;
+        setCards(map);
+      })
+      .catch(() => setCards({}))
+      .finally(() => setLoadingCards(false));
+  }, [items, mounted]);
+
+  const totalEuros = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const card = cards[item.cardId];
+      if (!card) return sum;
+      const v = resolveVariant(card, item.variant);
+      return sum + v.price * item.quantity;
+    }, 0);
+  }, [items, cards]);
 
   async function handleCheckout() {
     setLoading(true);
@@ -39,7 +73,7 @@ export default function CartPage() {
     }
   }
 
-  if (!mounted) {
+  if (!mounted || loadingCards) {
     return <div className="py-12 text-center text-gray-400">Chargement du panier...</div>;
   }
 
@@ -64,7 +98,7 @@ export default function CartPage() {
 
       <div className="mt-6 space-y-3">
         {items.map((item) => {
-          const card = getCard(item.cardId);
+          const card = cards[item.cardId];
           if (!card) return null;
           const v = resolveVariant(card, item.variant);
           const outOfStock = v.stock <= 0;
@@ -104,7 +138,7 @@ export default function CartPage() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setQuantity(card.id, item.variant, item.quantity - 1)}
+                  onClick={() => setQuantity(card.id, item.variant, item.quantity - 1, v.stock)}
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white"
                   aria-label="Diminuer"
                 >
@@ -113,7 +147,7 @@ export default function CartPage() {
                 <span className="w-8 text-center text-white">{item.quantity}</span>
                 <button
                   type="button"
-                  onClick={() => setQuantity(card.id, item.variant, item.quantity + 1)}
+                  onClick={() => setQuantity(card.id, item.variant, item.quantity + 1, v.stock)}
                   disabled={item.quantity >= v.stock}
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white"
                   aria-label="Augmenter"

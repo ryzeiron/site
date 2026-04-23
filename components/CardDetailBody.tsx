@@ -37,7 +37,7 @@ function VariantBlock({
         disabled={outOfStock}
         onClick={() => {
           if (outOfStock) return;
-          add(card.id, variant, 1);
+          add(card.id, variant, 1, v.stock);
           setAdded(true);
           setTimeout(() => setAdded(false), 1200);
         }}

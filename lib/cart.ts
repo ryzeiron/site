@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { getCard, resolveVariant, type VariantKey } from "./catalog";
+import type { VariantKey } from "./catalog";
 
 export type CartItem = {
   cardId: string;
@@ -12,23 +12,21 @@ export type CartItem = {
 
 type CartState = {
   items: CartItem[];
-  add: (cardId: string, variant?: VariantKey, quantity?: number) => void;
+  add: (cardId: string, variant?: VariantKey, quantity?: number, maxStock?: number) => void;
   remove: (cardId: string, variant: VariantKey) => void;
-  setQuantity: (cardId: string, variant: VariantKey, quantity: number) => void;
+  setQuantity: (cardId: string, variant: VariantKey, quantity: number, maxStock?: number) => void;
   clear: () => void;
   totalItems: () => number;
-  totalEuros: () => number;
 };
 
 export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      add: (cardId, variant = "base", quantity = 1) =>
+      add: (cardId, variant = "base", quantity = 1, maxStock) =>
         set((state) => {
-          const card = getCard(cardId);
-          if (!card) return state;
-          const v = resolveVariant(card, variant);
+          const cap = (n: number) =>
+            maxStock !== undefined ? Math.min(maxStock, n) : n;
           const existing = state.items.find(
             (i) => i.cardId === cardId && i.variant === variant,
           );
@@ -36,7 +34,7 @@ export const useCart = create<CartState>()(
             return {
               items: state.items.map((i) =>
                 i.cardId === cardId && i.variant === variant
-                  ? { ...i, quantity: Math.min(v.stock, i.quantity + quantity) }
+                  ? { ...i, quantity: cap(i.quantity + quantity) }
                   : i,
               ),
             };
@@ -44,7 +42,7 @@ export const useCart = create<CartState>()(
           return {
             items: [
               ...state.items,
-              { cardId, variant, quantity: Math.min(v.stock, quantity) },
+              { cardId, variant, quantity: cap(quantity) },
             ],
           };
         }),
@@ -54,7 +52,7 @@ export const useCart = create<CartState>()(
             (i) => !(i.cardId === cardId && i.variant === variant),
           ),
         })),
-      setQuantity: (cardId, variant, quantity) =>
+      setQuantity: (cardId, variant, quantity, maxStock) =>
         set((state) => {
           if (quantity <= 0) {
             return {
@@ -63,26 +61,17 @@ export const useCart = create<CartState>()(
               ),
             };
           }
-          const card = getCard(cardId);
-          const v = card ? resolveVariant(card, variant) : null;
-          const max = v?.stock ?? quantity;
+          const max = maxStock !== undefined ? Math.min(maxStock, quantity) : quantity;
           return {
             items: state.items.map((i) =>
               i.cardId === cardId && i.variant === variant
-                ? { ...i, quantity: Math.min(max, quantity) }
+                ? { ...i, quantity: max }
                 : i,
             ),
           };
         }),
       clear: () => set({ items: [] }),
       totalItems: () => get().items.reduce((s, i) => s + i.quantity, 0),
-      totalEuros: () =>
-        get().items.reduce((sum, item) => {
-          const card = getCard(item.cardId);
-          if (!card) return sum;
-          const v = resolveVariant(card, item.variant);
-          return sum + v.price * item.quantity;
-        }, 0),
     }),
     { name: "pokemon-shop-cart-v4" },
   ),
