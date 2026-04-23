@@ -271,7 +271,7 @@ export const CARDS: Card[] = [
  
  
   // Zenith Supreme (EB12.5) - 230 cartes a completer
-  { id: "crown-zenith-001", serieId: "crown-zenith", name: "Mystherbe", number: "001/159", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 15000, stock: 0, image: "/cartes/eb12.5/1.jpg"
+  { id: "crown-zenith-001", serieId: "crown-zenith", name: "Mystherbe", number: "001/159", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 15000, stock: 0, image: "/cartes/eb12.5/1.jpg",
    altVariant: { rarity: "Rare Holo", price: 3, stock: 1 },
   },
   { id: "crown-zenith-002", serieId: "crown-zenith", name: "Ortide", number: "002/159", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 1, image: "/cartes/eb12.5/2.jpg",},
