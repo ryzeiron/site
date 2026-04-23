@@ -41,17 +41,35 @@ function VariantBlock({
           setAdded(true);
           setTimeout(() => setAdded(false), 1200);
         }}
-        className={`mt-3 w-full rounded py-2 text-sm font-medium transition ${
+        className={`mt-3 w-full rounded py-2 text-sm font-medium transition flex items-center justify-center gap-2 ${
           outOfStock
             ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-            : "bg-brand-500 hover:bg-brand-600 text-white"
+            : added
+              ? "bg-emerald-500 text-white"
+              : "bg-brand-500 hover:bg-brand-600 text-white"
         }`}
       >
-        {outOfStock
-          ? "Rupture de stock"
-          : added
-            ? "Ajoute au panier"
-            : "Ajouter au panier"}
+        {outOfStock ? (
+          "Rupture de stock"
+        ) : added ? (
+          <>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4"
+            >
+              <path d="M5 12l5 5L20 7" />
+            </svg>
+            Ajoute
+          </>
+        ) : (
+          "Ajouter au panier"
+        )}
       </button>
     </div>
   );
