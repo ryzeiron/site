@@ -1,9 +1,15 @@
 import Link from "next/link";
 import type { Bloc, Serie } from "@/lib/catalog";
-import { cardsForSerie } from "@/lib/catalog";
 
-export default function SerieTile({ bloc, serie }: { bloc: Bloc; serie: Serie }) {
-  const count = cardsForSerie(serie.id).length;
+export default function SerieTile({
+  bloc,
+  serie,
+  count,
+}: {
+  bloc: Bloc;
+  serie: Serie;
+  count: number;
+}) {
   return (
     <Link
       href={`/blocs/${bloc.id}/${serie.id}`}

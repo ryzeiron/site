@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
+import { resolveVariant, type VariantKey } from "@/lib/catalog";
+import { getCardDb } from "@/lib/db/queries";
 
 type Body = {
   items: { cardId: string; variant: VariantKey; quantity: number }[];
@@ -13,26 +14,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Panier vide." }, { status: 400 });
     }
 
-    const lineItems = body.items.map((item) => {
-      const card = getCard(item.cardId);
-      if (!card) throw new Error(`Carte introuvable : ${item.cardId}`);
-      if (item.quantity <= 0) throw new Error("Quantite invalide.");
-      const v = resolveVariant(card, item.variant);
-      if (item.quantity > v.stock) {
-        throw new Error(`Stock insuffisant pour ${card.name}.`);
-      }
-      return {
-        price_data: {
-          currency: "eur",
-          unit_amount: Math.round(v.price * 100),
-          product_data: {
-            name: `${card.name} (${card.number}) - ${v.rarity}`,
-            description: `${v.rarity} - Etat: ${card.condition} - ${card.language}`,
+    const lineItems = await Promise.all(
+      body.items.map(async (item) => {
+        const card = await getCardDb(item.cardId);
+        if (!card) throw new Error(`Carte introuvable : ${item.cardId}`);
+        if (item.quantity <= 0) throw new Error("Quantite invalide.");
+        const v = resolveVariant(card, item.variant);
+        if (item.quantity > v.stock) {
+          throw new Error(`Stock insuffisant pour ${card.name}.`);
+        }
+        return {
+          price_data: {
+            currency: "eur",
+            unit_amount: Math.round(v.price * 100),
+            product_data: {
+              name: `${card.name} (${card.number}) - ${v.rarity}`,
+              description: `${v.rarity} - Etat: ${card.condition} - ${card.language}`,
+            },
           },
-        },
-        quantity: item.quantity,
-      };
-    });
+          quantity: item.quantity,
+        };
+      }),
+    );
 
     const origin =
       process.env.NEXT_PUBLIC_SITE_URL ??

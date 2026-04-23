@@ -1,10 +1,13 @@
 import Link from "next/link";
 import BlocTile from "@/components/BlocTile";
 import CardTile from "@/components/CardTile";
-import { BLOCS, featuredCards } from "@/lib/catalog";
+import { BLOCS } from "@/lib/catalog";
+import { featuredCardsDb } from "@/lib/db/queries";
 
-export default function HomePage() {
-  const top = featuredCards(12);
+export const revalidate = 30;
+
+export default async function HomePage() {
+  const top = await featuredCardsDb(12);
   const loop = [...top, ...top];
   const blocsLoop = [...BLOCS, ...BLOCS];
   return (

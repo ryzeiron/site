@@ -2,12 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SerieCardsGrid from "@/components/SerieCardsGrid";
-import {
-  SERIES,
-  cardsForSerie,
-  getBloc,
-  getSerie,
-} from "@/lib/catalog";
+import { SERIES, getBloc, getSerie } from "@/lib/catalog";
+import { cardsForSerieDb } from "@/lib/db/queries";
+
+export const revalidate = 30;
 
 type Params = { bloc: string; serie: string };
 
@@ -34,7 +32,7 @@ export default async function SeriePage({
   const bloc = getBloc(blocId);
   const serie = getSerie(serieId);
   if (!bloc || !serie || serie.blocId !== bloc.id) notFound();
-  const cards = cardsForSerie(serie.id);
+  const cards = await cardsForSerieDb(serie.id);
 
   return (
     <div>

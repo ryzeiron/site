@@ -2,18 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import CardDetailBody from "@/components/CardDetailBody";
-import {
-  CARDS,
-  getBloc,
-  getCard,
-  getSerie,
-} from "@/lib/catalog";
+import { getBloc, getSerie } from "@/lib/catalog";
+import { getCardDb } from "@/lib/db/queries";
+
+export const revalidate = 30;
 
 type Params = { id: string };
-
-export function generateStaticParams(): Params[] {
-  return CARDS.map((c) => ({ id: c.id }));
-}
 
 export async function generateMetadata({
   params,
@@ -21,7 +15,7 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const card = getCard(id);
+  const card = await getCardDb(id);
   return { title: card ? card.name : "Carte" };
 }
 
@@ -31,7 +25,7 @@ export default async function CardPage({
   params: Promise<Params>;
 }) {
   const { id } = await params;
-  const card = getCard(id);
+  const card = await getCardDb(id);
   if (!card) notFound();
   const serie = getSerie(card.serieId);
   const bloc = serie ? getBloc(serie.blocId) : undefined;

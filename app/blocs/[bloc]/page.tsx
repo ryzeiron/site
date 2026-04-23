@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import SerieTile from "@/components/SerieTile";
 import { BLOCS, getBloc, seriesForBloc } from "@/lib/catalog";
+import { countsBySerieDb } from "@/lib/db/queries";
+
+export const revalidate = 60;
 
 type Params = { bloc: string };
 
@@ -29,6 +32,7 @@ export default async function BlocPage({
   const bloc = getBloc(blocId);
   if (!bloc) notFound();
   const series = seriesForBloc(bloc.id);
+  const counts = await countsBySerieDb();
 
   return (
     <div>
@@ -61,7 +65,12 @@ export default async function BlocPage({
       ) : (
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {series.map((s) => (
-            <SerieTile key={s.id} bloc={bloc} serie={s} />
+            <SerieTile
+              key={s.id}
+              bloc={bloc}
+              serie={s}
+              count={counts[s.id] ?? 0}
+            />
           ))}
         </div>
       )}
