@@ -1,6 +1,5 @@
 // Catalogue : blocs > series > cartes
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
-// Ajoute / modifie librement.
 
 export type Condition = "Mint" | "Near Mint" | "Excellent" | "Good" | "Played";
 export type Rarity =
@@ -62,15 +61,6 @@ export function resolveVariant(card: Card, key: VariantKey = "base"): CardVarian
   return { rarity: card.rarity, price: card.price, stock: card.stock };
 }
 
-// ===========================================================
-// POUR AJOUTER UNE IMAGE A UN BLOC :
-//   - Ajoute une ligne image: "..." dans l'objet du bloc
-//   - Soit un fichier depose dans public/cartes/ (ou public/blocs/) :
-//       image: "/blocs/ecarlate-violet.jpg"
-//   - Soit une URL d'image deja en ligne :
-//       image: "https://exemple.com/photo.jpg"
-//   - Si tu n'en mets pas, le degrade de couleur coverColor s'affiche tout seul.
-// ===========================================================
 export const BLOCS: Bloc[] = [
   {
     id: "mega-evolution",
@@ -278,168 +268,8 @@ export const SERIES: Serie[] = [
 ];
 
 export const CARDS: Card[] = [
-  // ===========================================================
-  // EXEMPLE DE CARTE - A DUPLIQUER POUR AJOUTER VOS PROPRES CARTES
-  // -----------------------------------------------------------
-  // Pour ajouter une carte :
-  //   1. Copie tout le bloc entre { } ci-dessous (y compris la virgule finale)
-  //   2. Colle-le juste apres, et modifie les valeurs
-  //   3. "id" doit etre UNIQUE pour chaque carte (ex: ev09-004, ev09-005...)
-  //   4. "serieId" doit correspondre a l'id d'une serie definie plus haut
-  //        Blocs/series disponibles : voir BLOCS et SERIES au-dessus
-  //   5. "price" est en EUROS (15 = 15 EUR, 0.5 = 50 centimes)
-  //   6. "stock" = nombre d'exemplaires en vente
-  //   7. "rarity" doit etre l'une des valeurs du type Rarity (ligne 7)
-  //   8. "condition" doit etre l'une des valeurs du type Condition (ligne 6)
-  //   9. "language" : "FR", "EN" ou "JP"
-  //  10. Sauvegarde le fichier -> le site se met a jour automatiquement
-  //
-  // POUR AJOUTER UNE PHOTO DE CARTE :
-  //   - Option A (la plus simple) : mets ta photo dans le dossier public/cartes/
-  //     puis ecris image: "/cartes/mon-fichier.jpg"
-  //   - Option B : utilise une URL d'image deja en ligne, ex:
-  //     image: "https://images.pokemontcg.io/sv8/6_hires.png"
-  //   - Si tu ne mets pas de champ "image", le nom s'affiche a la place.
-  // ===========================================================
-  {
-    id: "ev09-000",                // identifiant unique (bloc-serie-numero suffit)
-    serieId: "ev09",                   // la carte appartient a la serie EV09
-    name: "Chenipan",           // ex: "Pikachu ex"
-    number: "001/159",                 // numero imprime sur la carte
-    rarity: "Reverse",               // rarete (voir type Rarity)
-    condition: "Near Mint",            // etat de la carte (voir type Condition)
-    language: "FR",                    // langue : FR, EN ou JP
-    price: 0.5,                // prix en centimes : 1000 = 10,00 EUR
-    stock: 1,                          // nombre d'exemplaires en stock
-    image: "/cartes/chenipan.jpg", // photo de la carte
-  //  description: "Description libre de la carte (facultatif).", //
-  },
-
-  // EV09 - Aventures Ensemble
-  {
-    id: "ev09-001",
-    serieId: "ev09",
-    name: "Dracaufeu ex",
-    number: "006/159",
-    rarity: "Ultra Rare",
-    condition: "Near Mint",
-    language: "FR",
-    price: 45,
-    stock: 2,
-    description: "Carte Dracaufeu ex brillante, edition EV09 Aventures Ensemble.",
-  },
-  {
-    id: "ev09-002",
-    serieId: "ev09",
-    name: "Pikachu",
-    number: "025/159",
-    rarity: "Reverse",
-    condition: "Mint",
-    language: "FR",
-    price: 1.5,
-    stock: 20,
-  },
-  {
-    id: "ev09-003",
-    serieId: "ev09",
-    name: "Mew ex",
-    number: "151/159",
-    rarity: "Secrete",
-    condition: "Mint",
-    language: "FR",
-    price: 69,
-    stock: 1,
-  },
-
-  // EV08 - Etincelles Deferlantes
-  {
-    id: "ev08-001",
-    serieId: "ev08",
-    name: "Pikachu ex",
-    number: "238/191",
-    rarity: "Secrete",
-    condition: "Near Mint",
-    language: "FR",
-    price: 120,
-    stock: 1,
-    description: "Pikachu ex Full Art, tres recherchee.",
-  },
-  {
-    id: "ev08-002",
-    serieId: "ev08",
-    name: "Magicarpe",
-    number: "042/191",
-    rarity: "Reverse",
-    condition: "Mint",
-    language: "FR",
-    price: 1,
-    stock: 30,
-  },
-
-  // EV03 - Flammes Obsidiennes
-  {
-    id: "ev03-001",
-    serieId: "ev03",
-    name: "Dracaufeu ex",
-    number: "125/197",
-    rarity: "Ultra Rare",
-    condition: "Near Mint",
-    language: "FR",
-    price: 89,
-    stock: 1,
-  },
-
-  // EB07 - Evolution Celeste
-  {
-    id: "eb07-001",
-    serieId: "eb07",
-    name: "Rayquaza VMAX",
-    number: "218/203",
-    rarity: "Secrete",
-    condition: "Near Mint",
-    language: "FR",
-    price: 150,
-    stock: 1,
-  },
-  {
-    id: "eb07-002",
-    serieId: "eb07",
-    name: "Amphinobi V",
-    number: "040/203",
-    rarity: "Rare Holo",
-    condition: "Mint",
-    language: "FR",
-    price: 4.5,
-    stock: 5,
-  },
-
-  // SL03 - Ombres Ardentes
-  {
-    id: "sl03-001",
-    serieId: "sl03",
-    name: "Dracaufeu GX",
-    number: "150/147",
-    rarity: "Secrete",
-    condition: "Excellent",
-    language: "FR",
-    price: 220,
-    stock: 1,
-    description: "Carte iconique, tres populaire chez les collectionneurs.",
-  },
-
-  // XY09 - Rupture Turbo
-  {
-    id: "xy09-001",
-    serieId: "xy09",
-    name: "Mega Dracaufeu EX",
-    number: "013/122",
-    rarity: "Ultra Rare",
-    condition: "Excellent",
-    language: "FR",
-    price: 75,
-    stock: 1,
-  },
-
+ 
+ 
   // Zenith Supreme (EB12.5) - 230 cartes a completer
   { id: "crown-zenith-001", serieId: "crown-zenith", name: "Mystherbe", number: "001/159", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 15000, stock: 0, image: "/cartes/eb12.5/1.jpg",},
   { id: "crown-zenith-002", serieId: "crown-zenith", name: "Ortide", number: "002/159", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 1, image: "/cartes/eb12.5/2.jpg",},
