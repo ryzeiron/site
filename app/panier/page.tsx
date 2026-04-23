@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
-import { resolveVariant, type Card } from "@/lib/catalog";
+import { getCard, resolveVariant } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
 export default function CartPage() {
@@ -11,48 +11,13 @@ export default function CartPage() {
   const setQuantity = useCart((s) => s.setQuantity);
   const remove = useCart((s) => s.remove);
   const clear = useCart((s) => s.clear);
+  const totalEuros = useCart((s) => s.totalEuros());
 
   const [mounted, setMounted] = useState(false);
-  const [loadingCards, setLoadingCards] = useState(true);
-  const [cards, setCards] = useState<Record<string, Card>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => setMounted(true), []);
-
-  // Fetch fresh card data whenever the cart changes
-  useEffect(() => {
-    if (!mounted) return;
-    const ids = Array.from(new Set(items.map((i) => i.cardId)));
-    if (ids.length === 0) {
-      setCards({});
-      setLoadingCards(false);
-      return;
-    }
-    setLoadingCards(true);
-    fetch("/api/cards/batch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids }),
-    })
-      .then((r) => r.json())
-      .then((data: { cards?: Card[] }) => {
-        const map: Record<string, Card> = {};
-        for (const c of data.cards ?? []) map[c.id] = c;
-        setCards(map);
-      })
-      .catch(() => setCards({}))
-      .finally(() => setLoadingCards(false));
-  }, [items, mounted]);
-
-  const totalEuros = useMemo(() => {
-    return items.reduce((sum, item) => {
-      const card = cards[item.cardId];
-      if (!card) return sum;
-      const v = resolveVariant(card, item.variant);
-      return sum + v.price * item.quantity;
-    }, 0);
-  }, [items, cards]);
 
   async function handleCheckout() {
     setLoading(true);
@@ -74,7 +39,7 @@ export default function CartPage() {
     }
   }
 
-  if (!mounted || loadingCards) {
+  if (!mounted) {
     return <div className="py-12 text-center text-gray-400">Chargement du panier...</div>;
   }
 
@@ -99,7 +64,7 @@ export default function CartPage() {
 
       <div className="mt-6 space-y-3">
         {items.map((item) => {
-          const card = cards[item.cardId];
+          const card = getCard(item.cardId);
           if (!card) return null;
           const v = resolveVariant(card, item.variant);
           const outOfStock = v.stock <= 0;
