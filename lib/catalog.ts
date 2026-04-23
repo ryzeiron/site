@@ -2196,7 +2196,7 @@ export const CARDS: Card[] = [
   { id: "destinees-paldea-056", serieId: "ev04.5", name: "Spectrum", number: "56/66", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/ev04.5/56.webp", },
   { id: "destinees-paldea-057", serieId: "ev04.5", name: "Ectoplasma", number: "57/66", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/ev04.5/57.webp", },
   { id: "destinees-paldea-058", serieId: "ev04.5", name: "Axoloto de Paldea", number: "58/66", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/ev04.5/58.webp", },
-  { id: "destinees-paldea-059", serieId: "ev04.5", name: "Terraiste de Paldea-ex", number: "59/66", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", price: 2, stock: 1, image: "/cartes/ev04.5/59.webp", },
+  { id: "destinees-paldea-059", serieId: "ev04.5", name: "Terraiste de Paldea-ex", number: "59/66", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", price: 2, stock: 01, image: "/cartes/ev04.5/59.webp", },
   { id: "destinees-paldea-060", serieId: "ev04.5", name: "Baggiguane", number: "60/66", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/ev04.5/60.webp", },
   { id: "destinees-paldea-061", serieId: "ev04.5", name: "Baggaïd", number: "61/66", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/ev04.5/61.webp", },
   { id: "destinees-paldea-062", serieId: "ev04.5", name: "Grondogue", number: "62/66", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/ev04.5/62.webp", },
