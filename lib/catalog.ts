@@ -377,7 +377,7 @@ export const CARDS: Card[] = [
   { id: "crown-zenith-100", serieId: "crown-zenith", name: "Rayquaza V", number: "100/159", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/eb12.5/100.jpg", },
   { id: "crown-zenith-101", serieId: "crown-zenith", name: "Rayquaza Vmax", number: "101/159", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/eb12.5/101.jpg", },
   { id: "crown-zenith-102", serieId: "crown-zenith", name: "Rayquaza Vmax", number: "102/159", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/eb12.5/102.jpg", },
-  { id: "crown-zenith-103", serieId: "crown-zenith", name: "Duralugon V", number: "103/159", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/eb12.5/103.jpg", },
+  { id: "crown-zenith-103", serieId: "crown-zenith", name: "Duralugon V", number: "103/159", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", price: 1, stock: 1, image: "/cartes/eb12.5/103.jpg", },
   { id: "crown-zenith-104", serieId: "crown-zenith", name: "Duralugon Vvmax", number: "104/159", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/eb12.5/104.jpg", },
   { id: "crown-zenith-105", serieId: "crown-zenith", name: "Éthernatos Radieux", number: "105/159", rarity: "Ultra Rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/eb12.5/105.jpg", },
   { id: "crown-zenith-106", serieId: "crown-zenith", name: "Tauros", number: "106/159", rarity: "Rare Holo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/eb12.5/106.jpg", },
