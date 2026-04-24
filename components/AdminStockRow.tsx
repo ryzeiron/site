@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RARITIES, type Card, type Rarity, type VariantKey } from "@/lib/catalog";
 
@@ -167,7 +168,7 @@ function VariantCell({
         />
         <span className="text-gray-500 text-xs">€</span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <button
           type="button"
           onClick={save}
@@ -191,8 +192,67 @@ function VariantCell({
             Annuler
           </button>
         )}
+        {!isNew && (
+          <DeleteButton card={card} variant={variant} onDeleted={() => setSaved(false)} />
+        )}
         {error && <span className="text-xs text-red-400">{error}</span>}
       </div>
     </div>
+  );
+}
+
+function DeleteButton({
+  card,
+  variant,
+  onDeleted,
+}: {
+  card: Card;
+  variant: VariantKey;
+  onDeleted?: () => void;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function del() {
+    const label = variant === "alt" ? "variante alt" : "variante base";
+    const ok = window.confirm(
+      `Supprimer la ${label} de ${card.name} ?\n\n` +
+        `Cela retire les valeurs personnalisees (rarete, stock, prix) stockees dans la base.\n` +
+        `Si cette variante n'existait pas dans le catalogue, elle disparait du site.\n` +
+        `Sinon, elle revient aux valeurs du catalogue.`,
+    );
+    if (!ok) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/stock", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardId: card.id, variant }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+      onDeleted?.();
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={del}
+        disabled={busy}
+        className="rounded bg-red-600/80 hover:bg-red-600 text-white px-3 py-1 text-xs font-medium disabled:opacity-60"
+      >
+        {busy ? "..." : "Supprimer"}
+      </button>
+      {error && <span className="text-xs text-red-400">{error}</span>}
+    </>
   );
 }
