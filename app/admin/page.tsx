@@ -39,10 +39,10 @@ export default async function AdminPage({
     <div className="py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-white">Admin - Stocks</h1>
+          <h1 className="text-3xl font-bold text-white">Admin - Stocks & prix</h1>
           <p className="text-sm text-gray-400 mt-1">
-            {totalCards} cartes dans le catalogue. Modifie le stock directement
-            ici - il ecrase la valeur du catalogue.
+            {totalCards} cartes dans le catalogue. Modifie le stock et le prix
+            par variante - les valeurs ecrasent celles du catalogue.
           </p>
         </div>
         <LogoutButton />
@@ -97,18 +97,13 @@ export default async function AdminPage({
               <tr>
                 <th className="py-2 px-2">Numero</th>
                 <th className="py-2 px-2">Nom</th>
-                <th className="py-2 px-2">Stock base</th>
-                <th className="py-2 px-2">Stock alt</th>
+                <th className="py-2 px-2">Variante base</th>
+                <th className="py-2 px-2">Variante alt</th>
               </tr>
             </thead>
             <tbody>
               {withStock.map((c) => (
-                <AdminStockRow
-                  key={c.id}
-                  card={c}
-                  baseStock={c.stock}
-                  altStock={c.altVariant ? c.altVariant.stock : null}
-                />
+                <AdminStockRow key={c.id} card={c} />
               ))}
             </tbody>
           </table>

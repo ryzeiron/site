@@ -6,6 +6,7 @@ export const stockOverrides = pgTable(
     cardId: text("card_id").notNull(),
     variant: text("variant").notNull(),
     stock: integer("stock").notNull(),
+    priceCents: integer("price_cents"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.cardId, t.variant] })],

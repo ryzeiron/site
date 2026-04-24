@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
-import { getDb } from "@/lib/db/client";
-import { stockOverrides } from "@/lib/db/schema";
-import { inArray } from "drizzle-orm";
+import { applyStockOverrides } from "@/lib/stock";
 
 type Body = {
   items: { cardId: string; variant: VariantKey; quantity: number }[];
@@ -35,28 +33,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Panier vide." }, { status: 400 });
     }
 
-    const keys = body.items.map((i) => `${i.cardId}__${i.variant}`);
-    const overrides = await getDb()
-      .select()
-      .from(stockOverrides)
-      .where(
-        inArray(
-          stockOverrides.cardId,
-          Array.from(new Set(body.items.map((i) => i.cardId))),
-        ),
-      );
-    const overrideMap = new Map<string, number>();
-    for (const o of overrides) {
-      overrideMap.set(`${o.cardId}__${o.variant}`, o.stock);
-    }
+    const rawCards = body.items
+      .map((i) => getCard(i.cardId))
+      .filter((c): c is NonNullable<typeof c> => !!c);
+    const liveCards = await applyStockOverrides(rawCards);
+    const cardMap = new Map(liveCards.map((c) => [c.id, c]));
 
-    const lineItems = body.items.map((item, idx) => {
-      const card = getCard(item.cardId);
+    const lineItems = body.items.map((item) => {
+      const card = cardMap.get(item.cardId);
       if (!card) throw new Error(`Carte introuvable : ${item.cardId}`);
       if (item.quantity <= 0) throw new Error("Quantite invalide.");
       const v = resolveVariant(card, item.variant);
-      const liveStock = overrideMap.get(keys[idx]) ?? v.stock;
-      if (item.quantity > liveStock) {
+      if (item.quantity > v.stock) {
         throw new Error(`Stock insuffisant pour ${card.name}.`);
       }
       return {
