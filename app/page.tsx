@@ -2,9 +2,12 @@ import Link from "next/link";
 import BlocTile from "@/components/BlocTile";
 import CardTile from "@/components/CardTile";
 import { BLOCS, featuredCards } from "@/lib/catalog";
+import { applyStockOverrides } from "@/lib/stock";
 
-export default function HomePage() {
-  const top = featuredCards(12);
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const top = await applyStockOverrides(featuredCards(12));
   const loop = [...top, ...top];
   const blocsLoop = [...BLOCS, ...BLOCS];
   return (

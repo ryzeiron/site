@@ -3,17 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import SerieCardsGrid from "@/components/SerieCardsGrid";
 import {
-  SERIES,
   cardsForSerie,
   getBloc,
   getSerie,
 } from "@/lib/catalog";
+import { applyStockOverrides } from "@/lib/stock";
+
+export const dynamic = "force-dynamic";
 
 type Params = { bloc: string; serie: string };
-
-export function generateStaticParams(): Params[] {
-  return SERIES.map((s) => ({ bloc: s.blocId, serie: s.id }));
-}
 
 export async function generateMetadata({
   params,
@@ -34,7 +32,7 @@ export default async function SeriePage({
   const bloc = getBloc(blocId);
   const serie = getSerie(serieId);
   if (!bloc || !serie || serie.blocId !== bloc.id) notFound();
-  const cards = cardsForSerie(serie.id);
+  const cards = await applyStockOverrides(cardsForSerie(serie.id));
 
   return (
     <div>

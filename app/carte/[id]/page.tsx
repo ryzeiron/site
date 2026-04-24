@@ -2,18 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import CardDetailBody from "@/components/CardDetailBody";
-import {
-  CARDS,
-  getBloc,
-  getCard,
-  getSerie,
-} from "@/lib/catalog";
+import { getBloc, getCard, getSerie } from "@/lib/catalog";
+import { applyStockOverrides } from "@/lib/stock";
+
+export const dynamic = "force-dynamic";
 
 type Params = { id: string };
-
-export function generateStaticParams(): Params[] {
-  return CARDS.map((c) => ({ id: c.id }));
-}
 
 export async function generateMetadata({
   params,
@@ -31,8 +25,9 @@ export default async function CardPage({
   params: Promise<Params>;
 }) {
   const { id } = await params;
-  const card = getCard(id);
-  if (!card) notFound();
+  const raw = getCard(id);
+  if (!raw) notFound();
+  const [card] = await applyStockOverrides([raw]);
   const serie = getSerie(card.serieId);
   const bloc = serie ? getBloc(serie.blocId) : undefined;
 

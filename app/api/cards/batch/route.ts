@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { CARDS } from "@/lib/catalog";
+import { applyStockOverrides } from "@/lib/stock";
 
 export async function POST(request: Request) {
   try {
@@ -10,7 +11,8 @@ export async function POST(request: Request) {
     }
     const set = new Set(ids);
     const cards = CARDS.filter((c) => set.has(c.id));
-    return NextResponse.json({ cards });
+    const withStock = await applyStockOverrides(cards);
+    return NextResponse.json({ cards: withStock });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur inconnue.";
     return NextResponse.json({ error: message }, { status: 500 });
