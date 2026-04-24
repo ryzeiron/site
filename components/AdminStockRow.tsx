@@ -1,13 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { Card, Rarity, VariantKey } from "@/lib/catalog";
+import { RARITIES, type Card, type Rarity, type VariantKey } from "@/lib/catalog";
 
-export default function AdminStockRow({
-  card,
-}: {
-  card: Card;
-}) {
+export default function AdminStockRow({ card }: { card: Card }) {
   return (
     <tr className="border-b border-white/5 align-top">
       <td className="py-3 px-2 text-gray-300 text-sm whitespace-nowrap">
@@ -21,6 +17,7 @@ export default function AdminStockRow({
           rarity={card.rarity}
           initialStock={card.stock}
           initialPrice={card.price}
+          isNew={false}
         />
       </td>
       <td className="py-3 px-2">
@@ -31,12 +28,39 @@ export default function AdminStockRow({
             rarity={card.altVariant.rarity}
             initialStock={card.altVariant.stock}
             initialPrice={card.altVariant.price}
+            isNew={false}
           />
         ) : (
-          <span className="text-gray-600 text-sm">-</span>
+          <AddAltPlaceholder card={card} />
         )}
       </td>
     </tr>
+  );
+}
+
+function AddAltPlaceholder({ card }: { card: Card }) {
+  const [editing, setEditing] = useState(false);
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="rounded border border-dashed border-white/20 text-gray-300 hover:text-white hover:border-white/40 px-3 py-2 text-sm"
+      >
+        + Ajouter variante alt
+      </button>
+    );
+  }
+  return (
+    <VariantCell
+      card={card}
+      variant="alt"
+      rarity={null}
+      initialStock={0}
+      initialPrice={card.price}
+      isNew
+      onCancel={() => setEditing(false)}
+    />
   );
 }
 
@@ -46,13 +70,18 @@ function VariantCell({
   rarity,
   initialStock,
   initialPrice,
+  isNew,
+  onCancel,
 }: {
   card: Card;
   variant: VariantKey;
-  rarity: Rarity;
+  rarity: Rarity | null;
   initialStock: number;
   initialPrice: number;
+  isNew: boolean;
+  onCancel?: () => void;
 }) {
+  const [rarityValue, setRarityValue] = useState<string>(rarity ?? "");
   const [stockValue, setStockValue] = useState<string>(String(initialStock));
   const [priceValue, setPriceValue] = useState<string>(String(initialPrice));
   const [saving, setSaving] = useState(false);
@@ -63,10 +92,16 @@ function VariantCell({
   const currentPrice = Number.parseFloat(priceValue.replace(",", "."));
   const stockValid = Number.isInteger(currentStock) && currentStock >= 0;
   const priceValid = Number.isFinite(currentPrice) && currentPrice >= 0;
+  const rarityValid = rarityValue.length > 0;
+
   const stockChanged = currentStock !== initialStock;
   const priceChanged = Math.abs(currentPrice - initialPrice) > 0.0001;
-  const hasChanges = stockChanged || priceChanged;
-  const canSave = hasChanges && stockValid && priceValid;
+  const rarityChanged = rarityValue !== (rarity ?? "");
+  const hasChanges = stockChanged || priceChanged || rarityChanged;
+  const canSave =
+    (isNew
+      ? stockValid && priceValid && rarityValid
+      : hasChanges && stockValid && priceValid && (rarityValid || !rarityChanged));
 
   async function save() {
     if (!canSave) return;
@@ -74,14 +109,15 @@ function VariantCell({
     setError(null);
     try {
       const body: Record<string, unknown> = { cardId: card.id, variant };
-      if (stockChanged) body.stock = currentStock;
-      if (priceChanged) body.price = currentPrice;
+      if (isNew || stockChanged) body.stock = currentStock;
+      if (isNew || priceChanged) body.price = currentPrice;
+      if (isNew || rarityChanged) body.rarity = rarityValue;
       const res = await fetch("/api/admin/stock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Erreur");
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
@@ -93,12 +129,24 @@ function VariantCell({
   }
 
   return (
-    <div className="flex flex-col gap-2 min-w-[240px]">
-      <span className="inline-block self-start rounded-full bg-amber-500/20 text-amber-300 px-2 py-0.5 text-xs">
-        {rarity}
-      </span>
+    <div className="flex flex-col gap-2 min-w-[260px]">
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-10">Stock</label>
+        <label className="text-gray-400 w-12">Rarete</label>
+        <select
+          value={rarityValue}
+          onChange={(e) => setRarityValue(e.target.value)}
+          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+        >
+          {!rarityValue && <option value="">-- Choisir --</option>}
+          {RARITIES.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <label className="text-gray-400 w-12">Stock</label>
         <input
           type="number"
           min={0}
@@ -108,7 +156,7 @@ function VariantCell({
         />
       </div>
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-10">Prix</label>
+        <label className="text-gray-400 w-12">Prix</label>
         <input
           type="number"
           min={0}
@@ -132,8 +180,17 @@ function VariantCell({
                 : "bg-white/10 text-gray-400 cursor-not-allowed"
           }`}
         >
-          {saved ? "OK" : saving ? "..." : "Enregistrer"}
+          {saved ? "OK" : saving ? "..." : isNew ? "Creer" : "Enregistrer"}
         </button>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-xs"
+          >
+            Annuler
+          </button>
+        )}
         {error && <span className="text-xs text-red-400">{error}</span>}
       </div>
     </div>

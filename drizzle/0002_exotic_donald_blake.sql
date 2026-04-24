@@ -1,0 +1,1 @@
+ALTER TABLE "stock_overrides" ADD COLUMN "rarity" text;

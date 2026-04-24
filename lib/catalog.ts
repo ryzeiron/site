@@ -2,18 +2,26 @@
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
 
 export type Condition = "Mint" | "Near Mint" | "Excellent" | "Good" | "Played";
-export type Rarity =
-  | "Reverse"
-  | "Reverse Pokéball"
-  | "Reverse Masterball"
-  | "Holo"
-  | "Holo Cracked Ice"
-  | "Holo ligne"
-  | "Stamp"
-  | "Rare Reverse"
-  | "Rare Holo"
-  | "Ultra Rare"
-  | "Secrete";
+
+export const RARITIES = [
+  "Reverse",
+  "Reverse Pokéball",
+  "Reverse Masterball",
+  "Holo",
+  "Holo Cracked Ice",
+  "Holo ligne",
+  "Stamp",
+  "Rare Reverse",
+  "Rare Holo",
+  "Ultra Rare",
+  "Secrete",
+] as const;
+
+export type Rarity = (typeof RARITIES)[number];
+
+export function isRarity(value: string): value is Rarity {
+  return (RARITIES as readonly string[]).includes(value);
+}
 
 export type Bloc = {
   id: string;

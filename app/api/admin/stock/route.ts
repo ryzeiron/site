@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin/auth";
-import { getCard, resolveVariant } from "@/lib/catalog";
+import { getCard, isRarity, resolveVariant, type Rarity } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { stockOverrides } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -10,6 +10,7 @@ type Body = {
   variant?: "base" | "alt";
   stock?: number;
   price?: number;
+  rarity?: string;
 };
 
 export async function POST(request: Request) {
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
   }
 
-  const { cardId, variant, stock, price } = body;
+  const { cardId, variant, stock, price, rarity } = body;
   if (!cardId || (variant !== "base" && variant !== "alt")) {
     return NextResponse.json({ error: "Champs invalides." }, { status: 400 });
   }
@@ -33,19 +34,14 @@ export async function POST(request: Request) {
   if (!card) {
     return NextResponse.json({ error: "Carte introuvable." }, { status: 404 });
   }
-  if (variant === "alt" && !card.altVariant) {
-    return NextResponse.json(
-      { error: "Cette carte n'a pas de variante alt." },
-      { status: 400 },
-    );
-  }
 
   const hasStock = typeof stock === "number";
   const hasPrice = typeof price === "number";
+  const hasRarity = typeof rarity === "string" && rarity.length > 0;
 
-  if (!hasStock && !hasPrice) {
+  if (!hasStock && !hasPrice && !hasRarity) {
     return NextResponse.json(
-      { error: "Au moins stock ou prix doit etre fourni." },
+      { error: "Aucune modification a enregistrer." },
       { status: 400 },
     );
   }
@@ -58,17 +54,43 @@ export async function POST(request: Request) {
   }
 
   if (hasPrice && (!Number.isFinite(price) || price < 0)) {
+    return NextResponse.json({ error: "Prix invalide." }, { status: 400 });
+  }
+
+  let rarityValue: Rarity | undefined;
+  if (hasRarity) {
+    if (!isRarity(rarity)) {
+      return NextResponse.json(
+        { error: "Rarete inconnue." },
+        { status: 400 },
+      );
+    }
+    rarityValue = rarity;
+  }
+
+  const priceCentsValue = hasPrice ? Math.round(price * 100) : undefined;
+
+  const creatingNewAlt =
+    variant === "alt" && !card.altVariant;
+
+  if (creatingNewAlt && !hasRarity) {
     return NextResponse.json(
-      { error: "Prix invalide (>= 0)." },
+      {
+        error:
+          "Rarete obligatoire pour creer une nouvelle variante alt.",
+      },
       { status: 400 },
     );
   }
 
-  const priceCents = hasPrice ? Math.round(price * 100) : undefined;
+  const current =
+    variant === "alt" && !card.altVariant
+      ? { stock: 0, price: card.price }
+      : resolveVariant(card, variant);
 
-  const current = resolveVariant(card, variant);
   const insertStock = hasStock ? stock : current.stock;
-  const insertPriceCents = priceCents ?? null;
+  const insertPriceCents = priceCentsValue ?? null;
+  const insertRarity = rarityValue ?? null;
 
   try {
     const db = getDb();
@@ -79,12 +101,14 @@ export async function POST(request: Request) {
         variant,
         stock: insertStock,
         priceCents: insertPriceCents,
+        rarity: insertRarity,
       })
       .onConflictDoUpdate({
         target: [stockOverrides.cardId, stockOverrides.variant],
         set: {
           ...(hasStock ? { stock } : {}),
-          ...(hasPrice ? { priceCents } : {}),
+          ...(hasPrice ? { priceCents: priceCentsValue } : {}),
+          ...(hasRarity ? { rarity: rarityValue } : {}),
           updatedAt: new Date(),
         },
       });
@@ -96,7 +120,8 @@ export async function POST(request: Request) {
   return NextResponse.json({
     ok: true,
     stock: insertStock,
-    price: priceCents !== undefined ? priceCents / 100 : undefined,
+    price: priceCentsValue !== undefined ? priceCentsValue / 100 : undefined,
+    rarity: rarityValue,
   });
 }
 
@@ -117,15 +142,20 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Champs invalides." }, { status: 400 });
   }
 
-  const db = getDb();
-  await db
-    .delete(stockOverrides)
-    .where(
-      and(
-        eq(stockOverrides.cardId, cardId),
-        eq(stockOverrides.variant, variant),
-      ),
-    );
+  try {
+    const db = getDb();
+    await db
+      .delete(stockOverrides)
+      .where(
+        and(
+          eq(stockOverrides.cardId, cardId),
+          eq(stockOverrides.variant, variant),
+        ),
+      );
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }
