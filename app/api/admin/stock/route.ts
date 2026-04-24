@@ -70,23 +70,28 @@ export async function POST(request: Request) {
   const insertStock = hasStock ? stock : current.stock;
   const insertPriceCents = priceCents ?? null;
 
-  const db = getDb();
-  await db
-    .insert(stockOverrides)
-    .values({
-      cardId,
-      variant,
-      stock: insertStock,
-      priceCents: insertPriceCents,
-    })
-    .onConflictDoUpdate({
-      target: [stockOverrides.cardId, stockOverrides.variant],
-      set: {
-        ...(hasStock ? { stock } : {}),
-        ...(hasPrice ? { priceCents } : {}),
-        updatedAt: new Date(),
-      },
-    });
+  try {
+    const db = getDb();
+    await db
+      .insert(stockOverrides)
+      .values({
+        cardId,
+        variant,
+        stock: insertStock,
+        priceCents: insertPriceCents,
+      })
+      .onConflictDoUpdate({
+        target: [stockOverrides.cardId, stockOverrides.variant],
+        set: {
+          ...(hasStock ? { stock } : {}),
+          ...(hasPrice ? { priceCents } : {}),
+          updatedAt: new Date(),
+        },
+      });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 
   return NextResponse.json({
     ok: true,
