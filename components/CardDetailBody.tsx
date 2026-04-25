@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
-import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
+import { listVariants, resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
 function VariantBlock({
@@ -76,10 +76,14 @@ function VariantBlock({
 }
 
 export default function CardDetailBody({ card }: { card: Card }) {
-  const hasAlt = !!card.altVariant;
-  const baseOutOfStock = card.stock <= 0;
-  const imageOutOfStock =
-    baseOutOfStock && (!card.altVariant || card.altVariant.stock <= 0);
+  const variants = listVariants(card);
+  const allOutOfStock = variants.every((v) => v.variant.stock <= 0);
+  const gridCols =
+    variants.length === 1
+      ? ""
+      : variants.length === 2
+        ? "sm:grid-cols-2"
+        : "sm:grid-cols-2 lg:grid-cols-3";
 
   return (
     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -89,12 +93,12 @@ export default function CardDetailBody({ card }: { card: Card }) {
           <img
             src={card.image}
             alt={card.name}
-            className={`w-full h-full object-contain ${imageOutOfStock ? "opacity-40 grayscale" : ""}`}
+            className={`w-full h-full object-contain ${allOutOfStock ? "opacity-40 grayscale" : ""}`}
           />
         ) : (
           <span className="px-4 text-center">{card.name}</span>
         )}
-        {imageOutOfStock && (
+        {allOutOfStock && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span className="rounded-full bg-red-600 text-white text-base font-bold uppercase tracking-wider px-6 py-2 shadow-lg -rotate-12 border-2 border-white/90">
               Rupture
@@ -119,9 +123,10 @@ export default function CardDetailBody({ card }: { card: Card }) {
           <p className="mt-4 text-gray-300">{card.description}</p>
         )}
 
-        <div className={`mt-6 grid gap-4 ${hasAlt ? "sm:grid-cols-2" : ""}`}>
-          <VariantBlock card={card} variant="base" />
-          {hasAlt && <VariantBlock card={card} variant="alt" />}
+        <div className={`mt-6 grid gap-4 ${gridCols}`}>
+          {variants.map(({ key }) => (
+            <VariantBlock key={key} card={card} variant={key} />
+          ))}
         </div>
       </div>
     </div>

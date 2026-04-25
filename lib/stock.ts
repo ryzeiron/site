@@ -2,7 +2,12 @@ import "server-only";
 import { inArray } from "drizzle-orm";
 import { getDb } from "./db/client";
 import { stockOverrides } from "./db/schema";
-import { isRarity, type Card, type Rarity } from "./catalog";
+import {
+  isRarity,
+  type Card,
+  type NamedVariant,
+  type Rarity,
+} from "./catalog";
 
 type OverrideData = {
   stock: number;
@@ -40,9 +45,15 @@ export async function applyStockOverrides<T extends Card>(
 
   if (rows.length === 0) return cards;
 
-  const map = new Map<string, OverrideData>();
+  // Group overrides by cardId
+  const byCard = new Map<string, Map<string, OverrideData>>();
   for (const r of rows) {
-    map.set(`${r.cardId}__${r.variant}`, {
+    let inner = byCard.get(r.cardId);
+    if (!inner) {
+      inner = new Map();
+      byCard.set(r.cardId, inner);
+    }
+    inner.set(r.variant, {
       stock: r.stock,
       priceCents: r.priceCents,
       rarity: r.rarity && isRarity(r.rarity) ? r.rarity : null,
@@ -50,12 +61,12 @@ export async function applyStockOverrides<T extends Card>(
   }
 
   return cards.map((c) => {
-    const baseOverride = map.get(`${c.id}__base`);
-    const altOverride = map.get(`${c.id}__alt`);
-    if (!baseOverride && !altOverride) return c;
+    const overrides = byCard.get(c.id);
+    if (!overrides) return c;
 
     const next: T = { ...c };
 
+    const baseOverride = overrides.get("base");
     if (baseOverride) {
       next.stock = baseOverride.stock;
       if (baseOverride.priceCents !== null) {
@@ -66,6 +77,7 @@ export async function applyStockOverrides<T extends Card>(
       }
     }
 
+    const altOverride = overrides.get("alt");
     if (altOverride) {
       if (next.altVariant) {
         next.altVariant = {
@@ -87,6 +99,34 @@ export async function applyStockOverrides<T extends Card>(
               : next.price,
         };
       }
+    }
+
+    // Variantes custom (autres que base/alt)
+    let extras = next.extraVariants ? [...next.extraVariants] : [];
+    for (const [key, ov] of overrides.entries()) {
+      if (key === "base" || key === "alt") continue;
+      const idx = extras.findIndex((x) => x.key === key);
+      if (idx >= 0) {
+        const existing = extras[idx];
+        extras[idx] = {
+          ...existing,
+          stock: ov.stock,
+          price: ov.priceCents !== null ? ov.priceCents / 100 : existing.price,
+          rarity: ov.rarity ?? existing.rarity,
+        };
+      } else if (ov.rarity !== null) {
+        // Variante creee uniquement via la DB
+        const created: NamedVariant = {
+          key,
+          rarity: ov.rarity,
+          stock: ov.stock,
+          price: ov.priceCents !== null ? ov.priceCents / 100 : next.price,
+        };
+        extras.push(created);
+      }
+    }
+    if (extras.length > 0) {
+      next.extraVariants = extras;
     }
 
     return next;

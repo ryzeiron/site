@@ -2,98 +2,268 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { RARITIES, type Card, type Rarity, type VariantKey } from "@/lib/catalog";
+import {
+  RARITIES,
+  RESERVED_VARIANT_KEYS,
+  type Card,
+  type Rarity,
+  type VariantKey,
+} from "@/lib/catalog";
+
+type VariantSpec = {
+  key: VariantKey;
+  label: string; // ex: "Base", "Alt", ou la rarete pour les customs
+  rarity: Rarity;
+  stock: number;
+  price: number;
+};
+
+function buildVariants(card: Card): VariantSpec[] {
+  const out: VariantSpec[] = [
+    {
+      key: "base",
+      label: "Base",
+      rarity: card.rarity,
+      stock: card.stock,
+      price: card.price,
+    },
+  ];
+  if (card.altVariant) {
+    out.push({
+      key: "alt",
+      label: "Alt",
+      rarity: card.altVariant.rarity,
+      stock: card.altVariant.stock,
+      price: card.altVariant.price,
+    });
+  }
+  if (card.extraVariants) {
+    for (const v of card.extraVariants) {
+      out.push({
+        key: v.key,
+        label: v.rarity,
+        rarity: v.rarity,
+        stock: v.stock,
+        price: v.price,
+      });
+    }
+  }
+  return out;
+}
+
+function slugifyRarity(rarity: string): string {
+  return rarity
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 24);
+}
+
+function pickUniqueKey(card: Card, rarity: Rarity): string {
+  const base = slugifyRarity(rarity) || "variante";
+  const usedKeys = new Set<string>(["base", "alt"]);
+  if (card.extraVariants) {
+    for (const v of card.extraVariants) usedKeys.add(v.key);
+  }
+  let candidate = base;
+  let i = 2;
+  while (usedKeys.has(candidate) || RESERVED_VARIANT_KEYS.has(candidate)) {
+    candidate = `${base}-${i++}`;
+    if (i > 50) break;
+  }
+  return candidate;
+}
 
 export default function AdminStockRow({ card }: { card: Card }) {
+  const variants = buildVariants(card);
+  const [showAddForm, setShowAddForm] = useState(false);
+
   return (
-    <tr className="border-b border-white/5 align-top">
-      <td className="py-3 px-2 text-gray-300 text-sm whitespace-nowrap">
-        {card.number}
-      </td>
-      <td className="py-3 px-2 text-white">{card.name}</td>
-      <td className="py-3 px-2">
-        <VariantCell
-          card={card}
-          variant="base"
-          rarity={card.rarity}
-          initialStock={card.stock}
-          initialPrice={card.price}
-          isNew={false}
-        />
-      </td>
-      <td className="py-3 px-2">
-        {card.altVariant ? (
+    <div className="rounded-lg border border-white/10 bg-zinc-900/50 p-4">
+      <div className="flex items-baseline gap-3 mb-3 flex-wrap">
+        <span className="text-sm text-gray-400 font-mono">{card.number}</span>
+        <span className="text-white font-semibold">{card.name}</span>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        {variants.map((v) => (
           <VariantCell
+            key={v.key}
             card={card}
-            variant="alt"
-            rarity={card.altVariant.rarity}
-            initialStock={card.altVariant.stock}
-            initialPrice={card.altVariant.price}
+            variantKey={v.key}
+            label={v.label}
+            rarity={v.rarity}
+            initialStock={v.stock}
+            initialPrice={v.price}
             isNew={false}
           />
+        ))}
+        {showAddForm ? (
+          <NewVariantForm
+            card={card}
+            onCancel={() => setShowAddForm(false)}
+          />
         ) : (
-          <AddAltPlaceholder card={card} />
+          <button
+            type="button"
+            onClick={() => setShowAddForm(true)}
+            className="self-start rounded border border-dashed border-white/20 text-gray-300 hover:text-white hover:border-white/40 px-3 py-2 text-sm"
+          >
+            + Ajouter une variante
+          </button>
         )}
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 }
 
-function AddAltPlaceholder({ card }: { card: Card }) {
-  const [editing, setEditing] = useState(false);
-  if (!editing) {
-    return (
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="rounded border border-dashed border-white/20 text-gray-300 hover:text-white hover:border-white/40 px-3 py-2 text-sm"
-      >
-        + Ajouter variante alt
-      </button>
-    );
+function NewVariantForm({
+  card,
+  onCancel,
+}: {
+  card: Card;
+  onCancel: () => void;
+}) {
+  const router = useRouter();
+  const [rarityValue, setRarityValue] = useState<string>("");
+  const [stockValue, setStockValue] = useState<string>("0");
+  const [priceValue, setPriceValue] = useState<string>(String(card.price));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const stock = Number.parseInt(stockValue, 10);
+  const price = Number.parseFloat(priceValue.replace(",", "."));
+  const valid =
+    !!rarityValue &&
+    Number.isInteger(stock) &&
+    stock >= 0 &&
+    Number.isFinite(price) &&
+    price >= 0;
+
+  async function create() {
+    if (!valid) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const key = pickUniqueKey(card, rarityValue as Rarity);
+      const res = await fetch("/api/admin/stock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardId: card.id,
+          variant: key,
+          stock,
+          price,
+          rarity: rarityValue,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+      onCancel();
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setSaving(false);
+    }
   }
+
   return (
-    <VariantCell
-      card={card}
-      variant="alt"
-      rarity={null}
-      initialStock={0}
-      initialPrice={card.price}
-      isNew
-      onCancel={() => setEditing(false)}
-    />
+    <div className="rounded-lg border border-violet-400/40 bg-zinc-900/80 p-3 flex flex-col gap-2 min-w-[260px]">
+      <div className="text-xs uppercase text-violet-300 font-semibold tracking-wider">
+        Nouvelle variante
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <label className="text-gray-400 w-12">Rarete</label>
+        <select
+          value={rarityValue}
+          onChange={(e) => setRarityValue(e.target.value)}
+          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+        >
+          <option value="">-- Choisir --</option>
+          {RARITIES.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <label className="text-gray-400 w-12">Stock</label>
+        <input
+          type="number"
+          min={0}
+          value={stockValue}
+          onChange={(e) => setStockValue(e.target.value)}
+          className="w-20 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+        />
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <label className="text-gray-400 w-12">Prix</label>
+        <input
+          type="number"
+          min={0}
+          step="0.01"
+          value={priceValue}
+          onChange={(e) => setPriceValue(e.target.value)}
+          className="w-24 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+        />
+        <span className="text-gray-500 text-xs">€</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={create}
+          disabled={!valid || saving}
+          className={`rounded px-3 py-1 text-xs font-medium transition ${
+            valid
+              ? "bg-brand-500 hover:bg-brand-600 text-white"
+              : "bg-white/10 text-gray-400 cursor-not-allowed"
+          }`}
+        >
+          {saving ? "..." : "Creer"}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-xs"
+        >
+          Annuler
+        </button>
+        {error && <span className="text-xs text-red-400">{error}</span>}
+      </div>
+    </div>
   );
 }
 
 function VariantCell({
   card,
-  variant,
+  variantKey,
+  label,
   rarity,
   initialStock,
   initialPrice,
   isNew,
-  onCancel,
 }: {
   card: Card;
-  variant: VariantKey;
-  rarity: Rarity | null;
+  variantKey: VariantKey;
+  label: string;
+  rarity: Rarity;
   initialStock: number;
   initialPrice: number;
   isNew: boolean;
-  onCancel?: () => void;
 }) {
   const router = useRouter();
-  const [rarityValue, setRarityValue] = useState<string>(rarity ?? "");
+  const [rarityValue, setRarityValue] = useState<string>(rarity);
   const [stockValue, setStockValue] = useState<string>(String(initialStock));
   const [priceValue, setPriceValue] = useState<string>(String(initialPrice));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Resynchronise les inputs quand le serveur renvoie de nouvelles valeurs
-  // (apres save / supprimer / refresh manuel).
   useEffect(() => {
-    setRarityValue(rarity ?? "");
+    setRarityValue(rarity);
     setStockValue(String(initialStock));
     setPriceValue(String(initialPrice));
     setError(null);
@@ -103,26 +273,22 @@ function VariantCell({
   const currentPrice = Number.parseFloat(priceValue.replace(",", "."));
   const stockValid = Number.isInteger(currentStock) && currentStock >= 0;
   const priceValid = Number.isFinite(currentPrice) && currentPrice >= 0;
-  const rarityValid = rarityValue.length > 0;
 
   const stockChanged = currentStock !== initialStock;
   const priceChanged = Math.abs(currentPrice - initialPrice) > 0.0001;
-  const rarityChanged = rarityValue !== (rarity ?? "");
+  const rarityChanged = rarityValue !== rarity;
   const hasChanges = stockChanged || priceChanged || rarityChanged;
-  const canSave =
-    (isNew
-      ? stockValid && priceValid && rarityValid
-      : hasChanges && stockValid && priceValid && (rarityValid || !rarityChanged));
+  const canSave = hasChanges && stockValid && priceValid;
 
   async function save() {
     if (!canSave) return;
     setSaving(true);
     setError(null);
     try {
-      const body: Record<string, unknown> = { cardId: card.id, variant };
-      if (isNew || stockChanged) body.stock = currentStock;
-      if (isNew || priceChanged) body.price = currentPrice;
-      if (isNew || rarityChanged) body.rarity = rarityValue;
+      const body: Record<string, unknown> = { cardId: card.id, variant: variantKey };
+      if (stockChanged) body.stock = currentStock;
+      if (priceChanged) body.price = currentPrice;
+      if (rarityChanged) body.rarity = rarityValue;
       const res = await fetch("/api/admin/stock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -141,7 +307,15 @@ function VariantCell({
   }
 
   return (
-    <div className="flex flex-col gap-2 min-w-[260px]">
+    <div className="rounded-lg border border-white/10 bg-zinc-900/60 p-3 flex flex-col gap-2 min-w-[240px]">
+      <div className="flex items-center gap-2 text-xs">
+        <span className="rounded bg-violet-500/20 text-violet-300 px-2 py-0.5 uppercase tracking-wider font-semibold">
+          {label}
+        </span>
+        <span className="text-gray-500 font-mono text-[10px]">
+          {variantKey}
+        </span>
+      </div>
       <div className="flex items-center gap-2 text-sm">
         <label className="text-gray-400 w-12">Rarete</label>
         <select
@@ -149,7 +323,6 @@ function VariantCell({
           onChange={(e) => setRarityValue(e.target.value)}
           className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
         >
-          {!rarityValue && <option value="">-- Choisir --</option>}
           {RARITIES.map((r) => (
             <option key={r} value={r}>
               {r}
@@ -192,34 +365,24 @@ function VariantCell({
                 : "bg-white/10 text-gray-400 cursor-not-allowed"
           }`}
         >
-          {saved ? "OK" : saving ? "..." : isNew ? "Creer" : "Enregistrer"}
+          {saved ? "OK" : saving ? "..." : "Enregistrer"}
         </button>
         {!isNew && hasChanges && (
           <button
             type="button"
             onClick={() => {
-              setRarityValue(rarity ?? "");
+              setRarityValue(rarity);
               setStockValue(String(initialStock));
               setPriceValue(String(initialPrice));
               setError(null);
             }}
-            className="rounded bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-xs"
-            title="Annuler les modifications non enregistrees"
-          >
-            Annuler
-          </button>
-        )}
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
             className="rounded bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-xs"
           >
             Annuler
           </button>
         )}
         {!isNew && (
-          <DeleteButton card={card} variant={variant} onDeleted={() => setSaved(false)} />
+          <DeleteButton card={card} variant={variantKey} label={label} />
         )}
         {error && <span className="text-xs text-red-400">{error}</span>}
       </div>
@@ -230,22 +393,21 @@ function VariantCell({
 function DeleteButton({
   card,
   variant,
-  onDeleted,
+  label,
 }: {
   card: Card;
   variant: VariantKey;
-  onDeleted?: () => void;
+  label: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function del() {
-    const label = variant === "alt" ? "variante alt" : "variante base";
     const ok = window.confirm(
-      `Supprimer la ${label} de ${card.name} ?\n\n` +
-        `Cela retire les valeurs personnalisees (rarete, stock, prix) stockees dans la base.\n` +
-        `Si cette variante n'existait pas dans le catalogue, elle disparait du site.\n` +
+      `Supprimer la variante ${label} de ${card.name} ?\n\n` +
+        `Cela retire les valeurs personnalisees stockees dans la base.\n` +
+        `Si la variante n'existait pas dans le catalogue, elle disparait du site.\n` +
         `Sinon, elle revient aux valeurs du catalogue.`,
     );
     if (!ok) return;
@@ -259,7 +421,6 @@ function DeleteButton({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Erreur");
-      onDeleted?.();
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");

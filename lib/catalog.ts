@@ -48,7 +48,20 @@ export type CardVariant = {
   stock: number;
 };
 
-export type VariantKey = "base" | "alt";
+export type NamedVariant = {
+  key: string; // identifiant unique par carte (ex: "pokeball", "masterball", "cosmos")
+  rarity: Rarity;
+  price: number;
+  stock: number;
+};
+
+export type VariantKey = string; // "base", "alt" ou cle custom
+
+export const RESERVED_VARIANT_KEYS = new Set(["base", "alt"]);
+
+export function isValidVariantKey(key: string): boolean {
+  return /^[a-z][a-z0-9-]{0,30}$/.test(key);
+}
 
 export type Card = {
   id: string;
@@ -62,12 +75,35 @@ export type Card = {
   stock: number;
   image?: string;
   description?: string;
-  altVariant?: CardVariant; // deuxieme version (ex: Rare Holo a cote d'un Rare Reverse)
+  altVariant?: CardVariant; // deuxieme version "alt" (legacy + raccourci)
+  extraVariants?: NamedVariant[]; // variantes supplementaires identifiees par cle
 };
 
 export function resolveVariant(card: Card, key: VariantKey = "base"): CardVariant {
   if (key === "alt" && card.altVariant) return card.altVariant;
+  if (key !== "base" && key !== "alt" && card.extraVariants) {
+    const v = card.extraVariants.find((x) => x.key === key);
+    if (v) return { rarity: v.rarity, price: v.price, stock: v.stock };
+  }
   return { rarity: card.rarity, price: card.price, stock: card.stock };
+}
+
+export function listVariants(card: Card): { key: VariantKey; variant: CardVariant }[] {
+  const out: { key: VariantKey; variant: CardVariant }[] = [
+    { key: "base", variant: { rarity: card.rarity, price: card.price, stock: card.stock } },
+  ];
+  if (card.altVariant) {
+    out.push({ key: "alt", variant: card.altVariant });
+  }
+  if (card.extraVariants) {
+    for (const v of card.extraVariants) {
+      out.push({
+        key: v.key,
+        variant: { rarity: v.rarity, price: v.price, stock: v.stock },
+      });
+    }
+  }
+  return out;
 }
 
 export const BLOCS: Bloc[] = [

@@ -1,17 +1,30 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin/auth";
-import { getCard, isRarity, resolveVariant, type Rarity } from "@/lib/catalog";
+import {
+  getCard,
+  isRarity,
+  isValidVariantKey,
+  resolveVariant,
+  type Rarity,
+} from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { stockOverrides } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 
 type Body = {
   cardId?: string;
-  variant?: "base" | "alt";
+  variant?: string;
   stock?: number;
   price?: number;
   rarity?: string;
 };
+
+function validateVariantKey(variant: string | undefined): string | null {
+  if (!variant || typeof variant !== "string") return null;
+  if (variant === "base" || variant === "alt") return variant;
+  if (!isValidVariantKey(variant)) return null;
+  return variant;
+}
 
 export async function POST(request: Request) {
   if (!(await isAdmin())) {
@@ -26,8 +39,12 @@ export async function POST(request: Request) {
   }
 
   const { cardId, variant, stock, price, rarity } = body;
-  if (!cardId || (variant !== "base" && variant !== "alt")) {
-    return NextResponse.json({ error: "Champs invalides." }, { status: 400 });
+  const variantKey = validateVariantKey(variant);
+  if (!cardId || !variantKey) {
+    return NextResponse.json(
+      { error: "Cle de variante invalide (lettres minuscules, chiffres, tirets)." },
+      { status: 400 },
+    );
   }
 
   const card = getCard(cardId);
@@ -70,26 +87,48 @@ export async function POST(request: Request) {
 
   const priceCentsValue = hasPrice ? Math.round(price * 100) : undefined;
 
-  const creatingNewAlt =
-    variant === "alt" && !card.altVariant;
+  // Determiner s'il s'agit d'une nouvelle variante (sans correspondance dans le catalogue)
+  const isAltCreatingNew = variantKey === "alt" && !card.altVariant;
+  const isExtraCreatingNew =
+    variantKey !== "base" &&
+    variantKey !== "alt" &&
+    !(card.extraVariants ?? []).some((v) => v.key === variantKey);
+  const creatingNew = isAltCreatingNew || isExtraCreatingNew;
 
-  if (creatingNewAlt && !hasRarity) {
+  if (creatingNew && !hasRarity) {
     return NextResponse.json(
-      {
-        error:
-          "Rarete obligatoire pour creer une nouvelle variante alt.",
-      },
+      { error: "Rarete obligatoire pour creer une nouvelle variante." },
       { status: 400 },
     );
   }
 
-  const current =
-    variant === "alt" && !card.altVariant
-      ? { stock: 0, price: card.price }
-      : resolveVariant(card, variant);
+  // Stock initial (si on cree, on n'a pas de fallback catalogue)
+  let currentStock = 0;
+  let currentPrice = card.price;
+  if (variantKey === "base") {
+    currentStock = card.stock;
+    currentPrice = card.price;
+  } else if (variantKey === "alt" && card.altVariant) {
+    currentStock = card.altVariant.stock;
+    currentPrice = card.altVariant.price;
+  } else if (variantKey !== "alt" && variantKey !== "base") {
+    const v = card.extraVariants?.find((x) => x.key === variantKey);
+    if (v) {
+      currentStock = v.stock;
+      currentPrice = v.price;
+    }
+  } else {
+    const r = resolveVariant(card, variantKey);
+    currentStock = r.stock;
+    currentPrice = r.price;
+  }
 
-  const insertStock = hasStock ? stock : current.stock;
-  const insertPriceCents = priceCentsValue ?? null;
+  const insertStock = hasStock ? stock : currentStock;
+  const insertPriceCents = hasPrice
+    ? Math.round(price * 100)
+    : creatingNew
+      ? Math.round(currentPrice * 100)
+      : null;
   const insertRarity = rarityValue ?? null;
 
   try {
@@ -98,7 +137,7 @@ export async function POST(request: Request) {
       .insert(stockOverrides)
       .values({
         cardId,
-        variant,
+        variant: variantKey,
         stock: insertStock,
         priceCents: insertPriceCents,
         rarity: insertRarity,
@@ -138,7 +177,8 @@ export async function DELETE(request: Request) {
   }
 
   const { cardId, variant } = body;
-  if (!cardId || (variant !== "base" && variant !== "alt")) {
+  const variantKey = validateVariantKey(variant);
+  if (!cardId || !variantKey) {
     return NextResponse.json({ error: "Champs invalides." }, { status: 400 });
   }
 
@@ -149,7 +189,7 @@ export async function DELETE(request: Request) {
       .where(
         and(
           eq(stockOverrides.cardId, cardId),
-          eq(stockOverrides.variant, variant),
+          eq(stockOverrides.variant, variantKey),
         ),
       );
   } catch (e) {

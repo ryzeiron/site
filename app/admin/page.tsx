@@ -91,22 +91,10 @@ export default async function AdminPage({
       ) : withStock.length === 0 ? (
         <p className="text-gray-400">Aucune carte trouvee.</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-white/10 bg-zinc-900/50">
-          <table className="w-full text-left">
-            <thead className="bg-zinc-900/80 text-xs uppercase text-gray-400">
-              <tr>
-                <th className="py-2 px-2">Numero</th>
-                <th className="py-2 px-2">Nom</th>
-                <th className="py-2 px-2">Variante base</th>
-                <th className="py-2 px-2">Variante alt</th>
-              </tr>
-            </thead>
-            <tbody>
-              {withStock.map((c) => (
-                <AdminStockRow key={c.id} card={c} />
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          {withStock.map((c) => (
+            <AdminStockRow key={c.id} card={c} />
+          ))}
         </div>
       )}
     </div>

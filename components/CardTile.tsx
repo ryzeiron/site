@@ -3,8 +3,11 @@ import type { Card } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
 export default function CardTile({ card }: { card: Card }) {
-  const outOfStock =
-    card.stock <= 0 && (!card.altVariant || card.altVariant.stock <= 0);
+  const baseOut = card.stock <= 0;
+  const altOut = !card.altVariant || card.altVariant.stock <= 0;
+  const extrasOut =
+    !card.extraVariants || card.extraVariants.every((v) => v.stock <= 0);
+  const outOfStock = baseOut && altOut && extrasOut;
   return (
     <Link
       href={`/carte/${card.id}`}
@@ -30,9 +33,12 @@ export default function CardTile({ card }: { card: Card }) {
         )}
       </div>
       <div className="p-3">
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-gray-500 truncate">
           {card.number} - {card.rarity}
           {card.altVariant ? ` / ${card.altVariant.rarity}` : ""}
+          {card.extraVariants
+            ? card.extraVariants.map((v) => ` / ${v.rarity}`).join("")
+            : ""}
         </div>
         <div className="font-semibold truncate text-white">{card.name}</div>
         <div className="flex items-center justify-between mt-2">

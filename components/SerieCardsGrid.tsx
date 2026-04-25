@@ -27,6 +27,9 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
     for (const c of cards) {
       present.add(c.rarity);
       if (c.altVariant) present.add(c.altVariant.rarity);
+      if (c.extraVariants) {
+        for (const v of c.extraVariants) present.add(v.rarity);
+      }
     }
     return RARITY_ORDER.filter((r) => present.has(r));
   }, [cards]);
@@ -38,7 +41,8 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
       if (selected !== "all") {
         const matchRarity =
           c.rarity === selected ||
-          (c.altVariant && c.altVariant.rarity === selected);
+          (c.altVariant && c.altVariant.rarity === selected) ||
+          (c.extraVariants?.some((v) => v.rarity === selected) ?? false);
         if (!matchRarity) return false;
       }
       if (normalizedQuery) {
