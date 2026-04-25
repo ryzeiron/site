@@ -7,7 +7,13 @@ import { applyStockOverrides } from "@/lib/stock";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const top = await applyStockOverrides(featuredCards(12));
+  const featured = featuredCards(12);
+  let top = featured;
+  try {
+    top = await applyStockOverrides(featured);
+  } catch {
+    // fallback sur le catalogue si la DB est indisponible
+  }
   const loop = [...top, ...top];
   const blocsLoop = [...BLOCS, ...BLOCS];
   return (

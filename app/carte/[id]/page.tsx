@@ -27,7 +27,13 @@ export default async function CardPage({
   const { id } = await params;
   const raw = getCard(id);
   if (!raw) notFound();
-  const [card] = await applyStockOverrides([raw]);
+  let card = raw;
+  try {
+    const [withStock] = await applyStockOverrides([raw]);
+    if (withStock) card = withStock;
+  } catch {
+    // garder la carte du catalogue si la DB est indisponible
+  }
   const serie = getSerie(card.serieId);
   const bloc = serie ? getBloc(serie.blocId) : undefined;
 

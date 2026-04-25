@@ -32,7 +32,13 @@ export default async function SeriePage({
   const bloc = getBloc(blocId);
   const serie = getSerie(serieId);
   if (!bloc || !serie || serie.blocId !== bloc.id) notFound();
-  const cards = await applyStockOverrides(cardsForSerie(serie.id));
+  const raw = cardsForSerie(serie.id);
+  let cards = raw;
+  try {
+    cards = await applyStockOverrides(raw);
+  } catch {
+    // fallback sur le catalogue si la DB est indisponible
+  }
 
   return (
     <div>
