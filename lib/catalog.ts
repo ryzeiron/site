@@ -10,6 +10,7 @@ export const RARITIES = [
   "Holo",
   "Holo Cracked Ice",
   "Holo ligne",
+  "Holo Cosmos",
   "Stamp",
   "Rare Reverse",
   "Rare Holo",
