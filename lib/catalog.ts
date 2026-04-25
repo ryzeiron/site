@@ -555,6 +555,9 @@ export const CARDS = ([
   { id: "crown-zenith-230", serieId: "crown-zenith", name: "Arceus-VSTAR ", number: "GG70/GG70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/eb12.5/230.jpg", },
 
 
+  // Promo EV
+  { id: "svp-001", serieId: "svp", name: "Poussacha", number: "001/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/1.webp", },
+
   // Flamme Noire
   { id: "foudre-noire-001", serieId: "foudre-noire", name: "Vipélierre", number: "01/86", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/ev10.5(2)/1.webp",
     altVariant: { rarity: "Holo", price: 1, stock: 1 },
