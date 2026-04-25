@@ -4,6 +4,7 @@
 export type Condition = "Mint" | "Near Mint" | "Excellent" | "Good" | "Played";
 
 export const RARITIES = [
+  "Promo",
   "Reverse",
   "Reverse Pokéball",
   "Reverse Masterball",
@@ -188,6 +189,7 @@ export const SERIES: Serie[] = [
   { id: "me04", blocId: "mega-evolution", code: "ME04", name: "Chaos Ascendant", releaseYear: 2026 },
   
   // Ecarlate et Violet
+  { id: "svp", blocId: "ecarlate-et-violet", code: "Promo", name: "Ecarlate et Violet", releaseYear: 2023, image: "/series/EV/SVP.webp", },
   { id: "ev01", blocId: "ecarlate-et-violet", code: "EV01", name: "Ecarlate et Violet", releaseYear: 2023, image: "/series/EV/SVI.webp", },
   { id: "ev02", blocId: "ecarlate-et-violet", code: "EV02", name: "Evolutions a Paldea", releaseYear: 2023, image: "/series/EV/PAL.webp", },
   { id: "ev03", blocId: "ecarlate-et-violet", code: "EV03", name: "Flammes Obsidiennes", releaseYear: 2023, image: "/series/EV/OBF.webp", },
