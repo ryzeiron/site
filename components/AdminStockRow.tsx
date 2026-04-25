@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RARITIES, type Card, type Rarity, type VariantKey } from "@/lib/catalog";
 
 export default function AdminStockRow({ card }: { card: Card }) {
@@ -82,12 +82,22 @@ function VariantCell({
   isNew: boolean;
   onCancel?: () => void;
 }) {
+  const router = useRouter();
   const [rarityValue, setRarityValue] = useState<string>(rarity ?? "");
   const [stockValue, setStockValue] = useState<string>(String(initialStock));
   const [priceValue, setPriceValue] = useState<string>(String(initialPrice));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Resynchronise les inputs quand le serveur renvoie de nouvelles valeurs
+  // (apres save / supprimer / refresh manuel).
+  useEffect(() => {
+    setRarityValue(rarity ?? "");
+    setStockValue(String(initialStock));
+    setPriceValue(String(initialPrice));
+    setError(null);
+  }, [rarity, initialStock, initialPrice]);
 
   const currentStock = Number.parseInt(stockValue, 10);
   const currentPrice = Number.parseFloat(priceValue.replace(",", "."));
@@ -122,6 +132,7 @@ function VariantCell({
       if (!res.ok) throw new Error(data.error ?? "Erreur");
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
     } finally {
