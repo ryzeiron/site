@@ -96,6 +96,7 @@ export const BLOCS: Bloc[] = [
     name: "Soleil et Lune",
     tagline: "2017 - 2019",
     coverColor: "from-amber-400 to-orange-600",
+    image: "/blocs/soleil-et-lune.jpg",
   },
   {
     id: "xy",
