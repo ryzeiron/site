@@ -6491,7 +6491,7 @@ export function getSerie(id: string): Serie | undefined {
 }
 
 export function getCard(id: string): Card | undefined {
-  return CARDS.find((c) => c.id === id);
+  return CARDS.find((c) => c?.id === id);
 }
 
 export function seriesForBloc(blocId: string): Serie[] {
