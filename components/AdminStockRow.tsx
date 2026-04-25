@@ -183,6 +183,21 @@ function VariantCell({
         >
           {saved ? "OK" : saving ? "..." : isNew ? "Creer" : "Enregistrer"}
         </button>
+        {!isNew && hasChanges && (
+          <button
+            type="button"
+            onClick={() => {
+              setRarityValue(rarity ?? "");
+              setStockValue(String(initialStock));
+              setPriceValue(String(initialPrice));
+              setError(null);
+            }}
+            className="rounded bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-xs"
+            title="Annuler les modifications non enregistrees"
+          >
+            Annuler
+          </button>
+        )}
         {onCancel && (
           <button
             type="button"
