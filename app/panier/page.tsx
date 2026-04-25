@@ -6,6 +6,10 @@ import { useCart } from "@/lib/cart";
 import { resolveVariant, type Card } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
+type AppliedPromo =
+  | { code: string; type: "percent_off"; percent: number; label: string }
+  | { code: string; type: "free_shipping"; label: string };
+
 export default function CartPage() {
   const items = useCart((s) => s.items);
   const setQuantity = useCart((s) => s.setQuantity);
@@ -17,6 +21,11 @@ export default function CartPage() {
   const [cards, setCards] = useState<Record<string, Card>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [promoInput, setPromoInput] = useState("");
+  const [applyingPromo, setApplyingPromo] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -44,7 +53,7 @@ export default function CartPage() {
       .finally(() => setLoadingCards(false));
   }, [items, mounted]);
 
-  const totalEuros = useMemo(() => {
+  const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {
       const card = cards[item.cardId];
       if (!card) return sum;
@@ -53,6 +62,40 @@ export default function CartPage() {
     }, 0);
   }, [items, cards]);
 
+  const discount =
+    appliedPromo?.type === "percent_off"
+      ? (subtotal * appliedPromo.percent) / 100
+      : 0;
+  const total = Math.max(0, subtotal - discount);
+
+  async function applyPromo() {
+    if (!promoInput.trim()) return;
+    setApplyingPromo(true);
+    setPromoError(null);
+    try {
+      const res = await fetch("/api/promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Code invalide.");
+      setAppliedPromo(data.promo);
+      setPromoError(null);
+    } catch (e) {
+      setAppliedPromo(null);
+      setPromoError(e instanceof Error ? e.message : "Code invalide.");
+    } finally {
+      setApplyingPromo(false);
+    }
+  }
+
+  function clearPromo() {
+    setAppliedPromo(null);
+    setPromoInput("");
+    setPromoError(null);
+  }
+
   async function handleCheckout() {
     setLoading(true);
     setError(null);
@@ -60,7 +103,10 @@ export default function CartPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({
+          items,
+          promoCode: appliedPromo?.code,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -171,12 +217,71 @@ export default function CartPage() {
       </div>
 
       <div className="mt-6 rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-4 text-gray-200">
-        <div className="flex items-center justify-between text-lg">
+        <div className="mb-3">
+          <label className="text-sm text-gray-300">Code promo</label>
+          {appliedPromo ? (
+            <div className="mt-2 flex items-center gap-3 rounded bg-emerald-500/10 border border-emerald-500/30 px-3 py-2">
+              <span className="text-sm text-emerald-300 font-medium">
+                {appliedPromo.code.toUpperCase()} - {appliedPromo.label}
+              </span>
+              <button
+                type="button"
+                onClick={clearPromo}
+                className="ml-auto text-xs text-gray-400 hover:text-red-400"
+              >
+                Retirer
+              </button>
+            </div>
+          ) : (
+            <div className="mt-2 flex flex-wrap gap-2">
+              <input
+                type="text"
+                value={promoInput}
+                onChange={(e) => setPromoInput(e.target.value)}
+                placeholder="Entre ton code"
+                className="flex-1 min-w-[180px] rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm focus:outline-none focus:border-violet-400"
+              />
+              <button
+                type="button"
+                onClick={applyPromo}
+                disabled={!promoInput.trim() || applyingPromo}
+                className="rounded bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white px-4 py-2 text-sm font-medium"
+              >
+                {applyingPromo ? "..." : "Appliquer"}
+              </button>
+            </div>
+          )}
+          {promoError && (
+            <p className="mt-2 text-xs text-red-300">{promoError}</p>
+          )}
+        </div>
+
+        <div className="border-t border-white/10 pt-3 space-y-1 text-sm">
+          <div className="flex items-center justify-between text-gray-300">
+            <span>Sous-total</span>
+            <span>{formatPrice(subtotal)}</span>
+          </div>
+          {discount > 0 && (
+            <div className="flex items-center justify-between text-emerald-300">
+              <span>Reduction ({appliedPromo?.code})</span>
+              <span>- {formatPrice(discount)}</span>
+            </div>
+          )}
+          {appliedPromo?.type === "free_shipping" && (
+            <div className="flex items-center justify-between text-emerald-300">
+              <span>Livraison</span>
+              <span>Offerte</span>
+            </div>
+          )}
+        </div>
+        <div className="mt-2 flex items-center justify-between text-lg">
           <span>Total</span>
-          <strong className="text-white">{formatPrice(totalEuros)}</strong>
+          <strong className="text-white">{formatPrice(total)}</strong>
         </div>
         <p className="text-xs text-gray-400 mt-1">
-          Les frais de livraison sont calcules a l&apos;etape de paiement.
+          {appliedPromo?.type === "free_shipping"
+            ? "Frais de livraison offerts a l'etape de paiement."
+            : "Les frais de livraison sont calcules a l'etape de paiement."}
         </p>
 
         {error && (

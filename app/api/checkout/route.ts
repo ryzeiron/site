@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
+import { getPromo } from "@/lib/promo";
 
 type Body = {
   items: { cardId: string; variant: VariantKey; quantity: number }[];
+  promoCode?: string;
 };
 
 const META_VALUE_MAX = 450;
@@ -33,6 +35,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Panier vide." }, { status: 400 });
     }
 
+    let promo = null;
+    if (body.promoCode && body.promoCode.trim()) {
+      promo = getPromo(body.promoCode);
+      if (!promo) {
+        return NextResponse.json(
+          { error: "Code promo invalide." },
+          { status: 400 },
+        );
+      }
+    }
+
+    const percentMultiplier =
+      promo?.type === "percent_off" ? 1 - promo.percent / 100 : 1;
+    const shippingMultiplier = promo?.type === "free_shipping" ? 0 : 1;
+
     const rawCards = body.items
       .map((i) => getCard(i.cardId))
       .filter((c): c is NonNullable<typeof c> => !!c);
@@ -50,7 +67,7 @@ export async function POST(request: Request) {
       return {
         price_data: {
           currency: "eur",
-          unit_amount: Math.round(v.price * 100),
+          unit_amount: Math.max(0, Math.round(v.price * 100 * percentMultiplier)),
           product_data: {
             name: `${card.name} (${card.number}) - ${v.rarity}`,
             description: `${v.rarity} - Etat: ${card.condition} - ${card.language}`,
@@ -78,7 +95,7 @@ export async function POST(request: Request) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: 350, currency: "eur" },
+            fixed_amount: { amount: Math.round(350 * shippingMultiplier), currency: "eur" },
             display_name: "Lettre suivie (France)",
             delivery_estimate: {
               minimum: { unit: "business_day", value: 2 },
@@ -89,7 +106,7 @@ export async function POST(request: Request) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: 490, currency: "eur" },
+            fixed_amount: { amount: Math.round(490 * shippingMultiplier), currency: "eur" },
             display_name: "Mondial Relay",
             delivery_estimate: {
               minimum: { unit: "business_day", value: 3 },
