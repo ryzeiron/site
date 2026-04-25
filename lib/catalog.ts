@@ -707,7 +707,7 @@ export const CARDS = ([
   { id: "svp-149", serieId: "svp", name: "Pêchaminus ", number: "149/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/149.webp", },
   { id: "svp-150", serieId: "svp", name: "Hôtel « Au paradis des Pokémon » ", number: "150/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/150.webp", },
   { id: "svp-151", serieId: "svp", name: "Feu-Perçant ", number: "151/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/151.webp", },
-  { id: "svp-152, serieId: "svp", name: "Baojian ", number: "152/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/152.webp", },
+  { id: "svp-152", serieId: "svp", name: "Baojian ", number: "152/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/152.webp", },
   { id: "svp-153", serieId: "svp", name: "Magnéton ", number: "153/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/153.webp", },
   { id: "svp-154", serieId: "svp", name: "Wimessir ", number: "154/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/154.webp", },
   { id: "svp-155", serieId: "svp", name: "Axoloto ", number: "155/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/155.webp", },
