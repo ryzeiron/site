@@ -686,7 +686,7 @@ export const CARDS = ([
   { id: "svp-128", serieId: "svp", name: "Vert-de-Fer ex ", number: "128/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/128.webp", },
   { id: "svp-129", serieId: "svp", name: "Pêchaminus ", number: "129/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/129.webp", },
   { id: "svp-130", serieId: "svp", name: "Scalpereur ", number: "130/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/130.webp", },
-  { id: "svp-131", serieId: "svp", name: "Hyporoi ex ", number: "131/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/1131.webp", },
+  { id: "svp-131", serieId: "svp", name: "Hyporoi ex ", number: "131/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/131.webp", },
   { id: "svp-132", serieId: "svp", name: "Amphinobi ex ", number: "132/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/132.webp", },
   { id: "svp-133", serieId: "svp", name: "Coxyclaque ", number: "133/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/133.webp", },
   { id: "svp-134", serieId: "svp", name: "Crabominable ", number: "134/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/134.webp", },
