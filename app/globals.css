@@ -60,6 +60,21 @@ body {
   will-change: transform;
   backface-visibility: hidden;
 }
-.marquee-container:hover .marquee-track {
+.marquee-container:hover .marquee-track,
+.marquee-container:focus-within .marquee-track,
+.marquee-container:active .marquee-track {
   animation-play-state: paused;
+}
+@media (hover: none) {
+  .marquee-track {
+    animation: none;
+    width: auto;
+  }
+  .marquee-track .marquee-duplicate {
+    display: none;
+  }
+  .marquee-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }

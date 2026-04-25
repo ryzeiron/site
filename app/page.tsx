@@ -48,7 +48,10 @@ export default async function HomePage() {
         <div className="marquee-container relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
           <div className="marquee-track flex gap-4">
             {loop.map((c, i) => (
-              <div key={`${c.id}-${i}`} className="w-48 sm:w-56 shrink-0">
+              <div
+                key={`${c.id}-${i}`}
+                className={`w-48 sm:w-56 shrink-0 ${i >= top.length ? "marquee-duplicate" : ""}`}
+              >
                 <CardTile card={c} />
               </div>
             ))}
@@ -76,7 +79,10 @@ export default async function HomePage() {
         <div className="marquee-container relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
           <div className="marquee-track flex gap-4">
             {blocsLoop.map((b, i) => (
-              <div key={`${b.id}-${i}`} className="w-72 sm:w-80 shrink-0">
+              <div
+                key={`${b.id}-${i}`}
+                className={`w-72 sm:w-80 shrink-0 ${i >= BLOCS.length ? "marquee-duplicate" : ""}`}
+              >
                 <BlocTile bloc={b} />
               </div>
             ))}
