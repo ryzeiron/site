@@ -6932,7 +6932,22 @@ export const CARDS = ([
   { id: "soleil-et-lune-146", serieId: "sl01", name: "Althéo", number: "146/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/146.webp", },
   { id: "soleil-et-lune-147", serieId: "sl01", name: "Lilie", number: "147/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/147.webp", },
   { id: "soleil-et-lune-148", serieId: "sl01", name: "Prof. Euphorbe", number: "148/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/148.webp", },
-  { id: "soleil-et-lune-149", serieId: "sl01", name: "Sbire de la Team Skull", number: "149/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/149.webp", },
+  { id: "soleil-et-lune-149", serieId: "sl01", name: "Sbire de la Team Skull ", number: "149/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/149.webp", },
+  { id: "soleil-et-lune-150", serieId: "sl01", name: "Floramantis-GX ", number: "150/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/150.webp", },
+  { id: "soleil-et-lune-151", serieId: "sl01", name: "Lokhlass-GX ", number: "151/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/151.webp", },
+  { id: "soleil-et-lune-152", serieId: "sl01", name: "Mentali-GX ", number: "152/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/152.webp", },
+  { id: "soleil-et-lune-153", serieId: "sl01", name: "Lunala-GX ", number: "153/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/153.webp", },
+  { id: "soleil-et-lune-154", serieId: "sl01", name: "Noctali-GX ", number: "154/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/154.webp", },
+  { id: "soleil-et-lune-155", serieId: "sl01", name: "Solgaleo-GX ", number: "155/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/155.webp", },
+  { id: "soleil-et-lune-156", serieId: "sl01", name: "Tauros-GX ", number: "156/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/156.webp", },
+  { id: "soleil-et-lune-157", serieId: "sl01", name: "Argouste-GX ", number: "157/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/157.webp", },
+  { id: "soleil-et-lune-158", serieId: "sl01", name: "Faiblo Ball ", number: "158/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/158.webp", },
+  { id: "soleil-et-lune-159", serieId: "sl01", name: "Motisma-Dex ", number: "159/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/159.webp", },
+  { id: "soleil-et-lune-160", serieId: "sl01", name: "Échange ", number: "160/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/160.webp", },
+  { id: "soleil-et-lune-161", serieId: "sl01", name: "Hyper Ball ", number: "161/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/161.webp", },
+  { id: "soleil-et-lune-162", serieId: "sl01", name: "Énergie Psy ", number: "162/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/162.webp", },
+  { id: "soleil-et-lune-163", serieId: "sl01", name: "Énergie Métal", number: "163/149", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl01/163.webp", },
+  
 
   // === sl03 - ombres-ardentes ===
   { id: "ombres-ardentes-001", serieId: "sl03", name: "Chenipan", number: "001/169", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl03/1.webp", },
