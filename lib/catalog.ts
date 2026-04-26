@@ -232,7 +232,7 @@ export const SERIES: Serie[] = [
   { id: "sl01", blocId: "soleil-et-lune", code: "SL01", name: "Soleil et Lune", releaseYear: 2017, image: "/series/SL/SL01.webp", },
   { id: "sl02", blocId: "soleil-et-lune", code: "SL02", name: "Gardiens Ascendants", releaseYear: 2017, image: "/series/SL/SL02.webp", },
   { id: "sl03", blocId: "soleil-et-lune", code: "SL03", name: "Ombres Ardentes", releaseYear: 2017, image: "/series/SL/SL03.webp", },
-  { id: "sle", blocId: "soleil-et-lune", code: "SLE", name: "Légendes Brillantes", releaseYear: 2017, image: "/series/SL/SLE.webp", },
+  { id: "sl03.5", blocId: "soleil-et-lune", code: "SL03.5", name: "Légendes Brillantes", releaseYear: 2017, image: "/series/SL/SLE.webp", },
   { id: "sl04", blocId: "soleil-et-lune", code: "SL04", name: "Invasion Carmin", releaseYear: 2017, image: "/series/SL/SL04.webp", },
   { id: "sl05", blocId: "soleil-et-lune", code: "SL05", name: "Ultra Prisme", releaseYear: 2018, image: "/series/SL/SL05.webp", },
   { id: "sl06", blocId: "soleil-et-lune", code: "SL06", name: "Lumiere Interdite", releaseYear: 2018, image: "/series/SL/SL06.webp", },
