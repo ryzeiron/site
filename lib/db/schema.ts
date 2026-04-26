@@ -17,3 +17,11 @@ export const processedEvents = pgTable("processed_events", {
   eventId: text("event_id").primaryKey(),
   processedAt: timestamp("processed_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const cardOverrides = pgTable("card_overrides", {
+  cardId: text("card_id").primaryKey(),
+  name: text("name"),
+  image: text("image"),
+  description: text("description"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

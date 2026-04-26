@@ -1,7 +1,7 @@
 import "server-only";
 import { inArray } from "drizzle-orm";
 import { getDb } from "./db/client";
-import { stockOverrides } from "./db/schema";
+import { cardOverrides, stockOverrides } from "./db/schema";
 import {
   isRarity,
   type Card,
@@ -28,22 +28,43 @@ export async function applyStockOverrides<T extends Card>(
     priceCents: number | null;
     rarity: string | null;
   }[] = [];
+  let metaRows: {
+    cardId: string;
+    name: string | null;
+    image: string | null;
+    description: string | null;
+  }[] = [];
   try {
-    rows = await getDb()
-      .select({
-        cardId: stockOverrides.cardId,
-        variant: stockOverrides.variant,
-        stock: stockOverrides.stock,
-        priceCents: stockOverrides.priceCents,
-        rarity: stockOverrides.rarity,
-      })
-      .from(stockOverrides)
-      .where(inArray(stockOverrides.cardId, ids));
+    const db = getDb();
+    [rows, metaRows] = await Promise.all([
+      db
+        .select({
+          cardId: stockOverrides.cardId,
+          variant: stockOverrides.variant,
+          stock: stockOverrides.stock,
+          priceCents: stockOverrides.priceCents,
+          rarity: stockOverrides.rarity,
+        })
+        .from(stockOverrides)
+        .where(inArray(stockOverrides.cardId, ids)),
+      db
+        .select({
+          cardId: cardOverrides.cardId,
+          name: cardOverrides.name,
+          image: cardOverrides.image,
+          description: cardOverrides.description,
+        })
+        .from(cardOverrides)
+        .where(inArray(cardOverrides.cardId, ids)),
+    ]);
   } catch {
     return cards;
   }
 
-  if (rows.length === 0) return cards;
+  if (rows.length === 0 && metaRows.length === 0) return cards;
+
+  const metaByCard = new Map<string, (typeof metaRows)[number]>();
+  for (const m of metaRows) metaByCard.set(m.cardId, m);
 
   // Group overrides by cardId
   const byCard = new Map<string, Map<string, OverrideData>>();
@@ -62,9 +83,18 @@ export async function applyStockOverrides<T extends Card>(
 
   return cards.map((c) => {
     const overrides = byCard.get(c.id);
-    if (!overrides) return c;
+    const meta = metaByCard.get(c.id);
+    if (!overrides && !meta) return c;
 
     const next: T = { ...c };
+
+    if (meta) {
+      if (meta.name) next.name = meta.name;
+      if (meta.image) next.image = meta.image;
+      if (meta.description) next.description = meta.description;
+    }
+
+    if (!overrides) return next;
 
     const baseOverride = overrides.get("base");
     if (baseOverride) {

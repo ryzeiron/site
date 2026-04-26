@@ -79,13 +79,28 @@ function pickUniqueKey(card: Card, rarity: Rarity): string {
 export default function AdminStockRow({ card }: { card: Card }) {
   const variants = buildVariants(card);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingMeta, setEditingMeta] = useState(false);
 
   return (
     <div className="rounded-lg border border-white/10 bg-zinc-900/50 p-4">
       <div className="flex items-baseline gap-3 mb-3 flex-wrap">
         <span className="text-sm text-gray-400 font-mono">{card.number}</span>
         <span className="text-white font-semibold">{card.name}</span>
+        {!editingMeta && (
+          <button
+            type="button"
+            onClick={() => setEditingMeta(true)}
+            className="ml-auto text-xs text-violet-300 hover:text-violet-200"
+          >
+            Modifier les infos
+          </button>
+        )}
       </div>
+      {editingMeta && (
+        <div className="mb-3">
+          <CardMetaForm card={card} onClose={() => setEditingMeta(false)} />
+        </div>
+      )}
       <div className="flex flex-wrap gap-3">
         {variants.map((v) => (
           <VariantCell
@@ -113,6 +128,139 @@ export default function AdminStockRow({ card }: { card: Card }) {
             + Ajouter une variante
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
+  const router = useRouter();
+  const [name, setName] = useState(card.name);
+  const [image, setImage] = useState(card.image ?? "");
+  const [description, setDescription] = useState(card.description ?? "");
+  const [saving, setSaving] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const changed =
+    name !== card.name ||
+    image !== (card.image ?? "") ||
+    description !== (card.description ?? "");
+  const canSave = changed && name.trim().length > 0;
+
+  async function save() {
+    if (!canSave) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardId: card.id,
+          name,
+          image,
+          description,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+      onClose();
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function reset() {
+    const ok = window.confirm(
+      `Reinitialiser ${card.name} aux valeurs du catalogue ?\n\nCela retire les infos personnalisees (nom, image, description) stockees dans la base.`,
+    );
+    if (!ok) return;
+    setResetting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/card", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardId: card.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+      onClose();
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setResetting(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-violet-400/40 bg-zinc-900/80 p-3 space-y-2">
+      <div className="text-xs uppercase text-violet-300 font-semibold tracking-wider">
+        Modifier les infos
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <label className="text-gray-400 w-24 shrink-0">Nom</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+        />
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <label className="text-gray-400 w-24 shrink-0">Image</label>
+        <input
+          type="text"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          placeholder="/cartes/serie/numero.webp"
+          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+        />
+      </div>
+      <div className="flex items-start gap-2 text-sm">
+        <label className="text-gray-400 w-24 shrink-0 pt-1">Description</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={2}
+          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+        />
+      </div>
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={save}
+          disabled={!canSave || saving}
+          className={`rounded px-3 py-1 text-xs font-medium transition ${
+            canSave
+              ? "bg-brand-500 hover:bg-brand-600 text-white"
+              : "bg-white/10 text-gray-400 cursor-not-allowed"
+          }`}
+        >
+          {saving ? "..." : "Enregistrer"}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-xs"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          onClick={reset}
+          disabled={resetting}
+          className="rounded bg-red-600/80 hover:bg-red-600 text-white px-3 py-1 text-xs font-medium disabled:opacity-60 ml-auto"
+          title="Retire les infos personnalisees, revient au catalogue"
+        >
+          {resetting ? "..." : "Reset au catalogue"}
+        </button>
+        {error && <span className="text-xs text-red-400">{error}</span>}
       </div>
     </div>
   );
