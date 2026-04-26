@@ -5053,7 +5053,14 @@ export const CARDS = ([
   { id: "legendes-brillantes-070", serieId: "sl03.5", name: "Énergie de Distorsion", number: "70/73", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/70.webp", },
   { id: "legendes-brillantes-071", serieId: "sl03.5", name: "Entei-GX", number: "71/73", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/71.webp", },
   { id: "legendes-brillantes-072", serieId: "sl03.5", name: "Mewtwo-GX", number: "72/73", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/72.webp", },
-  { id: "legendes-brillantes-073", serieId: "sl03.5", name: "Éleveuse de Pokémon", number: "73/73", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/73.webp", },
+  { id: "legendes-brillantes-073", serieId: "sl03.5", name: "Éleveuse de Pokémon  ", number: "73/73", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/73.webp", },
+  { id: "legendes-brillantes-073", serieId: "sl03.5", name: "Entei-GX  ", number: "74/73", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/74.webp", },
+  { id: "legendes-brillantes-073", serieId: "sl03.5", name: "Raichu-GX  ", number: "75/73", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/75.webp", },
+  { id: "legendes-brillantes-073", serieId: "sl03.5", name: "Mewtwo-GX ", number: "76/73", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/76.webp", },
+  { id: "legendes-brillantes-073", serieId: "sl03.5", name: "Zoroark-GX ", number: "77/73", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/77.webp", },
+  { id: "legendes-brillantes-073", serieId: "sl03.5", name: "Mewtwo-GX ", number: "78/73", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/78.webp", },
+ 
+  
 
   // === sl04 - invasion-carmin ===
   { id: "invasion-carmin-001", serieId: "sl04", name: "Aspicot", number: "001/111", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl04/1.webp", },
