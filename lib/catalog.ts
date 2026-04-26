@@ -4983,7 +4983,7 @@ export const CARDS = ([
   // === sle - legendes-brillantes ===
   { id: "legendes-brillantes-001", serieId: "sl03.5", name: "Bulbizarre", number: "01/73", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/1.webp", },
   { id: "legendes-brillantes-002", serieId: "sl03.5", name: "Herbizarre", number: "02/73", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/2.webp", },
-  { id: "legendes-brillantes-003", serieId: "slsl03.5e", name: "Florizarre", number: "03/73", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/3.webp", },
+  { id: "legendes-brillantes-003", serieId: "sl03.5", name: "Florizarre", number: "03/73", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/3.webp", },
   { id: "legendes-brillantes-004", serieId: "sl03.5", name: "Balignon", number: "04/73", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/4.webp", },
   { id: "legendes-brillantes-005", serieId: "sl03.5", name: "Chapignon", number: "05/73", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/5.webp", },
   { id: "legendes-brillantes-006", serieId: "sl03.5", name: "Vortente", number: "06/73", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sle/6.webp", },
