@@ -9,6 +9,7 @@ type Body = {
   cardId?: string;
   name?: string | null;
   image?: string | null;
+  imageBack?: string | null;
   description?: string | null;
 };
 
@@ -42,9 +43,15 @@ export async function POST(request: Request) {
 
   const name = clean(body.name);
   const image = clean(body.image);
+  const imageBack = clean(body.imageBack);
   const description = clean(body.description);
 
-  if (name === undefined && image === undefined && description === undefined) {
+  if (
+    name === undefined &&
+    image === undefined &&
+    imageBack === undefined &&
+    description === undefined
+  ) {
     return NextResponse.json(
       { error: "Aucune modification a enregistrer." },
       { status: 400 },
@@ -59,6 +66,7 @@ export async function POST(request: Request) {
         cardId,
         name: name ?? null,
         image: image ?? null,
+        imageBack: imageBack ?? null,
         description: description ?? null,
       })
       .onConflictDoUpdate({
@@ -66,6 +74,7 @@ export async function POST(request: Request) {
         set: {
           ...(name !== undefined ? { name } : {}),
           ...(image !== undefined ? { image } : {}),
+          ...(imageBack !== undefined ? { imageBack } : {}),
           ...(description !== undefined ? { description } : {}),
           updatedAt: new Date(),
         },
@@ -75,7 +84,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, name, image, description });
+  return NextResponse.json({ ok: true, name, image, imageBack, description });
 }
 
 export async function DELETE(request: Request) {

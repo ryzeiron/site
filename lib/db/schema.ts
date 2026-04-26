@@ -22,6 +22,7 @@ export const cardOverrides = pgTable("card_overrides", {
   cardId: text("card_id").primaryKey(),
   name: text("name"),
   image: text("image"),
+  imageBack: text("image_back"),
   description: text("description"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

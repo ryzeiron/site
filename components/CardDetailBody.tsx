@@ -85,18 +85,72 @@ export default function CardDetailBody({ card }: { card: Card }) {
         ? "sm:grid-cols-2"
         : "sm:grid-cols-2 lg:grid-cols-3";
 
+  const images = [card.image, card.imageBack].filter(
+    (s): s is string => !!s,
+  );
+  const [imageIndex, setImageIndex] = useState(0);
+  const hasMultipleImages = images.length > 1;
+  const currentImage = images[imageIndex] ?? card.image;
+
   return (
     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="relative aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 border border-white/10 rounded-xl flex items-center justify-center text-gray-300 text-2xl font-bold overflow-hidden">
-        {card.image ? (
+        {currentImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={card.image}
-            alt={card.name}
+            src={currentImage}
+            alt={`${card.name}${imageIndex === 1 ? " (dos)" : ""}`}
             className={`w-full h-full object-contain ${allOutOfStock ? "opacity-40 grayscale" : ""}`}
           />
         ) : (
           <span className="px-4 text-center">{card.name}</span>
+        )}
+        {hasMultipleImages && (
+          <>
+            <button
+              type="button"
+              onClick={() =>
+                setImageIndex((i) => (i - 1 + images.length) % images.length)
+              }
+              aria-label="Image precedente"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => setImageIndex((i) => (i + 1) % images.length)}
+              aria-label="Image suivante"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 text-white text-xs px-3 py-1">
+              {imageIndex === 0 ? "Devant" : "Dos"}
+            </div>
+          </>
         )}
         {allOutOfStock && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

@@ -137,6 +137,7 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
   const router = useRouter();
   const [name, setName] = useState(card.name);
   const [image, setImage] = useState(card.image ?? "");
+  const [imageBack, setImageBack] = useState(card.imageBack ?? "");
   const [description, setDescription] = useState(card.description ?? "");
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -145,6 +146,7 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
   const changed =
     name !== card.name ||
     image !== (card.image ?? "") ||
+    imageBack !== (card.imageBack ?? "") ||
     description !== (card.description ?? "");
   const canSave = changed && name.trim().length > 0;
 
@@ -160,6 +162,7 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
           cardId: card.id,
           name,
           image,
+          imageBack,
           description,
         }),
       });
@@ -213,12 +216,22 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
         />
       </div>
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-24 shrink-0">Image</label>
+        <label className="text-gray-400 w-24 shrink-0">Image (devant)</label>
         <input
           type="text"
           value={image}
           onChange={(e) => setImage(e.target.value)}
           placeholder="/cartes/serie/numero.webp"
+          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+        />
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <label className="text-gray-400 w-24 shrink-0">Image (dos)</label>
+        <input
+          type="text"
+          value={imageBack}
+          onChange={(e) => setImageBack(e.target.value)}
+          placeholder="/cartes/serie/numero-dos.webp (optionnel)"
           className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
         />
       </div>

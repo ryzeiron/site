@@ -32,6 +32,7 @@ export async function applyStockOverrides<T extends Card>(
     cardId: string;
     name: string | null;
     image: string | null;
+    imageBack: string | null;
     description: string | null;
   }[] = [];
   try {
@@ -52,6 +53,7 @@ export async function applyStockOverrides<T extends Card>(
           cardId: cardOverrides.cardId,
           name: cardOverrides.name,
           image: cardOverrides.image,
+          imageBack: cardOverrides.imageBack,
           description: cardOverrides.description,
         })
         .from(cardOverrides)
@@ -91,6 +93,7 @@ export async function applyStockOverrides<T extends Card>(
     if (meta) {
       if (meta.name) next.name = meta.name;
       if (meta.image) next.image = meta.image;
+      if (meta.imageBack) next.imageBack = meta.imageBack;
       if (meta.description) next.description = meta.description;
     }
 

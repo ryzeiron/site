@@ -1,0 +1,1 @@
+ALTER TABLE "card_overrides" ADD COLUMN "image_back" text;
