@@ -228,7 +228,7 @@ export const SERIES: Serie[] = [
   { id: "crown-zenith", blocId: "epee-et-bouclier", code: "EB12.5", name: "Zenith Supreme", releaseYear: 2023, image: "/series/EB/CRZ.jpg", },
 
   // Soleil et Lune
-  { id: "PRSM", blocId: "soleil-et-lune", code: "Promo", name: "Soleil et Lune", releaseYear: 2023, image: "/series/SL/PRSM.webp", },
+  { id: "PRSM", blocId: "soleil-et-lune", code: "Promo", name: "Soleil et Lune", releaseYear: 2016, image: "/series/SL/PRSM.webp", },
   { id: "sl01", blocId: "soleil-et-lune", code: "SL01", name: "Soleil et Lune", releaseYear: 2017, image: "/series/SL/SL01.webp", },
   { id: "sl02", blocId: "soleil-et-lune", code: "SL02", name: "Gardiens Ascendants", releaseYear: 2017, image: "/series/SL/SL02.webp", },
   { id: "sl03", blocId: "soleil-et-lune", code: "SL03", name: "Ombres Ardentes", releaseYear: 2017, image: "/series/SL/SL03.webp", },
