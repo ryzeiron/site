@@ -782,7 +782,7 @@ export const CARDS = ([
   { id: "promo-ev-222", serieId: "Promo", name: "Recherches Professorales Professeur Euphorbe  ", number: "222/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/222.webp", },
   { id: "promo-ev-223", serieId: "Promo", name: "Recherches Professorales Professeure Magnolia ", number: "223/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/223.webp", },
   { id: "promo-ev-224", serieId: "Promo", name: "Hôtel « Au paradis des Pokémon »  ", number: "224/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/224.webp", },
-  { id: "promo-ev-225", serieId: "Promo", name: "Pikachu ", number: "225/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/225.webp", },
+  { id: "promo-ev-225", serieId: "promo", name: "Pikachu ", number: "225/225", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 2, image: "/cartes/svp/225.webp", },
   
 
   // Flamme Noire
