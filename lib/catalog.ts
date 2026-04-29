@@ -5707,6 +5707,15 @@ export const CARDS = ([
   { id: "majeste-des-dragons-068", serieId: "sl07.5", name: "Altaria-GX", number: "68/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/68.webp", },
   { id: "majeste-des-dragons-069", serieId: "sl07.5", name: "Dernière Chance d’Auguste", number: "69/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/69.webp", },
   { id: "majeste-des-dragons-070", serieId: "sl07.5", name: "Amaryllis", number: "70/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/70.webp", },
+  { id: "majeste-des-dragons-071", serieId: "sl07.5", name: "Reshiram-GX ", number: "71/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/71.webp", },
+  { id: "majeste-des-dragons-072", serieId: "sl07.5", name: "Altaria-GX ", number: "72/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/72.webp", },
+  { id: "majeste-des-dragons-073", serieId: "sl07.5", name: "Drattak-GX ", number: "73/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/73.webp", },
+  { id: "majeste-des-dragons-074", serieId: "sl07.5", name: "Kyurem Blanc-GX ", number: "74/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/74.webp", },
+  { id: "majeste-des-dragons-075", serieId: "sl07.5", name: "Serre de Dragon ", number: "75/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/75.webp", },
+  { id: "majeste-des-dragons-076", serieId: "sl07.5", name: "Silex Ardent ", number: "76/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/76.webp", },
+  { id: "majeste-des-dragons-077", serieId: "sl07.5", name: "Bouée d’Échange ", number: "77/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/77.webp", },
+  { id: "majeste-des-dragons-078", serieId: "sl07.5", name: "Ultra Necrozma-GX ", number: "78/70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07.5/78.webp", },
+  
 
   // === sl08 - tonnerre-perdu ===
   { id: "tonnerre-perdu-001", serieId: "sl08", name: "Saquedeneu", number: "001/214", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl08/1.webp", },
