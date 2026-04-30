@@ -5678,7 +5678,7 @@ export const CARDS = ([
   { id: "tempete-celeste-179", serieId: "sl07", name: "Ceinture Agitée ", number: "179/168", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07/179.webp", },
   { id: "tempete-celeste-180", serieId: "sl07", name: "Herbe sauveuse ", number: "180/168", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07/180.webp", },
   { id: "tempete-celeste-181", serieId: "sl07", name: "PokéNav ", number: "181/168", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07/181.webp", },
-  { id: "tempete-celeste-182", seriId: "sl07", name: "Pinceau Arc-en-Ciel ", number: "182/168", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07/182.webp", },
+  { id: "tempete-celeste-182", serieId: "sl07", name: "Pinceau Arc-en-Ciel ", number: "182/168", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07/182.webp", },
   { id: "tempete-celeste-183", serieId: "sl07", name: "Énergie Multicolore ", number: "183/168", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/sl07/183.webp", },
 
   // === sl07.5 - majeste-des-dragons ===
