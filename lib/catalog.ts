@@ -120,6 +120,7 @@ export const BLOCS: Bloc[] = [
     name: "Mega Evolution",
     tagline: "2025 - 2028",
     coverColor: "from-amber-400 to-orange-600",
+    image: "/blocs/ME.png",
   },
   {
     id: "ecarlate-et-violet",
