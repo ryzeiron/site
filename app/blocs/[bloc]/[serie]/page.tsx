@@ -60,7 +60,20 @@ export default async function SeriePage({
         <span className="text-sm text-gray-400">({serie.releaseYear})</span>
       </div>
 
-      {cards.length === 0 ? (
+      {serie.comingSoon ? (
+        <div className="mt-8 rounded-lg border border-violet-500/40 bg-violet-500/10 p-6 text-center">
+          <div className="inline-block rounded-full bg-violet-600 text-white text-xs uppercase tracking-wider font-bold px-3 py-1 mb-3">
+            Prochainement
+          </div>
+          <h2 className="text-xl md:text-2xl font-bold text-white">
+            Cette serie n&apos;est pas encore sortie
+          </h2>
+          <p className="mt-2 text-gray-300">
+            Les cartes de {serie.name} ({serie.code}) seront disponibles
+            bientot. Reviens nous voir !
+          </p>
+        </div>
+      ) : cards.length === 0 ? (
         <p className="mt-8 text-gray-400">
           Aucune carte disponible dans cette serie pour le moment.
         </p>

@@ -17,7 +17,7 @@ export default function SerieTile({ bloc, serie }: { bloc: Bloc; serie: Serie })
           <img
             src={serie.image}
             alt={serie.name}
-            className="absolute inset-0 w-full h-full object-contain p-2"
+            className={`absolute inset-0 w-full h-full object-contain p-2 ${serie.comingSoon ? "opacity-40 grayscale" : ""}`}
           />
         ) : (
           <div className="relative text-white text-center px-3 drop-shadow">
@@ -27,6 +27,13 @@ export default function SerieTile({ bloc, serie }: { bloc: Bloc; serie: Serie })
             <div className="text-3xl md:text-4xl font-extrabold leading-tight">
               {serie.code}
             </div>
+          </div>
+        )}
+        {serie.comingSoon && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="rounded-full bg-violet-600 text-white text-sm font-bold uppercase tracking-wider px-4 py-1.5 shadow-lg -rotate-12 border-2 border-white/90">
+              Prochainement
+            </span>
           </div>
         )}
       </div>
@@ -39,7 +46,9 @@ export default function SerieTile({ bloc, serie }: { bloc: Bloc; serie: Serie })
         <h3 className="mt-2 font-semibold text-white">{serie.name}</h3>
         <p className="text-xs text-gray-500 mt-1">{serie.releaseYear}</p>
         <p className="text-sm text-gray-400 mt-2">
-          {count} carte{count > 1 ? "s" : ""} en vente
+          {serie.comingSoon
+            ? "A paraitre"
+            : `${count} carte${count > 1 ? "s" : ""} en vente`}
         </p>
       </div>
     </Link>

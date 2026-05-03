@@ -46,6 +46,7 @@ export type Serie = {
   name: string;
   releaseYear: number;
   image?: string;
+  comingSoon?: boolean; // serie pas encore sortie - affiche "Prochainement"
 };
 
 export type CardVariant = {
@@ -195,7 +196,8 @@ export const SERIES: Serie[] = [
   { id: "me02.5", blocId: "mega-evolution", code: "ME02.5", name: "Heros Transcendants", releaseYear: 2026 },
   { id: "me03", blocId: "mega-evolution", code: "ME03", name: "Equilibre Parfait", releaseYear: 2026 },
   { id: "me04", blocId: "mega-evolution", code: "ME04", name: "Chaos Ascendant", releaseYear: 2026 },
-  
+  { id: "me05", blocId: "mega-evolution", code: "ME05", name: "Nuit Noire", releaseYear: 2026, comingSoon: true },
+
   // Ecarlate et Violet
   { id: "promo", blocId: "ecarlate-et-violet", code: "Promo", name: "Ecarlate et Violet", releaseYear: 2023, image: "/series/EV/SVP.webp", },
   { id: "ev01", blocId: "ecarlate-et-violet", code: "EV01", name: "Ecarlate et Violet", releaseYear: 2023, image: "/series/EV/SVI.webp", },
