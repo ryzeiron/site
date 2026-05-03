@@ -192,7 +192,7 @@ export const BLOCS: Bloc[] = [
 
 export const SERIES: Serie[] = [
   // Mega Evolution
-  { id: "promo", blocId: "mega-evolution", code: "Promo", name: "Mega-Evolution", releaseYear: 2025, image: "/series/ME/MEP.webp",},
+  { id: "me-promo", blocId: "mega-evolution", code: "Promo", name: "Mega-Evolution", releaseYear: 2025, image: "/series/ME/MEP.webp",},
   { id: "me01", blocId: "mega-evolution", code: "ME01", name: "Mega-Evolution", releaseYear: 2025, image: "/series/ME/me.webp",},
   { id: "me02", blocId: "mega-evolution", code: "ME02", name: "Flammes Fantasmagoriques", releaseYear: 2025, image: "/series/ME/PFL.webp",},
   { id: "me02.5", blocId: "mega-evolution", code: "ME02.5", name: "Heros Transcendants", releaseYear: 2026, image: "/series/ME/ASC.webp",},

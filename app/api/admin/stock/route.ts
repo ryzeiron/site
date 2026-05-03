@@ -87,13 +87,36 @@ export async function POST(request: Request) {
 
   const priceCentsValue = hasPrice ? Math.round(price * 100) : undefined;
 
-  // Determiner s'il s'agit d'une nouvelle variante (sans correspondance dans le catalogue)
+  // Determiner s'il s'agit d'une nouvelle variante (sans correspondance dans le catalogue
+  // ET sans override existant dans la DB)
   const isAltCreatingNew = variantKey === "alt" && !card.altVariant;
   const isExtraCreatingNew =
     variantKey !== "base" &&
     variantKey !== "alt" &&
     !(card.extraVariants ?? []).some((v) => v.key === variantKey);
-  const creatingNew = isAltCreatingNew || isExtraCreatingNew;
+  let creatingNew = isAltCreatingNew || isExtraCreatingNew;
+
+  // Si on pense creer une nouvelle variante, verifie d'abord en DB :
+  // une variante deja stockee (creee precedemment via l'admin) ne doit pas etre traitee comme nouvelle.
+  if (creatingNew) {
+    try {
+      const existing = await getDb()
+        .select({ variant: stockOverrides.variant })
+        .from(stockOverrides)
+        .where(
+          and(
+            eq(stockOverrides.cardId, cardId),
+            eq(stockOverrides.variant, variantKey),
+          ),
+        )
+        .limit(1);
+      if (existing.length > 0) {
+        creatingNew = false;
+      }
+    } catch {
+      // Si la verification echoue on garde creatingNew comme avant
+    }
+  }
 
   if (creatingNew && !hasRarity) {
     return NextResponse.json(
