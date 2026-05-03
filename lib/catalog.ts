@@ -192,12 +192,13 @@ export const BLOCS: Bloc[] = [
 
 export const SERIES: Serie[] = [
   // Mega Evolution
-  { id: "me01", blocId: "mega-evolution", code: "ME01", name: "Mega-Evolution", releaseYear: 2025,},
-  { id: "me02", blocId: "mega-evolution", code: "ME02", name: "Flammes Fantasmagoriques", releaseYear: 2025,},
-  { id: "me02.5", blocId: "mega-evolution", code: "ME02.5", name: "Heros Transcendants", releaseYear: 2026,},
-  { id: "me03", blocId: "mega-evolution", code: "ME03", name: "Equilibre Parfait", releaseYear: 2026,},
-  { id: "me04", blocId: "mega-evolution", code: "ME04", name: "Chaos Ascendant", releaseYear: 2026,},
-  { id: "me05", blocId: "mega-evolution", code: "ME05", name: "Nuit Noire", releaseYear: 2026, image: "/series/ME/me05.png", comingSoon: true },
+  { id: "mep", blocId: "mega-evolution-promo", code: "MEP", name: "Mega-Evolution Promo", releaseYear: 2025, image: "/series/ME/MEP.webp",},
+  { id: "me01", blocId: "mega-evolution", code: "ME01", name: "Mega-Evolution", releaseYear: 2025, image: "/series/ME/me.webp",},
+  { id: "me02", blocId: "mega-evolution", code: "ME02", name: "Flammes Fantasmagoriques", releaseYear: 2025, image: "/series/ME/PFL.webp",},
+  { id: "me02.5", blocId: "mega-evolution", code: "ME02.5", name: "Heros Transcendants", releaseYear: 2026, image: "/series/ME/ASC.webp",},
+  { id: "me03", blocId: "mega-evolution", code: "ME03", name: "Equilibre Parfait", releaseYear: 2026, image: "/series/ME/POR.webp",},
+  { id: "me04", blocId: "mega-evolution", code: "ME04", name: "Chaos Ascendant", releaseYear: 2026, image: "/series/ME/CRI.webp",},
+  { id: "me05", blocId: "mega-evolution", code: "ME05", name: "Nuit Noire", releaseYear: 2026, image: "/series/ME/me05.webp", comingSoon: true },
 
   // Ecarlate et Violet
   { id: "promo", blocId: "ecarlate-et-violet", code: "Promo", name: "Ecarlate et Violet", releaseYear: 2023, image: "/series/EV/SVP.webp", },
