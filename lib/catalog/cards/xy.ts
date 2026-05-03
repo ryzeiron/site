@@ -219,6 +219,16 @@ export const XY_CARDS = ([
   { id: "offensive-vapeur-112", serieId: "xy11", name: "M-Gardevoir-EX", number: "112/114", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy11/112.webp", },
   { id: "offensive-vapeur-113", serieId: "xy11", name: "Pokémon Ranger", number: "113/114", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy11/113.webp", },
   { id: "offensive-vapeur-114", serieId: "xy11", name: "Professeur Platane", number: "114/114", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy11/114.webp", },
+  { id: "offensive-vapeur-115", serieId: "xy11", name: "Volcanion-EX ", number: "115/114", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy11/115.webp", },
+  { id: "offensive-vapeur-116", serieId: "xy11", name: "Gardevoir-EX ", number: "116/114", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy11/116.webp", },
+
+
+
+
+
+
+
+  
   { id: "impact-des-destins-001", serieId: "xy10", name: "Caratroc", number: "001/124", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy10/1.webp", },
   { id: "impact-des-destins-002", serieId: "xy10", name: "Cheniti", number: "002/124", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy10/2.webp", },
   { id: "impact-des-destins-003", serieId: "xy10", name: "Cheniselle", number: "003/124", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy10/3.webp", },
