@@ -105,6 +105,9 @@ export const XY_CARDS = ([
   { id: "evolutions-111", serieId: "xy12", name: "Pikachu Surfeur ", number: "111/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy12/111.webp", },
   { id: "evolutions-112", serieId: "xy12", name: "Doduo d'Imakuni? ", number: "112/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy12/112.webp", },
   { id: "evolutions-113", serieId: "xy12", name: "Et voilà la Team Rocket ! ", number: "113/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy12/113.webp", },
+
+
+  
   { id: "offensive-vapeur-001", serieId: "xy11", name: "Saquedeneu", number: "001/114", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy11/1.webp", },
   { id: "offensive-vapeur-002", serieId: "xy11", name: "Bouldeneu", number: "002/114", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy11/2.webp", },
   { id: "offensive-vapeur-003", serieId: "xy11", name: "Granivol", number: "003/114", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy11/3.webp", },
@@ -353,6 +356,12 @@ export const XY_CARDS = ([
   { id: "impact-des-destins-122", serieId: "xy10", name: "Hyporoi-EX", number: "122/124", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy10/122.webp", },
   { id: "impact-des-destins-123", serieId: "xy10", name: "Altaria-EX", number: "123/124", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy10/123.webp", },
   { id: "impact-des-destins-124", serieId: "xy10", name: "Méfaits de la Team Rocket", number: "124/124", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy10/124.webp", },
+  { id: "impact-des-destins-125", serieId: "xy10", name: "Alakazam-EX ", number: "125/124", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy10/125.webp", },
+
+
+
+
+  
   { id: "bienvenue-a-kalos-01", serieId: "xy00", name: "Aspicot", number: "01/39", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy00/1.webp", },
   { id: "bienvenue-a-kalos-02", serieId: "xy00", name: "Feuillajou", number: "02/39", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy00/2.webp", },
   { id: "bienvenue-a-kalos-03", serieId: "xy00", name: "Marisson", number: "03/39", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy00/3.webp", },
@@ -392,6 +401,10 @@ export const XY_CARDS = ([
   { id: "bienvenue-a-kalos-37", serieId: "xy00", name: "Potion", number: "37/39", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy00/37.webp", },
   { id: "bienvenue-a-kalos-38", serieId: "xy00", name: "Échange", number: "38/39", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy00/38.webp", },
   { id: "bienvenue-a-kalos-39", serieId: "xy00", name: "Tierno", number: "39/39", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy00/39.webp", },
+
+
+
+  
   { id: "xy-base-001", serieId: "xy01", name: "Florizarre-EX", number: "001/146", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy01/1.webp", },
   { id: "xy-base-002", serieId: "xy01", name: "M-Florizarre-EX", number: "002/146", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy01/2.webp", },
   { id: "xy-base-003", serieId: "xy01", name: "Aspicot", number: "003/146", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy01/3.webp", },
@@ -538,6 +551,9 @@ export const XY_CARDS = ([
   { id: "xy-base-144", serieId: "xy01", name: "Yveltal-EX", number: "144/146", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy01/144.webp", },
   { id: "xy-base-145", serieId: "xy01", name: "Airmure-EX", number: "145/146", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy01/145.webp", },
   { id: "xy-base-146", serieId: "xy01", name: "Xerneas-EX", number: "146/146", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy01/146.webp", },
+
+
+  
   { id: "poings-furieux-001", serieId: "xy03", name: "Chétiflor", number: "001/111", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy03/1.webp", },
   { id: "poings-furieux-002", serieId: "xy03", name: "Boustiflor", number: "002/111", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy03/2.webp", },
   { id: "poings-furieux-003", serieId: "xy03", name: "Empiflor", number: "003/111", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy03/3.webp", },
@@ -649,6 +665,13 @@ export const XY_CARDS = ([
   { id: "poings-furieux-109", serieId: "xy03", name: "Journaliste des Combats", number: "109/111", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy03/109.webp", },
   { id: "poings-furieux-110", serieId: "xy03", name: "Chercheur de Fossiles", number: "110/111", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy03/110.webp", },
   { id: "poings-furieux-111", serieId: "xy03", name: "Cornélia", number: "111/111", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy03/111.webp", },
+  { id: "poings-furieux-112", serieId: "xy03", name: "M-Scarhino-EX", number: "112/111", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy03/112.webp", },
+  { id: "poings-furieux-113", serieId: "xy03", name: "M-Lucario-EX", number: "113/111", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy03/113.webp", },
+
+
+
+
+  
   { id: "primo-choc-001", serieId: "xy05", name: "Aspicot", number: "001/160", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05/1.webp", },
   { id: "primo-choc-002", serieId: "xy05", name: "Coconfort", number: "002/160", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05/2.webp", },
   { id: "primo-choc-003", serieId: "xy05", name: "Dardargnan", number: "003/160", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05/3.webp", },
@@ -809,6 +832,16 @@ export const XY_CARDS = ([
   { id: "primo-choc-158", serieId: "xy05", name: "Ruse de Max", number: "158/160", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05/158.webp", },
   { id: "primo-choc-159", serieId: "xy05", name: "Observations du Professeur Seko", number: "159/160", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05/159.webp", },
   { id: "primo-choc-160", serieId: "xy05", name: "Senior et Junior", number: "160/160", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05/160.webp", },
+  { id: "primo-choc-161", serieId: "xy05", name: "Scuba Ball ", number: "161/160", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05/161.webp", },
+  { id: "primo-choc-162", serieId: "xy05", name: "Maillet Amélioré ", number: "162/160", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05/162.webp", },
+  { id: "primo-choc-163", serieId: "xy05", name: "Échange ", number: "163/160", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05/163.webp", },
+  { id: "primo-choc-164", serieId: "xy05", name: "Vulné-Assurance ", number: "164/160", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05/164.webp", },
+
+
+
+
+
+  
   { id: "ciel-rugissant-001", serieId: "xy06", name: "Noeunoeuf", number: "001/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy06/1.webp", },
   { id: "ciel-rugissant-002", serieId: "xy06", name: "Noadkoko", number: "002/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy06/2.webp", },
   { id: "ciel-rugissant-003", serieId: "xy06", name: "Chenipotte", number: "003/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy06/3.webp", },
@@ -917,6 +950,13 @@ export const XY_CARDS = ([
   { id: "ciel-rugissant-106", serieId: "xy06", name: "Shaymin-EX", number: "106/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy06/106.webp", },
   { id: "ciel-rugissant-107", serieId: "xy06", name: "Timmy", number: "107/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy06/107.webp", },
   { id: "ciel-rugissant-108", serieId: "xy06", name: "Alizée", number: "108/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy06/108.webp", },
+  { id: "ciel-rugissant-109", serieId: "xy06", name: "Échange d'Énergie ", number: "109/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy06/109.webp", },
+  { id: "ciel-rugissant-110", serieId: "xy06", name: "Cherche VS ", number: "110/108", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy06/110.webp", },
+  
+
+
+
+  
   { id: "origines-antiques-01", serieId: "xy07", name: "Mystherbe", number: "01/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/1.webp", },
   { id: "origines-antiques-02", serieId: "xy07", name: "Ortide", number: "02/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/2.webp", },
   { id: "origines-antiques-03", serieId: "xy07", name: "Rafflesia", number: "03/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/3.webp", },
@@ -1012,6 +1052,18 @@ export const XY_CARDS = ([
   { id: "origines-antiques-93", serieId: "xy07", name: "Giratina-EX", number: "93/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/93.webp", },
   { id: "origines-antiques-94", serieId: "xy07", name: "Lugia-EX", number: "94/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/94.webp", },
   { id: "origines-antiques-95", serieId: "xy07", name: "Pierre", number: "95/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/95.webp", },
+  { id: "origines-antiques-96", serieId: "xy07", name: "Primo-Kyogre-EX ", number: "96/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/96.webp", },
+  { id: "origines-antiques-97", serieId: "xy07", name: "Primo-Groudon-EX ", number: "97/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/97.webp", },
+  { id: "origines-antiques-98", serieId: "xy07", name: "M-Rayquaza-EX ", number: "98/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/98.webp", },
+  { id: "origines-antiques-99", serieId: "xy07", name: "Récupération d'Énergie ", number: "99/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/99.webp", },
+  { id: "origines-antiques-100", serieId: "xy07", name: "Courrier du Dresseur ", number: "100/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy07/100.webp", },
+
+  
+
+
+
+
+  
   { id: "impulsion-turbo-001", serieId: "xy08", name: "Paras", number: "001/162", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy08/1.webp", },
   { id: "impulsion-turbo-002", serieId: "xy08", name: "Parasect", number: "002/162", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy08/2.webp", },
   { id: "impulsion-turbo-003", serieId: "xy08", name: "Scarabrute", number: "003/162", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy08/3.webp", },
@@ -1174,6 +1226,15 @@ export const XY_CARDS = ([
   { id: "impulsion-turbo-160", serieId: "xy08", name: "M-Mewtwo-EX", number: "160/162", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy08/160.webp", },
   { id: "impulsion-turbo-161", serieId: "xy08", name: "Juliette", number: "161/162", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy08/161.webp", },
   { id: "impulsion-turbo-162", serieId: "xy08", name: "Combine de Giovanni", number: "162/162", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy08/162.webp", },
+  { id: "impulsion-turbo-163", serieId: "xy08", name: "Mewtwo-EX ", number: "163/162", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy08/163.webp", },
+  { id: "impulsion-turbo-164", serieId: "xy08", name: "Mewtwo-EX ", number: "164/162", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy08/164.webp", },
+
+
+
+
+
+
+  
   { id: "rupture-turbo-001", serieId: "xy09", name: "Germignon", number: "001/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy09/1.webp", },
   { id: "rupture-turbo-002", serieId: "xy09", name: "Macronium", number: "002/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy09/2.webp", },
   { id: "rupture-turbo-003", serieId: "xy09", name: "Méganium", number: "003/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy09/3.webp", },
@@ -1296,6 +1357,11 @@ export const XY_CARDS = ([
   { id: "rupture-turbo-120", serieId: "xy09", name: "M-Cizayox-EX", number: "120/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy09/120.webp", },
   { id: "rupture-turbo-121", serieId: "xy09", name: "Ho-Oh-EX", number: "121/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy09/121.webp", },
   { id: "rupture-turbo-122", serieId: "xy09", name: "Carolina", number: "122/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy09/122.webp", },
+  { id: "rupture-turbo-123", serieId: "xy09", name: "Léviator-EX ", number: "123/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy09/123.webp", },
+
+
+
+  
   { id: "etincelles-001", serieId: "xy02", name: "Chenipan", number: "001/109", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy02/1.webp", },
   { id: "etincelles-002", serieId: "xy02", name: "Chrysacier", number: "002/109", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy02/2.webp", },
   { id: "etincelles-003", serieId: "xy02", name: "Papilusion", number: "003/109", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy02/3.webp", },
@@ -1405,6 +1471,9 @@ export const XY_CARDS = ([
   { id: "etincelles-107", serieId: "xy02", name: "M-Dracaufeu-EX", number: "107/109", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy02/107.webp", },
   { id: "etincelles-108", serieId: "xy02", name: "M-Dracaufeu-EX", number: "108/109", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy02/108.webp", },
   { id: "etincelles-109", serieId: "xy02", name: "M-Kangourex-EX", number: "109/109", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy02/109.webp", },
+
+
+  
   { id: "vigueur-spectrale-001", serieId: "xy04", name: "Mimitoss", number: "001/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy04/1.webp", },
   { id: "vigueur-spectrale-002", serieId: "xy04", name: "Aeromite", number: "002/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy04/2.webp", },
   { id: "vigueur-spectrale-003", serieId: "xy04", name: "Yanma", number: "003/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy04/3.webp", },
@@ -1527,6 +1596,10 @@ export const XY_CARDS = ([
   { id: "vigueur-spectrale-120", serieId: "xy04", name: "M-Elecsprint-EX", number: "120/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy04/120.webp", },
   { id: "vigueur-spectrale-121", serieId: "xy04", name: "M-Ectoplasma-EX", number: "121/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy04/121.webp", },
   { id: "vigueur-spectrale-122", serieId: "xy04", name: "Dialga-EX", number: "122/122", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy04/122.webp", },
+
+
+
+  
   { id: "double-danger-01", serieId: "xy05.5", name: "Chamallot Team Magma's", number: "01/34", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05.5/1.webp", },
   { id: "double-danger-02", serieId: "xy05.5", name: "Camerupt Team Magma's", number: "02/34", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05.5/2.webp", },
   { id: "double-danger-03", serieId: "xy05.5", name: "Obalie de Team Aqua", number: "03/34", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05.5/3.webp", },
@@ -1561,6 +1634,9 @@ export const XY_CARDS = ([
   { id: "double-danger-32", serieId: "xy05.5", name: "Team Magma's Secret Base", number: "32/34", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05.5/32.webp", },
   { id: "double-danger-33", serieId: "xy05.5", name: "Double Aqua Energy", number: "33/34", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05.5/33.webp", },
   { id: "double-danger-34", serieId: "xy05.5", name: "Double Magma Energy", number: "34/34", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy05.5/34.webp", },
+
+
+  
   { id: "generations-01", serieId: "xy09.5", name: "Florizarre-EX", number: "01/83", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy09.5/1.webp", },
   { id: "generations-02", serieId: "xy09.5", name: "M-Florizarre-EX", number: "02/83", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy09.5/2.webp", },
   { id: "generations-03", serieId: "xy09.5", name: "Chenipan", number: "03/83", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/xy09.5/3.webp", },
