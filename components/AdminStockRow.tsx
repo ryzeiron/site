@@ -139,26 +139,16 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
   const [image, setImage] = useState(card.image ?? "");
   const [imageBack, setImageBack] = useState(card.imageBack ?? "");
   const [description, setDescription] = useState(card.description ?? "");
-  const [weight, setWeight] = useState(
-    card.weightGrams !== undefined ? String(card.weightGrams) : "",
-  );
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const initialWeight =
-    card.weightGrams !== undefined ? String(card.weightGrams) : "";
   const changed =
     name !== card.name ||
     image !== (card.image ?? "") ||
     imageBack !== (card.imageBack ?? "") ||
-    description !== (card.description ?? "") ||
-    weight !== initialWeight;
-  const weightParsed = weight.trim() === "" ? null : Number.parseInt(weight, 10);
-  const weightValid =
-    weightParsed === null ||
-    (Number.isInteger(weightParsed) && weightParsed >= 0);
-  const canSave = changed && name.trim().length > 0 && weightValid;
+    description !== (card.description ?? "");
+  const canSave = changed && name.trim().length > 0;
 
   async function save() {
     if (!canSave) return;
@@ -174,7 +164,6 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
           image,
           imageBack,
           description,
-          weightGrams: weightParsed,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -254,18 +243,6 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
           rows={2}
           className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
         />
-      </div>
-      <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-24 shrink-0">Poids</label>
-        <input
-          type="number"
-          min={0}
-          value={weight}
-          onChange={(e) => setWeight(e.target.value)}
-          placeholder="5 (defaut)"
-          className="w-24 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
-        />
-        <span className="text-gray-500 text-xs">grammes</span>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         <button

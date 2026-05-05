@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
+import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
 
+type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
+
 type Body = {
   items: { cardId: string; variant: VariantKey; quantity: number }[];
   promoCode?: string;
+  country?: Country;
   relay?: {
     code: string;
     name?: string;
@@ -17,23 +21,31 @@ type Body = {
 };
 
 const META_VALUE_MAX = 450;
-const DEFAULT_WEIGHT_GRAMS = 5;
 
-function mondialRelayPriceCents(weightGrams: number): number {
-  // Tarifs France metropolitaine (approximatifs)
-  if (weightGrams <= 250) return 350;
-  if (weightGrams <= 500) return 400;
-  if (weightGrams <= 1000) return 450;
-  if (weightGrams <= 2000) return 550;
-  if (weightGrams <= 5000) return 750;
-  return 1100;
-}
+// Tarifs Mondial Relay par pays (centimes EUR, colis ~500g)
+const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
+  FR: 490,
+  BE: 690,
+  LU: 690,
+  NL: 850,
+  ES: 690,
+  PT: 790,
+  DE: 990,
+  IT: 990,
+  AT: 1190,
+};
 
-function lettreSuiviePriceCents(weightGrams: number): number {
-  if (weightGrams <= 100) return 350;
-  if (weightGrams <= 250) return 450;
-  return 600;
-}
+const ALLOWED_COUNTRIES: Country[] = [
+  "FR",
+  "BE",
+  "LU",
+  "NL",
+  "ES",
+  "PT",
+  "DE",
+  "IT",
+  "AT",
+];
 
 function encodeItems(
   items: { cardId: string; variant: VariantKey; quantity: number }[],
@@ -80,7 +92,6 @@ export async function POST(request: Request) {
     const liveCards = await applyStockOverrides(rawCards);
     const cardMap = new Map(liveCards.map((c) => [c.id, c]));
 
-    let totalWeight = 0;
     const lineItems = body.items.map((item) => {
       const card = cardMap.get(item.cardId);
       if (!card) throw new Error(`Carte introuvable : ${item.cardId}`);
@@ -89,8 +100,6 @@ export async function POST(request: Request) {
       if (item.quantity > v.stock) {
         throw new Error(`Stock insuffisant pour ${card.name}.`);
       }
-      const w = card.weightGrams ?? DEFAULT_WEIGHT_GRAMS;
-      totalWeight += w * item.quantity;
       return {
         price_data: {
           currency: "eur",
@@ -104,12 +113,16 @@ export async function POST(request: Request) {
       };
     });
 
-    const lettreCents = Math.round(
-      lettreSuiviePriceCents(totalWeight) * shippingMultiplier,
-    );
-    const relayCents = Math.round(
-      mondialRelayPriceCents(totalWeight) * shippingMultiplier,
-    );
+    const country: Country =
+      body.country && ALLOWED_COUNTRIES.includes(body.country)
+        ? body.country
+        : "FR";
+    const isFrance = country === "FR";
+
+    const lettreBase = 350;
+    const lettreCents = Math.round(lettreBase * shippingMultiplier);
+    const relayBase = MR_PRICE_BY_COUNTRY[country];
+    const relayCents = Math.round(relayBase * shippingMultiplier);
 
     const origin =
       process.env.NEXT_PUBLIC_SITE_URL ??
@@ -130,41 +143,54 @@ export async function POST(request: Request) {
 
     const relayDisplayName = body.relay?.name
       ? `Mondial Relay - ${body.relay.name}`
-      : "Mondial Relay";
+      : `Mondial Relay (${country})`;
+
+    const shippingOptions: Array<{
+      shipping_rate_data: {
+        type: "fixed_amount";
+        fixed_amount: { amount: number; currency: string };
+        display_name: string;
+        delivery_estimate?: {
+          minimum: { unit: "business_day"; value: number };
+          maximum: { unit: "business_day"; value: number };
+        };
+      };
+    }> = [];
+    if (isFrance) {
+      shippingOptions.push({
+        shipping_rate_data: {
+          type: "fixed_amount",
+          fixed_amount: { amount: lettreCents, currency: "eur" },
+          display_name: "Lettre suivie (France)",
+          delivery_estimate: {
+            minimum: { unit: "business_day", value: 2 },
+            maximum: { unit: "business_day", value: 5 },
+          },
+        },
+      });
+    }
+    shippingOptions.push({
+      shipping_rate_data: {
+        type: "fixed_amount",
+        fixed_amount: { amount: relayCents, currency: "eur" },
+        display_name: relayDisplayName.slice(0, 100),
+        delivery_estimate: {
+          minimum: { unit: "business_day", value: 3 },
+          maximum: { unit: "business_day", value: isFrance ? 6 : 10 },
+        },
+      },
+    });
 
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
-      metadata: { ...itemsMeta, ...relayMeta, total_weight_g: String(totalWeight) },
+      metadata: { ...itemsMeta, ...relayMeta, country },
       success_url: `${origin}/succes?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/annule`,
-      shipping_address_collection: { allowed_countries: ["FR", "BE", "LU", "CH"] },
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: "fixed_amount",
-            fixed_amount: { amount: lettreCents, currency: "eur" },
-            display_name: "Lettre suivie (France)",
-            delivery_estimate: {
-              minimum: { unit: "business_day", value: 2 },
-              maximum: { unit: "business_day", value: 5 },
-            },
-          },
-        },
-        {
-          shipping_rate_data: {
-            type: "fixed_amount",
-            fixed_amount: { amount: relayCents, currency: "eur" },
-            display_name: relayDisplayName.slice(0, 100),
-            delivery_estimate: {
-              minimum: { unit: "business_day", value: 3 },
-              maximum: { unit: "business_day", value: 6 },
-            },
-          },
-        },
-      ],
+      shipping_address_collection: { allowed_countries: [country] },
+      shipping_options: shippingOptions,
     });
 
     return NextResponse.json({ url: session.url });

@@ -31,6 +31,21 @@ export default function CartPage() {
   const [showRelayPicker, setShowRelayPicker] = useState(false);
   const [relayPostcode, setRelayPostcode] = useState("");
   const [selectedRelay, setSelectedRelay] = useState<SelectedRelay | null>(null);
+  const [country, setCountry] = useState<
+    "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT"
+  >("FR");
+
+  const COUNTRIES: { code: typeof country; label: string; price: string }[] = [
+    { code: "FR", label: "France", price: "4,90 €" },
+    { code: "BE", label: "Belgique", price: "6,90 €" },
+    { code: "LU", label: "Luxembourg", price: "6,90 €" },
+    { code: "ES", label: "Espagne", price: "6,90 €" },
+    { code: "PT", label: "Portugal", price: "7,90 €" },
+    { code: "NL", label: "Pays-Bas", price: "8,50 €" },
+    { code: "DE", label: "Allemagne", price: "9,90 €" },
+    { code: "IT", label: "Italie", price: "9,90 €" },
+    { code: "AT", label: "Autriche", price: "11,90 €" },
+  ];
 
   useEffect(() => setMounted(true), []);
 
@@ -112,6 +127,7 @@ export default function CartPage() {
           items,
           promoCode: appliedPromo?.code,
           relay: selectedRelay,
+          country,
         }),
       });
       const data = await res.json();
@@ -260,6 +276,26 @@ export default function CartPage() {
           {promoError && (
             <p className="mt-2 text-xs text-red-300">{promoError}</p>
           )}
+        </div>
+
+        <div className="mb-3 border-t border-white/10 pt-3">
+          <label className="text-sm text-gray-300">Pays de livraison</label>
+          <select
+            value={country}
+            onChange={(e) => setCountry(e.target.value as typeof country)}
+            className="mt-2 w-full rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
+          >
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.label} - Mondial Relay {c.price}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            {country === "FR"
+              ? "France : Lettre suivie 3,50 € ou Mondial Relay 4,90 €."
+              : "Hors France : livraison via Mondial Relay uniquement."}
+          </p>
         </div>
 
         <div className="mb-3 border-t border-white/10 pt-3">
