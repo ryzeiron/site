@@ -332,6 +332,7 @@ export const SERIES: Serie[] = [
 ];
 
 export const CARDS: Card[] = [
+  ...MEGA_EVOLUTION_CARDS,
   ...ECARLATE_ET_VIOLET_CARDS,
   ...EPEE_ET_BOUCLIER_CARDS,
   ...SOLEIL_ET_LUNE_CARDS,
