@@ -34,6 +34,7 @@ export async function applyStockOverrides<T extends Card>(
     image: string | null;
     imageBack: string | null;
     description: string | null;
+    weightGrams: number | null;
   }[] = [];
   try {
     const db = getDb();
@@ -55,6 +56,7 @@ export async function applyStockOverrides<T extends Card>(
           image: cardOverrides.image,
           imageBack: cardOverrides.imageBack,
           description: cardOverrides.description,
+          weightGrams: cardOverrides.weightGrams,
         })
         .from(cardOverrides)
         .where(inArray(cardOverrides.cardId, ids)),
@@ -95,6 +97,9 @@ export async function applyStockOverrides<T extends Card>(
       if (meta.image) next.image = meta.image;
       if (meta.imageBack) next.imageBack = meta.imageBack;
       if (meta.description) next.description = meta.description;
+      if (meta.weightGrams !== null && meta.weightGrams !== undefined) {
+        next.weightGrams = meta.weightGrams;
+      }
     }
 
     if (!overrides) return next;

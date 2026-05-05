@@ -1,0 +1,1 @@
+ALTER TABLE "card_overrides" ADD COLUMN "weight_grams" integer;

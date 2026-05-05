@@ -7,9 +7,33 @@ import { getPromo } from "@/lib/promo";
 type Body = {
   items: { cardId: string; variant: VariantKey; quantity: number }[];
   promoCode?: string;
+  relay?: {
+    code: string;
+    name?: string;
+    address?: string;
+    postcode?: string;
+    city?: string;
+  };
 };
 
 const META_VALUE_MAX = 450;
+const DEFAULT_WEIGHT_GRAMS = 5;
+
+function mondialRelayPriceCents(weightGrams: number): number {
+  // Tarifs France metropolitaine (approximatifs)
+  if (weightGrams <= 250) return 350;
+  if (weightGrams <= 500) return 400;
+  if (weightGrams <= 1000) return 450;
+  if (weightGrams <= 2000) return 550;
+  if (weightGrams <= 5000) return 750;
+  return 1100;
+}
+
+function lettreSuiviePriceCents(weightGrams: number): number {
+  if (weightGrams <= 100) return 350;
+  if (weightGrams <= 250) return 450;
+  return 600;
+}
 
 function encodeItems(
   items: { cardId: string; variant: VariantKey; quantity: number }[],
@@ -56,6 +80,7 @@ export async function POST(request: Request) {
     const liveCards = await applyStockOverrides(rawCards);
     const cardMap = new Map(liveCards.map((c) => [c.id, c]));
 
+    let totalWeight = 0;
     const lineItems = body.items.map((item) => {
       const card = cardMap.get(item.cardId);
       if (!card) throw new Error(`Carte introuvable : ${item.cardId}`);
@@ -64,6 +89,8 @@ export async function POST(request: Request) {
       if (item.quantity > v.stock) {
         throw new Error(`Stock insuffisant pour ${card.name}.`);
       }
+      const w = card.weightGrams ?? DEFAULT_WEIGHT_GRAMS;
+      totalWeight += w * item.quantity;
       return {
         price_data: {
           currency: "eur",
@@ -77,17 +104,40 @@ export async function POST(request: Request) {
       };
     });
 
+    const lettreCents = Math.round(
+      lettreSuiviePriceCents(totalWeight) * shippingMultiplier,
+    );
+    const relayCents = Math.round(
+      mondialRelayPriceCents(totalWeight) * shippingMultiplier,
+    );
+
     const origin =
       process.env.NEXT_PUBLIC_SITE_URL ??
       request.headers.get("origin") ??
       "http://localhost:3000";
+
+    const itemsMeta = encodeItems(body.items);
+    const relayMeta: Record<string, string> = {};
+    if (body.relay && body.relay.code) {
+      relayMeta.relay_code = body.relay.code;
+      if (body.relay.name) relayMeta.relay_name = body.relay.name.slice(0, 200);
+      if (body.relay.address)
+        relayMeta.relay_address = body.relay.address.slice(0, 200);
+      if (body.relay.postcode)
+        relayMeta.relay_postcode = body.relay.postcode.slice(0, 20);
+      if (body.relay.city) relayMeta.relay_city = body.relay.city.slice(0, 100);
+    }
+
+    const relayDisplayName = body.relay?.name
+      ? `Mondial Relay - ${body.relay.name}`
+      : "Mondial Relay";
 
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
-      metadata: encodeItems(body.items),
+      metadata: { ...itemsMeta, ...relayMeta, total_weight_g: String(totalWeight) },
       success_url: `${origin}/succes?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/annule`,
       shipping_address_collection: { allowed_countries: ["FR", "BE", "LU", "CH"] },
@@ -95,7 +145,7 @@ export async function POST(request: Request) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: Math.round(350 * shippingMultiplier), currency: "eur" },
+            fixed_amount: { amount: lettreCents, currency: "eur" },
             display_name: "Lettre suivie (France)",
             delivery_estimate: {
               minimum: { unit: "business_day", value: 2 },
@@ -106,8 +156,8 @@ export async function POST(request: Request) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: Math.round(490 * shippingMultiplier), currency: "eur" },
-            display_name: "Mondial Relay",
+            fixed_amount: { amount: relayCents, currency: "eur" },
+            display_name: relayDisplayName.slice(0, 100),
             delivery_estimate: {
               minimum: { unit: "business_day", value: 3 },
               maximum: { unit: "business_day", value: 6 },

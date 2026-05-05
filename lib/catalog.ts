@@ -83,6 +83,7 @@ export type Card = {
   image?: string;
   imageBack?: string; // image du dos / 2e face (optionnelle)
   description?: string;
+  weightGrams?: number; // poids unitaire en grammes (pour calcul livraison)
   altVariant?: CardVariant; // deuxieme version "alt" (legacy + raccourci)
   extraVariants?: NamedVariant[]; // variantes supplementaires identifiees par cle
 };

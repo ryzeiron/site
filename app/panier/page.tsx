@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import MondialRelayPicker, { type SelectedRelay } from "@/components/MondialRelayPicker";
 import { useCart } from "@/lib/cart";
 import { resolveVariant, type Card } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
@@ -26,6 +27,10 @@ export default function CartPage() {
   const [applyingPromo, setApplyingPromo] = useState(false);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+
+  const [showRelayPicker, setShowRelayPicker] = useState(false);
+  const [relayPostcode, setRelayPostcode] = useState("");
+  const [selectedRelay, setSelectedRelay] = useState<SelectedRelay | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -106,6 +111,7 @@ export default function CartPage() {
         body: JSON.stringify({
           items,
           promoCode: appliedPromo?.code,
+          relay: selectedRelay,
         }),
       });
       const data = await res.json();
@@ -254,6 +260,82 @@ export default function CartPage() {
           {promoError && (
             <p className="mt-2 text-xs text-red-300">{promoError}</p>
           )}
+        </div>
+
+        <div className="mb-3 border-t border-white/10 pt-3">
+          <label className="text-sm text-gray-300">
+            Point relais Mondial Relay (optionnel)
+          </label>
+          {selectedRelay ? (
+            <div className="mt-2 rounded bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-sm text-emerald-100">
+              <div className="font-semibold">{selectedRelay.name}</div>
+              <div className="text-xs text-emerald-200/80">
+                {selectedRelay.address} - {selectedRelay.postcode}{" "}
+                {selectedRelay.city}
+              </div>
+              <div className="text-xs text-emerald-200/60 mt-1">
+                Code : {selectedRelay.code}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedRelay(null);
+                  setShowRelayPicker(false);
+                }}
+                className="mt-2 text-xs text-gray-300 hover:text-red-300"
+              >
+                Retirer
+              </button>
+            </div>
+          ) : showRelayPicker ? (
+            <div className="mt-2 space-y-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={5}
+                  value={relayPostcode}
+                  onChange={(e) =>
+                    setRelayPostcode(e.target.value.replace(/[^0-9]/g, ""))
+                  }
+                  placeholder="Code postal"
+                  className="w-32 rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowRelayPicker(false)}
+                  className="text-xs text-gray-400 hover:text-white"
+                >
+                  Annuler
+                </button>
+              </div>
+              {relayPostcode.length === 5 && (
+                <MondialRelayPicker
+                  postcode={relayPostcode}
+                  onSelect={(r) => {
+                    if (r) setSelectedRelay(r);
+                  }}
+                />
+              )}
+              <p className="text-xs text-gray-500">
+                Saisis ton code postal puis choisis un point relais sur la
+                carte.
+              </p>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowRelayPicker(true)}
+              className="mt-2 rounded border border-dashed border-white/20 text-gray-300 hover:text-white hover:border-white/40 px-3 py-2 text-sm"
+            >
+              + Choisir mon point relais
+            </button>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            Si tu choisis Mondial Relay au paiement et que tu n&apos;as pas
+            selectionne de point relais ici, on te contactera apres ta commande.
+          </p>
         </div>
 
         <div className="border-t border-white/10 pt-3 space-y-1 text-sm">

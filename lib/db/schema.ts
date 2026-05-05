@@ -24,5 +24,6 @@ export const cardOverrides = pgTable("card_overrides", {
   image: text("image"),
   imageBack: text("image_back"),
   description: text("description"),
+  weightGrams: integer("weight_grams"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

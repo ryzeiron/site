@@ -11,6 +11,7 @@ type Body = {
   image?: string | null;
   imageBack?: string | null;
   description?: string | null;
+  weightGrams?: number | null;
 };
 
 function clean(v: unknown): string | null | undefined {
@@ -19,6 +20,13 @@ function clean(v: unknown): string | null | undefined {
   if (typeof v !== "string") return undefined;
   const trimmed = v.trim();
   return trimmed === "" ? null : trimmed;
+}
+
+function cleanWeight(v: unknown): number | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null) return null;
+  if (typeof v !== "number" || !Number.isFinite(v) || v < 0) return undefined;
+  return Math.round(v);
 }
 
 export async function POST(request: Request) {
@@ -45,12 +53,14 @@ export async function POST(request: Request) {
   const image = clean(body.image);
   const imageBack = clean(body.imageBack);
   const description = clean(body.description);
+  const weightGrams = cleanWeight(body.weightGrams);
 
   if (
     name === undefined &&
     image === undefined &&
     imageBack === undefined &&
-    description === undefined
+    description === undefined &&
+    weightGrams === undefined
   ) {
     return NextResponse.json(
       { error: "Aucune modification a enregistrer." },
@@ -68,6 +78,7 @@ export async function POST(request: Request) {
         image: image ?? null,
         imageBack: imageBack ?? null,
         description: description ?? null,
+        weightGrams: weightGrams ?? null,
       })
       .onConflictDoUpdate({
         target: cardOverrides.cardId,
@@ -76,6 +87,7 @@ export async function POST(request: Request) {
           ...(image !== undefined ? { image } : {}),
           ...(imageBack !== undefined ? { imageBack } : {}),
           ...(description !== undefined ? { description } : {}),
+          ...(weightGrams !== undefined ? { weightGrams } : {}),
           updatedAt: new Date(),
         },
       });
@@ -84,7 +96,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, name, image, imageBack, description });
+  return NextResponse.json({ ok: true, name, image, imageBack, description, weightGrams });
 }
 
 export async function DELETE(request: Request) {
