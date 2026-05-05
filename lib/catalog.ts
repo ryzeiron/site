@@ -11,6 +11,7 @@ export type Condition = "Mint" | "Near Mint" | "Excellent" | "Good" | "Played";
 
 export const RARITIES = [
   "Promo",
+  "Commune",
   "Reverse",
   "Reverse Pokéball",
   "Reverse Masterball",
