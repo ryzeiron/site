@@ -21,7 +21,7 @@ export const RARITIES = [
   "Holo Cosmos",
   "Holo Etoile",
   "Promo Holo Cosmos",
-  "Promo Stamp",
+  "Stamp",
   "Rare Reverse",
   "Rare Holo",
   "Ultra Rare",
