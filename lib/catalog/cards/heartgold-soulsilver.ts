@@ -3,7 +3,7 @@ import type { Card } from "../../catalog";
 // HGSS
 export const HEARTGOLD-SOULSILVER_CARDS = ([
 //PRHGSS
-{ id: "prhgss-001", serieId: "prhgss", name: "Ho-Oh", number: "HGSS01", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/1.webp", },
+{ id: "promo-hgss-001", serieId: "promo-hgss", name: "Ho-Oh", number: "HGSS01", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/1.webp", },
 { id: "prhgss-002", serieId: "prhgss", name: "Lugia", number: "HGSS02", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/2.webp", },
 { id: "prhgss-003", serieId: "prhgss", name: "Pikachu", number: "HGSS03", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/3.webp", },
 { id: "prhgss-004", serieId: "prhgss", name: "Qulbutoke", number: "HGSS04", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/4.webp", },
