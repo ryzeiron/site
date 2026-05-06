@@ -301,7 +301,7 @@ export const SERIES: Serie[] = [
   { id: "hs04", blocId: "appel-des-legendes", code: "HS04", name: "L'appel Des Legendes", releaseYear: 2011, image: "/series/ADL/ADL.webp", },
 
   // HeartGold SoulSilver
-  { id: "prhgss", blocId: "heartgold-soulsilver", code: "PRHGSS", name: "HeartGold SoulSilver", releaseYear: 2010 },
+  { id: "promo-hgss", blocId: "heartgold-soulsilver", code: "PROMO HGSS", name: "HeartGold SoulSilver", releaseYear: 2010 },
   { id: "HGSS01", blocId: "heartgold-soulsilver", code: "HGSS01", name: "HeartGold SoulSilver", releaseYear: 2010 },
   { id: "HGSS02", blocId: "heartgold-soulsilver", code: "HGSS02", name: "Dechainement", releaseYear: 2010 },
   { id: "HGSS03", blocId: "heartgold-soulsilver", code: "HGSS03", name: "Indomptable", releaseYear: 2010 },
