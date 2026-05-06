@@ -1,8 +1,0 @@
-import type { Card } from "../../catalog";
-
-// HGSS
-export const MEGA_EVOLUTION_CARDS = ([
-{ id: "hgss01-001", serieId: "hgss01", name: "Recycleur d'Énergie", number: "108/124", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/me03/108.webp", },
-
-
-] as unknown as Card[]);
