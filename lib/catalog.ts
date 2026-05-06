@@ -163,6 +163,7 @@ export const BLOCS: Bloc[] = [
     name: "Noir et Blanc",
     tagline: "2011 - 2013",
     coverColor: "from-slate-600 to-slate-900",
+    image: "/blocs/NB.webp",
   },
   {
     id: "appel-des-legendes",
@@ -176,24 +177,28 @@ export const BLOCS: Bloc[] = [
     name: "HeartGold SoulSilver",
     tagline: "2010 - 2011",
     coverColor: "from-slate-600 to-slate-900",
+    image: "/blocs/HGSS.webp",
   },
   {
     id: "platine",
     name: "Platine",
     tagline: "2009 - 2010",
     coverColor: "from-slate-600 to-slate-900",
+    image: "/blocs/platine.webp",
   },
   {
     id: "diamant-et-perle",
     name: "Diamant Et Perle",
     tagline: "2007 - 2009",
     coverColor: "from-slate-600 to-slate-900",
+    image: "/blocs/DP.webp",
   },
   {
     id: "ex",
     name: "EX",
     tagline: "2003 - 2008",
     coverColor: "from-slate-600 to-slate-900",
+    image: "/blocs/EX.webp",
   },
 ];
 
@@ -283,29 +288,29 @@ export const SERIES: Serie[] = [
   { id: "xy12", blocId: "xy", code: "XY12", name: "Evolutions", releaseYear: 2016, image: "/series/XY/EVO.webp", },
 
   // Noir et Blanc
-  { id: "prbw", blocId: "noir-et-blanc", code: "PRBW", name: "Noir et Blanc", releaseYear: 2011 },
-  { id: "nb01", blocId: "noir-et-blanc", code: "NB01", name: "Noir et Blanc", releaseYear: 2011 },
-  { id: "nb02", blocId: "noir-et-blanc", code: "NB02", name: "Pouvoirs Emergents", releaseYear: 2011 },
-  { id: "nb03", blocId: "noir-et-blanc", code: "NB03", name: "Nobles Victoires", releaseYear: 2012 },
-  { id: "nb04", blocId: "noir-et-blanc", code: "NB04", name: "Destinees Futures", releaseYear: 2012 },
-  { id: "nb05", blocId: "noir-et-blanc", code: "NB05", name: "Explorateur Obscurs", releaseYear: 2012 },
-  { id: "nb06", blocId: "noir-et-blanc", code: "NB06", name: "Dragons Exaltes", releaseYear: 2012 },
-  { id: "nb07", blocId: "noir-et-blanc", code: "NB07", name: "Coffre Des Dragon", releaseYear: 2012 },
-  { id: "nb07.5", blocId: "noir-et-blanc", code: "NB07.5", name: "Frontieres Franchies", releaseYear: 2013 },
-  { id: "nb08", blocId: "noir-et-blanc", code: "NB08", name: "Tempete Plasma", releaseYear: 2013 },
-  { id: "nb09", blocId: "noir-et-blanc", code: "NB09", name: "Glaciation Plasma", releaseYear: 2013 },
-  { id: "nb10", blocId: "noir-et-blanc", code: "NB10", name: "Explosion Plasma", releaseYear: 2013 },
-  { id: "nb11", blocId: "noir-et-blanc", code: "NB11", name: "Trésors Légendaires", releaseYear: 2013 },
+  { id: "prbw", blocId: "noir-et-blanc", code: "PRBW", name: "Noir et Blanc", releaseYear: 2011, image: "/series/NB/PRBW.webp", },
+  { id: "nb01", blocId: "noir-et-blanc", code: "NB01", name: "Noir et Blanc", releaseYear: 2011, image: "/series/NB/NB.webp", },
+  { id: "nb02", blocId: "noir-et-blanc", code: "NB02", name: "Pouvoirs Emergents", releaseYear: 2011, image: "/series/NB/EPO.webp", },
+  { id: "nb03", blocId: "noir-et-blanc", code: "NB03", name: "Nobles Victoires", releaseYear: 2012, image: "/series/NB/NVI.webp", },
+  { id: "nb04", blocId: "noir-et-blanc", code: "NB04", name: "Destinees Futures", releaseYear: 2012, image: "/series/NB/NXD.webp", },
+  { id: "nb05", blocId: "noir-et-blanc", code: "NB05", name: "Explorateur Obscurs", releaseYear: 2012, image: "/series/NB/DEX.webp", },
+  { id: "nb06", blocId: "noir-et-blanc", code: "NB06", name: "Dragons Exaltes", releaseYear: 2012, image: "/series/NB/DRX.webp", },
+  { id: "nb07", blocId: "noir-et-blanc", code: "NB07", name: "Coffre Des Dragon", releaseYear: 2012, image: "/series/NB/DRV.webp", },
+  { id: "nb07.5", blocId: "noir-et-blanc", code: "NB07.5", name: "Frontieres Franchies", releaseYear: 2013, image: "/series/NB/BCR.webp", },
+  { id: "nb08", blocId: "noir-et-blanc", code: "NB08", name: "Tempete Plasma", releaseYear: 2013, image: "/series/NB/PLS.webp", },
+  { id: "nb09", blocId: "noir-et-blanc", code: "NB09", name: "Glaciation Plasma", releaseYear: 2013, image: "/series/NB/PLF.webp", },
+  { id: "nb10", blocId: "noir-et-blanc", code: "NB10", name: "Explosion Plasma", releaseYear: 2013, image: "/series/NB/PLB.webp", },
+  { id: "nb11", blocId: "noir-et-blanc", code: "NB11", name: "Trésors Légendaires", releaseYear: 2013, image: "/series/NB/.webp", },
 
   // L'appel Des legendes
   { id: "hs04", blocId: "appel-des-legendes", code: "HS04", name: "L'appel Des Legendes", releaseYear: 2011, image: "/series/ADL/ADL.webp", },
 
   // HeartGold SoulSilver
-  { id: "prhgss", blocId: "heartgold-soulsilver", code: "PRHGSS", name: "Promos HGSS", releaseYear: 2010 },
-  { id: "HGSS01", blocId: "heartgold-soulsilver", code: "HGSS01", name: "HeartGold SoulSilver", releaseYear: 2010 },
-  { id: "HGSS02", blocId: "heartgold-soulsilver", code: "HGSS02", name: "Dechainement", releaseYear: 2010 },
-  { id: "HGSS03", blocId: "heartgold-soulsilver", code: "HGSS03", name: "Indomptable", releaseYear: 2010 },
-  { id: "HGSS04", blocId: "heartgold-soulsilver", code: "HGSS04", name: "Triomphe", releaseYear: 2011 },
+  { id: "prhgss", blocId: "heartgold-soulsilver", code: "PRHGSS", name: "Promos HGSS", releaseYear: 2010, image: "/series/HGSS/PRHS.webp",  },
+  { id: "HGSS01", blocId: "heartgold-soulsilver", code: "HGSS01", name: "HeartGold SoulSilver", releaseYear: 2010, image: "/series/HGSS/HGSS.webp",  },
+  { id: "HGSS02", blocId: "heartgold-soulsilver", code: "HGSS02", name: "Dechainement", releaseYear: 2010, image: "/series/HGSS/UL.webp",  },
+  { id: "HGSS03", blocId: "heartgold-soulsilver", code: "HGSS03", name: "Indomptable", releaseYear: 2010, image: "/series/HGSS/UD.webp",  },
+  { id: "HGSS04", blocId: "heartgold-soulsilver", code: "HGSS04", name: "Triomphe", releaseYear: 2011, image: "/series/HGSS/TM.webp",  },
 
   // Platine
   { id: "PT01", blocId: "platine", code: "PT01", name: "Platine", releaseYear: 2009 },
