@@ -3424,7 +3424,7 @@ export const EPEE_ET_BOUCLIER_CARDS = ([
   { id: "crown-zenith-230", serieId: "crown-zenith", name: "Arceus-VSTAR ", number: "GG70/GG70", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/eb12.5/230.jpg", },
 
 
-  { id: "promo-eb-001", serieId: "SWSH", name: "Ouistempo", number: "SWSH001", rarity: "Promo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/swsh/1.webp", },
+  { id: "promo-eb-001", serieId: "promo-eb", name: "Ouistempo", number: "SWSH001", rarity: "Promo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/swsh/1.webp", },
   { id: "promo-eb-002", serieId: "SWSH", name: "Flambino", number: "SWSH002", rarity: "Promo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/swsh/2.webp", },
   { id: "promo-eb-003", serieId: "SWSH", name: "Larméléon", number: "SWSH003", rarity: "Promo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/swsh/3.webp", },
   { id: "promo-eb-004", serieId: "SWSH", name: "Miaouss-V", number: "SWSH004", rarity: "Promo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/swsh/4.webp", },
