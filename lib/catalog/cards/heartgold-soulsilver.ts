@@ -1,6 +1,30 @@
 import type { Card } from "../../catalog";
 
 export const HEARTGOLD_SOULSILVER_CARDS = [
-  { id: "prhgss-001", serieId: "prhgss", name: "Ho-Oh", number: "HGSS01", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/1.webp", },
+{ id: "prhgss-001", serieId: "prhgss", name: "Ho-Oh", number: "HGSS01", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/1.webp", },
+{ id: "prhgss-002", serieId: "prhgss", name: "Lugia", number: "HGSS02", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/2.webp", },
+{ id: "prhgss-003", serieId: "prhgss", name: "Pikachu", number: "HGSS03", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/3.webp", },
+{ id: "prhgss-004", serieId: "prhgss", name: "Qulbutoke", number: "HGSS04", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/4.webp", },
+{ id: "prhgss-005", serieId: "prhgss", name: "Hoothoot", number: "HGSS05", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/5.webp", },
+{ id: "prhgss-006", serieId: "prhgss", name: "Noarfang", number: "HGSS06", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/6.webp", },
+{ id: "prhgss-007", serieId: "prhgss", name: "Aligatueur", number: "HGSS07", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/7.webp", },
+{ id: "prhgss-008", serieId: "prhgss", name: "Meganium", number: "HGSS08", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/8.webp", },
+{ id: "prhgss-009", serieId: "prhgss", name: "Typhlosion", number: "HGSS09", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/9.webp", },
+{ id: "prhgss-010", serieId: "prhgss", name: "Latias", number: "HGSS10", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/10.webp", },
+{ id: "prhgss-011", serieId: "prhgss", name: "Latios", number: "HGSS11", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/11.webp", },
+{ id: "prhgss-012", serieId: "prhgss", name: "Melo", number: "HGSS12", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/12.webp", },
+{ id: "prhgss-013", serieId: "prhgss", name: "Lippouti", number: "HGSS13", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/13.webp", },
+{ id: "prhgss-014", serieId: "prhgss", name: "Lokhlass", number: "HGSS14", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/14.webp", },
+{ id: "prhgss-015", serieId: "prhgss", name: "Caratroc", number: "HGSS15", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/15.webp", },
+{ id: "prhgss-016", serieId: "prhgss", name: "Posipi", number: "HGSS16", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/16.webp", },
+{ id: "prhgss-017", serieId: "prhgss", name: "Negapi", number: "HGSS17", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/17.webp", },
+{ id: "prhgss-018", serieId: "prhgss", name: "Raz-de-marée tropical", number: "HGSS18", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/18.webp", },
+{ id: "prhgss-019", serieId: "prhgss", name: "Raikou", number: "HGSS19", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/19.webp", },
+{ id: "prhgss-020", serieId: "prhgss", name: "Entei", number: "HGSS20", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/20.webp", },
+{ id: "prhgss-021", serieId: "prhgss", name: "Suicune", number: "HGSS21", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/21.webp", },
+{ id: "prhgss-022", serieId: "prhgss", name: "Porygon", number: "HGSS22", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/22.webp", },
+{ id: "prhgss-023", serieId: "prhgss", name: "Porygon2", number: "HGSS23", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/23.webp", },
+{ id: "prhgss-024", serieId: "prhgss", name: "Tygnon", number: "HGSS24", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/24.webp", },
+{ id: "prhgss-025", serieId: "prhgss", name: "Kicklee", number: "HGSS25", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/prhgss/25.webp", },
 
 ] as unknown as Card[];
