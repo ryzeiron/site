@@ -4,7 +4,6 @@ import { EPEE_ET_BOUCLIER_CARDS } from "./catalog/cards/epee-et-bouclier";
 import { SOLEIL_ET_LUNE_CARDS } from "./catalog/cards/soleil-et-lune";
 import { XY_CARDS } from "./catalog/cards/xy";
 import { NOIR_ET_BLANC_CARDS } from "./catalog/cards/noir-et-blanc";
-import { HEARTGOLD_SOULSILVER_CARDS } from "./catalog/cards/heartgold-soulsilver";
 
 // Catalogue : blocs > series > cartes
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
@@ -301,7 +300,6 @@ export const SERIES: Serie[] = [
   { id: "hs04", blocId: "appel-des-legendes", code: "HS04", name: "L'appel Des Legendes", releaseYear: 2011, image: "/series/ADL/ADL.webp", },
 
   // HeartGold SoulSilver
-  { id: "promo-hgss", blocId: "heartgold-soulsilver", code: "PROMO HGSS", name: "HeartGold SoulSilver", releaseYear: 2010 },
   { id: "HGSS01", blocId: "heartgold-soulsilver", code: "HGSS01", name: "HeartGold SoulSilver", releaseYear: 2010 },
   { id: "HGSS02", blocId: "heartgold-soulsilver", code: "HGSS02", name: "Dechainement", releaseYear: 2010 },
   { id: "HGSS03", blocId: "heartgold-soulsilver", code: "HGSS03", name: "Indomptable", releaseYear: 2010 },
@@ -347,7 +345,6 @@ export const CARDS: Card[] = [
   ...SOLEIL_ET_LUNE_CARDS,
   ...XY_CARDS,
   ...NOIR_ET_BLANC_CARDS,
-  ...HEARTGOLD_SOULSILVER_CARDS,
 ];
 
 // Helpers
