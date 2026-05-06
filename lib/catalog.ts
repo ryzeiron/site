@@ -282,6 +282,7 @@ export const SERIES: Serie[] = [
   { id: "xy12", blocId: "xy", code: "XY12", name: "Evolutions", releaseYear: 2016, image: "/series/XY/EVO.webp", },
 
   // Noir et Blanc
+  { id: "prbw", blocId: "noir-et-blanc", code: "PRBW", name: "Noir et Blanc", releaseYear: 2011 },
   { id: "nb01", blocId: "noir-et-blanc", code: "NB01", name: "Noir et Blanc", releaseYear: 2011 },
   { id: "nb02", blocId: "noir-et-blanc", code: "NB02", name: "Pouvoirs Emergents", releaseYear: 2011 },
   { id: "nb03", blocId: "noir-et-blanc", code: "NB03", name: "Nobles Victoires", releaseYear: 2012 },
