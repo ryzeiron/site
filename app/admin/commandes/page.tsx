@@ -66,8 +66,7 @@ export default async function AdminOrdersPage() {
 
               <div className="mt-3 text-sm">
                 <div>
-                  <span className="text-gray-400">Pays :</span>{" "}
-                  {order.country}
+                  <span className="text-gray-400">Pays :</span> {order.country}
                 </div>
                 <div>
                   <span className="text-gray-400">Point relais :</span>{" "}
@@ -83,15 +82,13 @@ export default async function AdminOrdersPage() {
                   {order.relayCity ?? ""}
                 </div>
                 <div>
-                  <span className="text-gray-400">Statut :</span>{" "}
-                  {order.status}
+                  <span className="text-gray-400">Statut :</span> {order.status}
                 </div>
               </div>
 
               {order.mondialRelayExpeditionNumber && (
                 <div className="mt-3 text-sm text-emerald-300">
-                  Expedition Mondial Relay :{" "}
-                  {order.mondialRelayExpeditionNumber}
+                  Expedition Mondial Relay : {order.mondialRelayExpeditionNumber}
                 </div>
               )}
 
