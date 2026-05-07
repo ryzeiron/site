@@ -27,3 +27,23 @@ export const cardOverrides = pgTable("card_overrides", {
   weightGrams: integer("weight_grams"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+
+export const orders = pgTable("orders", {
+  id: text("id").primaryKey(),
+  stripeSessionId: text("stripe_session_id").notNull(),
+  customerEmail: text("customer_email"),
+  customerName: text("customer_name"),
+  customerPhone: text("customer_phone"),
+  country: text("country"),
+  relayCode: text("relay_code"),
+  relayName: text("relay_name"),
+  relayAddress: text("relay_address"),
+  relayPostcode: text("relay_postcode"),
+  relayCity: text("relay_city"),
+  mondialRelayExpeditionNumber: text("mondial_relay_expedition_number"),
+  mondialRelayLabelUrl: text("mondial_relay_label_url"),
+  mondialRelayError: text("mondial_relay_error"),
+  status: text("status").notNull().default("paid"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
