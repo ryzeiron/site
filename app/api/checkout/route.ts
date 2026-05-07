@@ -24,7 +24,7 @@ const META_VALUE_MAX = 450;
 // Tarifs Mondial Relay par pays (centimes EUR, colis ~500g)
 const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
   FR: 490,
-@@ -97,105 +96,91 @@ export async function POST(request: Request) {
+@@ -97,105 +96,79 @@ export async function POST(request: Request) {
       if (!card) throw new Error(`Carte introuvable : ${item.cardId}`);
       if (item.quantity <= 0) throw new Error("Quantite invalide.");
       const v = resolveVariant(card, item.variant);
@@ -74,29 +74,17 @@ const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
       ? `Mondial Relay - ${body.relay.name}`
       : `Mondial Relay (${country})`;
 
-    const shippingOptions: Array<{
+    const relayShippingOption = {
       shipping_rate_data: {
-        type: "fixed_amount";
-        fixed_amount: { amount: number; currency: string };
-        display_name: string;
-        delivery_estimate?: {
-          minimum: { unit: "business_day"; value: number };
-          maximum: { unit: "business_day"; value: number };
-        };
-      };
-    }> = [
-      {
-        shipping_rate_data: {
-          type: "fixed_amount",
-          fixed_amount: { amount: relayCents, currency: "eur" },
-          display_name: relayDisplayName.slice(0, 100),
-          delivery_estimate: {
-            minimum: { unit: "business_day", value: 3 },
-            maximum: { unit: "business_day", value: isFrance ? 6 : 10 },
-          },
+        type: "fixed_amount" as const,
+        fixed_amount: { amount: relayCents, currency: "eur" },
+        display_name: relayDisplayName.slice(0, 100),
+        delivery_estimate: {
+          minimum: { unit: "business_day" as const, value: 3 },
+          maximum: { unit: "business_day" as const, value: isFrance ? 6 : 10 },
         },
-
-    ];
+      },
+    };
 
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
@@ -108,6 +96,7 @@ const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
       cancel_url: `${origin}/annule`,
       shipping_address_collection: { allowed_countries: [country] },
       shipping_options: shippingOptions,
+      shipping_options: [relayShippingOption],
     });
 
     return NextResponse.json({ url: session.url });
