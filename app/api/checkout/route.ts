@@ -24,7 +24,8 @@ const META_VALUE_MAX = 450;
 // Tarifs Mondial Relay par pays (centimes EUR, colis ~500g)
 const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
   FR: 490,
-  BE: 690, export async function POST(request: Request) {
+  BE: 690, 
+  export async function POST(request: Request) {
       if (!card) throw new Error(`Carte introuvable : ${item.cardId}`);
       if (item.quantity <= 0) throw new Error("Quantite invalide.");
       const v = resolveVariant(card, item.variant);
