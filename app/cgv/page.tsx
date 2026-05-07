@@ -35,8 +35,7 @@ export default function CgvPage() {
       <h2 className="mt-6 text-xl font-semibold text-white">4. Livraison</h2>
       <p className="text-gray-300">
         Les commandes sont expediees sous 48h ouvrees apres reception du
-        paiement. Le mode de livraison est choisi par l&apos;acheteur lors du
-        paiement (lettre suivie ou Colissimo).
+        paiement. La livraison est effectuee via Mondial Relay.
       </p>
 
       <h2 className="mt-6 text-xl font-semibold text-white">5. Droit de retractation</h2>
