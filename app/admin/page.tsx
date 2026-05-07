@@ -57,7 +57,7 @@ export default async function AdminPage({
           <option value="">-- Choisis une serie --</option>
           {sortedSeries.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.code} - {s.name}
+           {s.code} - {s.name}
             </option>
           ))}
         </select>
@@ -76,12 +76,18 @@ export default async function AdminPage({
         </button>
         {serieId && (
           <Link
-            href="/admin/commandes"
+            href="/admin"
             className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
           >
             Reset
           </Link>
         )}
+        <Link
+          href="/admin/commandes"
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+        >
+          Commandes
+        </Link>
       </form>
 
       {!serie ? (
