@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { and, eq } from "drizzle-orm";
 import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
-import { processedEvents, stockOverrides } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { orders, processedEvents, stockOverrides } from "@/lib/db/schema";
+import { createMondialRelayLabel } from "@/lib/mondial-relay";
 
 export const runtime = "nodejs";
 
@@ -31,6 +32,10 @@ function decodeItems(metadata: Stripe.Metadata | null): CompactItem[] {
   } catch {
     return [];
   }
+}
+
+function metadataValue(value: string | null | undefined): string | null {
+  return value && value.trim() ? value : null;
 }
 
 export async function POST(request: Request) {
@@ -75,6 +80,66 @@ export async function POST(request: Request) {
 
   const session = event.data.object as Stripe.Checkout.Session;
   const items = decodeItems(session.metadata);
+  const metadata = session.metadata ?? {};
+  const shippingDetails = session.collected_information?.shipping_details;
+  const customerName =
+    session.customer_details?.name ?? shippingDetails?.name ?? "Client";
+  const customerEmail = session.customer_details?.email ?? "";
+  const customerPhone = session.customer_details?.phone ?? "";
+  const customerAddress = shippingDetails?.address.line1 ?? "";
+  const customerPostcode = shippingDetails?.address.postal_code ?? "";
+  const customerCity = shippingDetails?.address.city ?? "";
+  const country = metadata.country ?? "FR";
+
+  let mondialRelayExpeditionNumber: string | null = null;
+  let mondialRelayLabelUrl: string | null = null;
+  let mondialRelayError: string | null = null;
+
+  if (metadata.relay_code) {
+    try {
+      const label = await createMondialRelayLabel({
+        orderId: session.id,
+        customerName,
+        customerEmail,
+        customerPhone,
+        customerAddress,
+        customerPostcode,
+        customerCity,
+        country,
+        relayCode: metadata.relay_code,
+        relayName: metadata.relay_name,
+        weightGrams: 500,
+      });
+
+      mondialRelayExpeditionNumber = label.expeditionNumber;
+      mondialRelayLabelUrl = label.labelUrl;
+    } catch (e) {
+      mondialRelayError =
+        e instanceof Error ? e.message : "Erreur Mondial Relay inconnue.";
+    }
+  }
+
+  await db
+    .insert(orders)
+    .values({
+      id: session.id,
+      stripeSessionId: session.id,
+      customerEmail: metadataValue(customerEmail),
+      customerName: metadataValue(customerName),
+      customerPhone: metadataValue(customerPhone),
+      country: metadataValue(country),
+      relayCode: metadataValue(metadata.relay_code),
+      relayName: metadataValue(metadata.relay_name),
+      relayAddress: metadataValue(metadata.relay_address),
+      relayPostcode: metadataValue(metadata.relay_postcode),
+      relayCity: metadataValue(metadata.relay_city),
+      mondialRelayExpeditionNumber,
+      mondialRelayLabelUrl,
+      mondialRelayError,
+      status: mondialRelayLabelUrl ? "label_created" : "paid",
+    })
+    .onConflictDoNothing();
+
   if (items.length === 0) {
     return NextResponse.json({ received: true, items: 0 });
   }
@@ -107,6 +172,11 @@ export async function POST(request: Request) {
         set: { stock: nextStock, updatedAt: new Date() },
       });
   }
-
-  return NextResponse.json({ received: true, decremented: items.length });
+  return NextResponse.json({
+    received: true,
+    decremented: items.length,
+    labelCreated: Boolean(mondialRelayLabelUrl),
+    labelError: mondialRelayError,
+  });
+  
 }
