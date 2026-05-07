@@ -22,20 +22,16 @@ const LEAFLET_SRC = "https://unpkg.com/leaflet/dist/leaflet.js";
 const LEAFLET_CSS = "https://unpkg.com/leaflet/dist/leaflet.css";
 const WIDGET_SRC =
   "https://widget.mondialrelay.com/parcelshop-picker/jquery.plugin.mondialrelay.parcelshoppicker.min.js";
-
 const DEFAULT_BRAND = "BDTEST";
 
 function getMondialRelayBrand() {
-  const brand =
-    process.env.NEXT_PUBLIC_MONDIAL_RELAY_BRAND?.trim() || DEFAULT_BRAND;
-
+  const brand = process.env.NEXT_PUBLIC_MONDIAL_RELAY_BRAND?.trim() || DEFAULT_BRAND;
   return brand.padEnd(8, " ").slice(0, 8);
 }
 
 function loadStylesheet(href: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`link[href="${href}"]`);
-
     if (existing) {
       resolve();
       return;
@@ -46,7 +42,6 @@ function loadStylesheet(href: string): Promise<void> {
     link.href = href;
     link.onload = () => resolve();
     link.onerror = () => reject(new Error(`Impossible de charger ${href}`));
-
     document.head.appendChild(link);
   });
 }
@@ -54,7 +49,6 @@ function loadStylesheet(href: string): Promise<void> {
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[src="${src}"]`);
-
     if (existing) {
       if ((existing as HTMLScriptElement).dataset.loaded === "true") {
         resolve();
@@ -66,7 +60,6 @@ function loadScript(src: string): Promise<void> {
           { once: true },
         );
       }
-
       return;
     }
 
@@ -78,7 +71,6 @@ function loadScript(src: string): Promise<void> {
       resolve();
     };
     s.onerror = () => reject(new Error(`Impossible de charger ${src}`));
-
     document.head.appendChild(s);
   });
 }
@@ -97,7 +89,6 @@ export default function MondialRelayPicker({
   const containerRef = useRef<HTMLDivElement>(null);
   const targetId = `mr-relay-target-${useId().replace(/:/g, "")}`;
   const normalizedPostcode = postcode.trim();
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,24 +101,20 @@ export default function MondialRelayPicker({
 
       try {
         await loadStylesheet(LEAFLET_CSS);
-
         if (!window.jQuery) {
           await loadScript(JQUERY_SRC);
         }
-
         await loadScript(LEAFLET_SRC);
         await loadScript(WIDGET_SRC);
 
         if (cancelled) return;
 
         const $ = (window.jQuery ?? window.$) as unknown as MondialRelayJQuery;
-
         if (!$ || !containerRef.current) {
           throw new Error("Le widget Mondial Relay n'est pas disponible.");
         }
 
         containerRef.current.innerHTML = "";
-
         $(containerRef.current).MR_ParcelShopPicker({
           Target: `#${targetId}`,
           Brand: getMondialRelayBrand(),
@@ -163,11 +150,9 @@ export default function MondialRelayPicker({
             }
           },
         });
-
         setLoading(false);
       } catch (e) {
         if (cancelled) return;
-
         setError(e instanceof Error ? e.message : "Erreur");
         setLoading(false);
       }
@@ -183,15 +168,11 @@ export default function MondialRelayPicker({
   return (
     <div className="rounded-lg border border-white/10 bg-white p-3">
       {loading && (
-        <p className="text-sm text-gray-700">
-          Chargement de la carte des points relais...
-        </p>
+        <p className="text-sm text-gray-700">Chargement de la carte des points relais...</p>
       )}
-
       {error && (
         <p className="text-sm text-red-600">Impossible de charger : {error}</p>
       )}
-
       <input id={targetId} type="hidden" />
       <div ref={containerRef} className="mr-widget-container min-h-[400px]" />
     </div>
