@@ -5,7 +5,10 @@ export const metadata: Metadata = { title: "Conditions generales de vente" };
 export default function CgvPage() {
   return (
     <article className="prose prose-invert max-w-none">
-      <h1 className="text-3xl font-bold text-white">Conditions generales de vente</h1>
+      <h1 className="text-3xl font-bold text-white">
+        Conditions generales de vente
+      </h1>
+
       <p className="text-sm text-gray-400">
         Document type a adapter a votre activite. En cas de doute consultez un
         juriste ou utilisez un generateur de CGV officiel.
@@ -26,7 +29,9 @@ export default function CgvPage() {
         moment du paiement.
       </p>
 
-      <h2 className="mt-6 text-xl font-semibold text-white">3. Commande et paiement</h2>
+      <h2 className="mt-6 text-xl font-semibold text-white">
+        3. Commande et paiement
+      </h2>
       <p className="text-gray-300">
         Les paiements sont realises par carte bancaire via Stripe. La commande
         n&apos;est validee qu&apos;apres encaissement.
@@ -38,18 +43,22 @@ export default function CgvPage() {
         paiement. La livraison est effectuee via Mondial Relay.
       </p>
 
-      <h2 className="mt-6 text-xl font-semibold text-white">5. Droit de retractation</h2>
+      <h2 className="mt-6 text-xl font-semibold text-white">
+        5. Droit de retractation
+      </h2>
       <p className="text-gray-300">
         Conformement a l&apos;article L221-18 du Code de la consommation,
         l&apos;acheteur dispose d&apos;un delai de 14 jours pour exercer son
         droit de retractation a compter de la reception du colis.
       </p>
 
-      <h2 className="mt-6 text-xl font-semibold text-white">6. Donnees personnelles</h2>
+      <h2 className="mt-6 text-xl font-semibold text-white">
+        6. Donnees personnelles
+      </h2>
       <p className="text-gray-300">
         Les donnees collectees sont utilisees exclusivement pour le traitement
-        des commandes. Vous pouvez exercer vos droits RGPD en nous contactant
-        via la page contact.
+        des commandes. Vous pouvez exercer vos droits RGPD en nous contactant via
+        la page contact.
       </p>
     </article>
   );
