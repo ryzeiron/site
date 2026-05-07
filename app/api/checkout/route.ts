@@ -163,6 +163,7 @@ export async function POST(request: Request) {
       success_url: `${origin}/succes?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/annule`,
       shipping_address_collection: { allowed_countries: [country] },
+      phone_number_collection: { enabled: true },
       shipping_options: [relayShippingOption],
     });
 
