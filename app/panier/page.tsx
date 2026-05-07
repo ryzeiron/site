@@ -424,9 +424,7 @@ export default function CartPage() {
           )}
 
           <p className="text-xs text-gray-500 mt-1">
-            Mondial Relay sera le seul mode de livraison propose au paiement. Si
-            tu n&apos;as pas selectionne de point relais ici, on te contactera
-            apres ta commande.
+           Livraison via Mondial Relay uniquement.
           </p>
         </div>
 
