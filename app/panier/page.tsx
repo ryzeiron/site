@@ -51,13 +51,17 @@ export default function CartPage() {
 
   useEffect(() => {
     if (!mounted) return;
+
     const ids = Array.from(new Set(items.map((i) => i.cardId)));
+
     if (ids.length === 0) {
       setCards({});
       setLoadingCards(false);
       return;
     }
+
     setLoadingCards(true);
+
     fetch("/api/cards/batch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -77,6 +81,7 @@ export default function CartPage() {
     return items.reduce((sum, item) => {
       const card = cards[item.cardId];
       if (!card) return sum;
+
       const v = resolveVariant(card, item.variant);
       return sum + v.price * item.quantity;
     }, 0);
@@ -86,20 +91,28 @@ export default function CartPage() {
     appliedPromo?.type === "percent_off"
       ? (subtotal * appliedPromo.percent) / 100
       : 0;
+
   const total = Math.max(0, subtotal - discount);
 
   async function applyPromo() {
     if (!promoInput.trim()) return;
+
     setApplyingPromo(true);
     setPromoError(null);
+
     try {
       const res = await fetch("/api/promo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: promoInput }),
       });
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Code invalide.");
+
+      if (!res.ok) {
+        throw new Error(data.error ?? "Code invalide.");
+      }
+
       setAppliedPromo(data.promo);
       setPromoError(null);
     } catch (e) {
@@ -119,6 +132,7 @@ export default function CartPage() {
   async function handleCheckout() {
     setLoading(true);
     setError(null);
+
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -130,10 +144,13 @@ export default function CartPage() {
           country,
         }),
       });
+
       const data = await res.json();
+
       if (!res.ok) {
         throw new Error(data.error ?? "Erreur lors du paiement.");
       }
+
       window.location.href = data.url;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur inconnue.");
@@ -142,7 +159,11 @@ export default function CartPage() {
   }
 
   if (!mounted || loadingCards) {
-    return <div className="py-12 text-center text-gray-400">Chargement du panier...</div>;
+    return (
+      <div className="py-12 text-center text-gray-400">
+        Chargement du panier...
+      </div>
+    );
   }
 
   if (items.length === 0) {
@@ -168,8 +189,10 @@ export default function CartPage() {
         {items.map((item) => {
           const card = cards[item.cardId];
           if (!card) return null;
+
           const v = resolveVariant(card, item.variant);
           const outOfStock = v.stock <= 0;
+
           return (
             <div
               key={`${item.cardId}-${item.variant}`}
@@ -181,11 +204,14 @@ export default function CartPage() {
                   <img
                     src={card.image}
                     alt={card.name}
-                    className={`w-full h-full object-contain ${outOfStock ? "opacity-40 grayscale" : ""}`}
+                    className={`w-full h-full object-contain ${
+                      outOfStock ? "opacity-40 grayscale" : ""
+                    }`}
                   />
                 ) : (
                   <span>{card.name}</span>
                 )}
+
                 {outOfStock && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <span className="rounded bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 shadow -rotate-12">
@@ -194,28 +220,43 @@ export default function CartPage() {
                   </div>
                 )}
               </div>
+
               <div className="flex-1">
-                <Link href={`/carte/${card.id}`} className="font-semibold hover:underline text-white">
+                <Link
+                  href={`/carte/${card.id}`}
+                  className="font-semibold hover:underline text-white"
+                >
                   {card.name}
                 </Link>
                 <div className="text-xs text-gray-400">
                   {card.number} - {v.rarity} - {card.condition}
                 </div>
-                <div className="text-sm mt-1 text-gray-200">{formatPrice(v.price)}</div>
+                <div className="text-sm mt-1 text-gray-200">
+                  {formatPrice(v.price)}
+                </div>
               </div>
+
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setQuantity(card.id, item.variant, item.quantity - 1, v.stock)}
+                  onClick={() =>
+                    setQuantity(card.id, item.variant, item.quantity - 1, v.stock)
+                  }
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white"
                   aria-label="Diminuer"
                 >
                   -
                 </button>
-                <span className="w-8 text-center text-white">{item.quantity}</span>
+
+                <span className="w-8 text-center text-white">
+                  {item.quantity}
+                </span>
+
                 <button
                   type="button"
-                  onClick={() => setQuantity(card.id, item.variant, item.quantity + 1, v.stock)}
+                  onClick={() =>
+                    setQuantity(card.id, item.variant, item.quantity + 1, v.stock)
+                  }
                   disabled={item.quantity >= v.stock}
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white"
                   aria-label="Augmenter"
@@ -223,9 +264,11 @@ export default function CartPage() {
                   +
                 </button>
               </div>
+
               <div className="w-20 text-right font-semibold text-white">
                 {formatPrice(v.price * item.quantity)}
               </div>
+
               <button
                 type="button"
                 onClick={() => remove(card.id, item.variant)}
@@ -241,11 +284,13 @@ export default function CartPage() {
       <div className="mt-6 rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-4 text-gray-200">
         <div className="mb-3">
           <label className="text-sm text-gray-300">Code promo</label>
+
           {appliedPromo ? (
             <div className="mt-2 flex items-center gap-3 rounded bg-emerald-500/10 border border-emerald-500/30 px-3 py-2">
               <span className="text-sm text-emerald-300 font-medium">
                 {appliedPromo.code.toUpperCase()} - {appliedPromo.label}
               </span>
+
               <button
                 type="button"
                 onClick={clearPromo}
@@ -263,6 +308,7 @@ export default function CartPage() {
                 placeholder="Entre ton code"
                 className="flex-1 min-w-[180px] rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm focus:outline-none focus:border-violet-400"
               />
+
               <button
                 type="button"
                 onClick={applyPromo}
@@ -273,6 +319,7 @@ export default function CartPage() {
               </button>
             </div>
           )}
+
           {promoError && (
             <p className="mt-2 text-xs text-red-300">{promoError}</p>
           )}
@@ -280,6 +327,7 @@ export default function CartPage() {
 
         <div className="mb-3 border-t border-white/10 pt-3">
           <label className="text-sm text-gray-300">Pays de livraison</label>
+
           <select
             value={country}
             onChange={(e) => setCountry(e.target.value as typeof country)}
@@ -291,8 +339,9 @@ export default function CartPage() {
               </option>
             ))}
           </select>
+
           <p className="text-xs text-gray-500 mt-1">
-              Livraison via Mondial Relay uniquement.
+            Livraison via Mondial Relay uniquement.
           </p>
         </div>
 
@@ -300,16 +349,20 @@ export default function CartPage() {
           <label className="text-sm text-gray-300">
             Point relais Mondial Relay (optionnel)
           </label>
+
           {selectedRelay ? (
             <div className="mt-2 rounded bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-sm text-emerald-100">
               <div className="font-semibold">{selectedRelay.name}</div>
+
               <div className="text-xs text-emerald-200/80">
                 {selectedRelay.address} - {selectedRelay.postcode}{" "}
                 {selectedRelay.city}
               </div>
+
               <div className="text-xs text-emerald-200/60 mt-1">
                 Code : {selectedRelay.code}
               </div>
+
               <button
                 type="button"
                 onClick={() => {
@@ -336,6 +389,7 @@ export default function CartPage() {
                   placeholder="Code postal"
                   className="w-32 rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowRelayPicker(false)}
@@ -344,6 +398,7 @@ export default function CartPage() {
                   Annuler
                 </button>
               </div>
+
               {relayPostcode.length === 5 && (
                 <MondialRelayPicker
                   postcode={relayPostcode}
@@ -352,6 +407,7 @@ export default function CartPage() {
                   }}
                 />
               )}
+
               <p className="text-xs text-gray-500">
                 Saisis ton code postal puis choisis un point relais sur la
                 carte.
@@ -366,9 +422,10 @@ export default function CartPage() {
               + Choisir mon point relais
             </button>
           )}
+
           <p className="text-xs text-gray-500 mt-1">
-            Mondial Relay sera le seul mode de livraison propose au paiement.
-            Si tu n&apos;as pas selectionne de point relais ici, on te contactera
+            Mondial Relay sera le seul mode de livraison propose au paiement. Si
+            tu n&apos;as pas selectionne de point relais ici, on te contactera
             apres ta commande.
           </p>
         </div>
@@ -378,12 +435,14 @@ export default function CartPage() {
             <span>Sous-total</span>
             <span>{formatPrice(subtotal)}</span>
           </div>
+
           {discount > 0 && (
             <div className="flex items-center justify-between text-emerald-300">
               <span>Reduction ({appliedPromo?.code})</span>
               <span>- {formatPrice(discount)}</span>
             </div>
           )}
+
           {appliedPromo?.type === "free_shipping" && (
             <div className="flex items-center justify-between text-emerald-300">
               <span>Livraison</span>
@@ -391,10 +450,12 @@ export default function CartPage() {
             </div>
           )}
         </div>
+
         <div className="mt-2 flex items-center justify-between text-lg">
           <span>Total</span>
           <strong className="text-white">{formatPrice(total)}</strong>
         </div>
+
         <p className="text-xs text-gray-400 mt-1">
           {appliedPromo?.type === "free_shipping"
             ? "Frais de livraison offerts a l'etape de paiement."
@@ -416,6 +477,7 @@ export default function CartPage() {
           >
             {loading ? "Redirection..." : "Passer au paiement"}
           </button>
+
           <button
             type="button"
             onClick={() => clear()}
