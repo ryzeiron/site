@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
@@ -119,8 +118,6 @@ export async function POST(request: Request) {
         : "FR";
     const isFrance = country === "FR";
 
-    const lettreBase = 350;
-    const lettreCents = Math.round(lettreBase * shippingMultiplier);
     const relayBase = MR_PRICE_BY_COUNTRY[country];
     const relayCents = Math.round(relayBase * shippingMultiplier);
 
@@ -155,31 +152,17 @@ export async function POST(request: Request) {
           maximum: { unit: "business_day"; value: number };
         };
       };
-    }> = [];
-    if (isFrance) {
-      shippingOptions.push({
-        shipping_rate_data: {
+    }> = [
+      {
           type: "fixed_amount",
-          fixed_amount: { amount: lettreCents, currency: "eur" },
-          display_name: "Lettre suivie (France)",
+          fixed_amount: { amount: relayCents, currency: "eur" },
+          display_name: relayDisplayName.slice(0, 100),
           delivery_estimate: {
-            minimum: { unit: "business_day", value: 2 },
-            maximum: { unit: "business_day", value: 5 },
+            minimum: { unit: "business_day", value: 3 },
+            maximum: { unit: "business_day", value: isFrance ? 6 : 10 },
           },
         },
-      });
-    }
-    shippingOptions.push({
-      shipping_rate_data: {
-        type: "fixed_amount",
-        fixed_amount: { amount: relayCents, currency: "eur" },
-        display_name: relayDisplayName.slice(0, 100),
-        delivery_estimate: {
-          minimum: { unit: "business_day", value: 3 },
-          maximum: { unit: "business_day", value: isFrance ? 6 : 10 },
-        },
-      },
-    });
+      ];
 
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
