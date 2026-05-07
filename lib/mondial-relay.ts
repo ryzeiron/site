@@ -40,14 +40,12 @@ function escapeXml(value: string): string {
     .replaceAll("'", "&apos;");
 }
 
-/**
- * Important :
- * Mondial Relay doit te fournir l'ordre exact des champs pour la clé de sécurité.
- * Cette fonction est volontairement isolée pour que tu puisses ajuster facilement
- * l'ordre si ton contrat Mondial Relay l'exige.
- */
 function buildSecurityKey(fields: string[], privateKey: string): string {
   return md5(fields.join("") + privateKey);
+}
+
+function readXmlTag(xml: string, tag: string): string {
+  return xml.match(new RegExp(`<${tag}>(.*?)</${tag}>`, "s"))?.[1] ?? "";
 }
 
 export async function createMondialRelayLabel(
@@ -67,23 +65,25 @@ export async function createMondialRelayLabel(
   const senderPhone = requireEnv("MONDIAL_RELAY_SENDER_PHONE");
   const senderEmail = requireEnv("MONDIAL_RELAY_SENDER_EMAIL");
 
-  const deliveryMode = "24R";
-  const collectionMode = "CCC";
-  const labelFormat = "PDF_A4";
+  const collectionMode = process.env.MONDIAL_RELAY_COLLECTION_MODE ?? "CCC";
+  const deliveryMode = process.env.MONDIAL_RELAY_DELIVERY_MODE ?? "24R";
+  const labelFormat = process.env.MONDIAL_RELAY_LABEL_FORMAT ?? "PDF_A4";
+  const weightGrams = Math.max(1, Math.round(input.weightGrams));
 
-  const securityFields = [
-    brand,
-    collectionMode,
-    deliveryMode,
-    input.relayCode,
-    String(input.weightGrams),
-    input.country,
-    input.customerName,
-    input.customerEmail,
-    input.customerPhone,
-  ];
-
-  const security = buildSecurityKey(securityFields, privateKey);
+  const security = buildSecurityKey(
+    [
+      brand,
+      collectionMode,
+      deliveryMode,
+      input.relayCode,
+      String(weightGrams),
+      input.country,
+      input.customerName,
+      input.customerEmail,
+      input.customerPhone,
+    ],
+    privateKey,
+  );
 
   const soapBody = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -112,7 +112,7 @@ export async function createMondialRelayLabel(
       <Dest_Pays>${escapeXml(input.country)}</Dest_Pays>
       <Dest_Tel1>${escapeXml(input.customerPhone)}</Dest_Tel1>
       <Dest_Mail>${escapeXml(input.customerEmail)}</Dest_Mail>
-      <Poids>${input.weightGrams}</Poids>
+      <Poids>${weightGrams}</Poids>
       <Longueur>10</Longueur>
       <Taille></Taille>
       <NbColis>1</NbColis>
@@ -147,37 +147,27 @@ export async function createMondialRelayLabel(
   });
 
   const xml = await response.text();
-
   if (!response.ok) {
     throw new Error(`Erreur Mondial Relay HTTP ${response.status}: ${xml}`);
   }
 
-  const expeditionNumber =
-    xml.match(/<ExpeditionNum>(.*?)<\/ExpeditionNum>/)?.[1] ??
-    xml.match(/<Expedition>(.*?)<\/Expedition>/)?.[1] ??
-    "";
-
-  const labelPath =
-    xml.match(/<URL_Etiquette>(.*?)<\/URL_Etiquette>/)?.[1] ??
-    xml.match(/<URL>(.*?)<\/URL>/)?.[1] ??
-    "";
-
-  const stat = xml.match(/<STAT>(.*?)<\/STAT>/)?.[1] ?? "";
-
+  const stat = readXmlTag(xml, "STAT");
   if (stat && stat !== "0") {
     throw new Error(`Erreur Mondial Relay STAT ${stat}: ${xml}`);
   }
 
-  if (!expeditionNumber || !labelPath) {
-    throw new Error(`Réponse Mondial Relay incomplete: ${xml}`);
-  }
+  const expeditionNumber =
+    readXmlTag(xml, "ExpeditionNum") || readXmlTag(xml, "Expedition");
+  const labelPath = readXmlTag(xml, "URL_Etiquette") || readXmlTag(xml, "URL");
 
-  const labelUrl = labelPath.startsWith("http")
-    ? labelPath
-    : `https://www.mondialrelay.fr${labelPath}`;
+  if (!expeditionNumber || !labelPath) {
+    throw new Error(`Reponse Mondial Relay incomplete: ${xml}`);
+  }
 
   return {
     expeditionNumber,
-    labelUrl,
+    labelUrl: labelPath.startsWith("http")
+      ? labelPath
+      : `https://www.mondialrelay.fr${labelPath}`,
   };
 }
