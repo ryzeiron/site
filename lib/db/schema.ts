@@ -28,7 +28,6 @@ export const cardOverrides = pgTable("card_overrides", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-
 export const orders = pgTable("orders", {
   id: text("id").primaryKey(),
   stripeSessionId: text("stripe_session_id").notNull(),
