@@ -3,70 +3,6 @@ import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
-import { orders, processedEvents, stockOverrides } from "@/lib/db/schema";
-import { createMondialRelayLabel } from "@/lib/mondial-relay";
-
-const items = decodeItems(session.metadata);
-  const metadata = session.metadata ?? {};
-  const customerName =
-    session.customer_details?.name ??
-    session.shipping_details?.name ??
-    "Client";
-  const customerEmail = session.customer_details?.email ?? "";
-  const customerPhone = session.customer_details?.phone ?? "";
-  const customerAddress = session.shipping_details?.address?.line1 ?? "";
-  const customerPostcode = session.shipping_details?.address?.postal_code ?? "";
-  const customerCity = session.shipping_details?.address?.city ?? "";
-  const country = metadata.country ?? "FR";
-
-  let mondialRelayExpeditionNumber: string | null = null;
-  let mondialRelayLabelUrl: string | null = null;
-  let mondialRelayError: string | null = null;
-
-  if (metadata.relay_code) {
-    try {
-      const label = await createMondialRelayLabel({
-        orderId: session.id,
-        customerName,
-        customerEmail,
-        customerPhone,
-        customerAddress,
-        customerPostcode,
-        customerCity,
-        country,
-        relayCode: metadata.relay_code,
-        relayName: metadata.relay_name,
-        weightGrams: 500,
-      });
-
-      mondialRelayExpeditionNumber = label.expeditionNumber;
-      mondialRelayLabelUrl = label.labelUrl;
-    } catch (e) {
-      mondialRelayError =
-        e instanceof Error ? e.message : "Erreur Mondial Relay inconnue.";
-    }
-  }
-
-  await db
-    .insert(orders)
-    .values({
-      id: session.id,
-      stripeSessionId: session.id,
-      customerEmail,
-      customerName,
-      customerPhone,
-      country,
-      relayCode: metadata.relay_code,
-      relayName: metadata.relay_name,
-      relayAddress: metadata.relay_address,
-      relayPostcode: metadata.relay_postcode,
-      relayCity: metadata.relay_city,
-      mondialRelayExpeditionNumber,
-      mondialRelayLabelUrl,
-      mondialRelayError,
-      status: mondialRelayLabelUrl ? "label_created" : "paid",
-    })
-    .onConflictDoNothing();
 
 type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
 
@@ -115,14 +51,18 @@ function encodeItems(
 ): Record<string, string> {
   const compact = items.map((i) => [i.cardId, i.variant, i.quantity]);
   const json = JSON.stringify(compact);
+
   if (json.length <= META_VALUE_MAX) {
     return { items: json, items_parts: "1" };
   }
+
   const parts: Record<string, string> = {};
   let i = 0;
+
   for (let offset = 0; offset < json.length; offset += META_VALUE_MAX, i++) {
     parts[`items_${i}`] = json.slice(offset, offset + META_VALUE_MAX);
   }
+
   parts.items_parts = String(i);
   return parts;
 }
@@ -130,13 +70,16 @@ function encodeItems(
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Body;
+
     if (!body.items || body.items.length === 0) {
       return NextResponse.json({ error: "Panier vide." }, { status: 400 });
     }
 
     let promo = null;
+
     if (body.promoCode && body.promoCode.trim()) {
       promo = getPromo(body.promoCode);
+
       if (!promo) {
         return NextResponse.json(
           { error: "Code promo invalide." },
@@ -152,17 +95,27 @@ export async function POST(request: Request) {
     const rawCards = body.items
       .map((i) => getCard(i.cardId))
       .filter((c): c is NonNullable<typeof c> => !!c);
+
     const liveCards = await applyStockOverrides(rawCards);
     const cardMap = new Map(liveCards.map((c) => [c.id, c]));
 
     const lineItems = body.items.map((item) => {
       const card = cardMap.get(item.cardId);
-      if (!card) throw new Error(`Carte introuvable : ${item.cardId}`);
-      if (item.quantity <= 0) throw new Error("Quantite invalide.");
+
+      if (!card) {
+        throw new Error(`Carte introuvable : ${item.cardId}`);
+      }
+
+      if (item.quantity <= 0) {
+        throw new Error("Quantite invalide.");
+      }
+
       const v = resolveVariant(card, item.variant);
+
       if (item.quantity > v.stock) {
         throw new Error(`Stock insuffisant pour ${card.name}.`);
       }
+
       return {
         price_data: {
           currency: "eur",
@@ -180,6 +133,7 @@ export async function POST(request: Request) {
       body.country && ALLOWED_COUNTRIES.includes(body.country)
         ? body.country
         : "FR";
+
     const isFrance = country === "FR";
 
     const relayBase = MR_PRICE_BY_COUNTRY[country];
@@ -192,14 +146,25 @@ export async function POST(request: Request) {
 
     const itemsMeta = encodeItems(body.items);
     const relayMeta: Record<string, string> = {};
+
     if (body.relay && body.relay.code) {
       relayMeta.relay_code = body.relay.code;
-      if (body.relay.name) relayMeta.relay_name = body.relay.name.slice(0, 200);
-      if (body.relay.address)
+
+      if (body.relay.name) {
+        relayMeta.relay_name = body.relay.name.slice(0, 200);
+      }
+
+      if (body.relay.address) {
         relayMeta.relay_address = body.relay.address.slice(0, 200);
-      if (body.relay.postcode)
+      }
+
+      if (body.relay.postcode) {
         relayMeta.relay_postcode = body.relay.postcode.slice(0, 20);
-      if (body.relay.city) relayMeta.relay_city = body.relay.city.slice(0, 100);
+      }
+
+      if (body.relay.city) {
+        relayMeta.relay_city = body.relay.city.slice(0, 100);
+      }
     }
 
     const relayDisplayName = body.relay?.name
@@ -219,6 +184,7 @@ export async function POST(request: Request) {
     };
 
     const stripe = getStripe();
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
