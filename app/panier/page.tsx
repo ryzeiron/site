@@ -292,9 +292,7 @@ export default function CartPage() {
             ))}
           </select>
           <p className="text-xs text-gray-500 mt-1">
-            {country === "FR"
-              ? "France : Lettre suivie 3,50 € ou Mondial Relay 4,90 €."
-              : "Hors France : livraison via Mondial Relay uniquement."}
+              Livraison via Mondial Relay uniquement.
           </p>
         </div>
 
@@ -369,8 +367,9 @@ export default function CartPage() {
             </button>
           )}
           <p className="text-xs text-gray-500 mt-1">
-            Si tu choisis Mondial Relay au paiement et que tu n&apos;as pas
-            selectionne de point relais ici, on te contactera apres ta commande.
+            Mondial Relay sera le seul mode de livraison propose au paiement.
+            Si tu n&apos;as pas selectionne de point relais ici, on te contactera
+            apres ta commande.
           </p>
         </div>
 
