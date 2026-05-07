@@ -3,6 +3,70 @@ import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
+import { orders, processedEvents, stockOverrides } from "@/lib/db/schema";
+import { createMondialRelayLabel } from "@/lib/mondial-relay";
+
+const items = decodeItems(session.metadata);
+  const metadata = session.metadata ?? {};
+  const customerName =
+    session.customer_details?.name ??
+    session.shipping_details?.name ??
+    "Client";
+  const customerEmail = session.customer_details?.email ?? "";
+  const customerPhone = session.customer_details?.phone ?? "";
+  const customerAddress = session.shipping_details?.address?.line1 ?? "";
+  const customerPostcode = session.shipping_details?.address?.postal_code ?? "";
+  const customerCity = session.shipping_details?.address?.city ?? "";
+  const country = metadata.country ?? "FR";
+
+  let mondialRelayExpeditionNumber: string | null = null;
+  let mondialRelayLabelUrl: string | null = null;
+  let mondialRelayError: string | null = null;
+
+  if (metadata.relay_code) {
+    try {
+      const label = await createMondialRelayLabel({
+        orderId: session.id,
+        customerName,
+        customerEmail,
+        customerPhone,
+        customerAddress,
+        customerPostcode,
+        customerCity,
+        country,
+        relayCode: metadata.relay_code,
+        relayName: metadata.relay_name,
+        weightGrams: 500,
+      });
+
+      mondialRelayExpeditionNumber = label.expeditionNumber;
+      mondialRelayLabelUrl = label.labelUrl;
+    } catch (e) {
+      mondialRelayError =
+        e instanceof Error ? e.message : "Erreur Mondial Relay inconnue.";
+    }
+  }
+
+  await db
+    .insert(orders)
+    .values({
+      id: session.id,
+      stripeSessionId: session.id,
+      customerEmail,
+      customerName,
+      customerPhone,
+      country,
+      relayCode: metadata.relay_code,
+      relayName: metadata.relay_name,
+      relayAddress: metadata.relay_address,
+      relayPostcode: metadata.relay_postcode,
+      relayCity: metadata.relay_city,
+      mondialRelayExpeditionNumber,
+      mondialRelayLabelUrl,
+      mondialRelayError,
+      status: mondialRelayLabelUrl ? "label_created" : "paid",
+    })
+    .onConflictDoNothing();
 
 type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
 
