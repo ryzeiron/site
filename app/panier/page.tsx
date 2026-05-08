@@ -13,6 +13,7 @@ type AppliedPromo =
 
 export default function CartPage() {
   const items = useCart((s) => s.items);
+  const cartId = useCart((s) => s.cartId);
   const setQuantity = useCart((s) => s.setQuantity);
   const remove = useCart((s) => s.remove);
   const clear = useCart((s) => s.clear);
@@ -146,6 +147,7 @@ export default function CartPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items,
+          cartId,
           promoCode: appliedPromo?.code,
           relay: selectedRelay,
           country,

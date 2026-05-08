@@ -29,6 +29,7 @@ function getReservationSql() {
 export async function reserveStockItems(
   reservationId: string,
   items: StockReservationItem[],
+  status: "cart" | "reserved" = "reserved",
 ) {
   if (items.length === 0) return;
 
@@ -84,7 +85,7 @@ export async function reserveStockItems(
           upsert.card_id,
           upsert.variant,
           ${item.quantity},
-          'reserved',
+          ${status},
           now(),
           now()
         FROM upsert
@@ -98,7 +99,6 @@ export async function reserveStockItems(
     }
 
     if (inserted.length === 0) {
-      // Stock insuffisant : rollback les precedents et erreur claire
       await rollback();
       throw new Error(
         "Stock insuffisant : une carte du panier vient peut-etre d'etre reservee par un autre client.",
@@ -107,6 +107,89 @@ export async function reserveStockItems(
 
     done.push({ cardId: item.cardId, variant, quantity: item.quantity });
   }
+}
+
+/**
+ * Reconcile a cart's reservations with new items.
+ * Releases everything currently reserved as 'cart' for the given cartId,
+ * then re-reserves the new items as 'cart'.
+ * If insufficient stock, the previous cart reservation is restored.
+ */
+export async function syncCartReservation(
+  cartId: string,
+  items: StockReservationItem[],
+) {
+  const sql = getReservationSql();
+
+  // Get current cart reservations to be able to restore on failure
+  const previous = (await sql`
+    SELECT card_id, variant, quantity FROM stock_reservations
+    WHERE reservation_id = ${cartId} AND status = 'cart'
+  `) as { card_id: string; variant: string; quantity: number }[];
+
+  // Release current cart reservations
+  await releaseCartReservation(cartId);
+
+  if (items.length === 0) return;
+
+  try {
+    await reserveStockItems(cartId, items, "cart");
+  } catch (e) {
+    // Restore previous cart reservation
+    if (previous.length > 0) {
+      const restoreItems = previous.map((p) => ({
+        cardId: p.card_id,
+        variant: p.variant,
+        quantity: p.quantity,
+        // initialStock unused since the row already exists in stock_overrides
+        initialStock: p.quantity,
+      }));
+      try {
+        await reserveStockItems(cartId, restoreItems, "cart");
+      } catch {
+        // best-effort
+      }
+    }
+    throw e;
+  }
+}
+
+export async function releaseCartReservation(cartId: string) {
+  const sql = getReservationSql();
+  await sql`
+    WITH released AS (
+      DELETE FROM stock_reservations
+      WHERE reservation_id = ${cartId} AND status = 'cart'
+      RETURNING card_id, variant, quantity
+    )
+    UPDATE stock_overrides
+    SET stock = stock_overrides.stock + released.quantity,
+        updated_at = now()
+    FROM released
+    WHERE stock_overrides.card_id = released.card_id
+      AND stock_overrides.variant = released.variant
+  `;
+}
+
+/**
+ * Upgrade an existing cart reservation to a checkout-grade 'reserved' status.
+ * Used at checkout to lock the stock for the Stripe session without
+ * double-decrementing.
+ */
+export async function upgradeCartToReserved(
+  cartId: string,
+  stripeSessionId: string,
+): Promise<number> {
+  const sql = getReservationSql();
+  const updated = (await sql`
+    UPDATE stock_reservations
+    SET status = 'reserved',
+        stripe_session_id = ${stripeSessionId},
+        updated_at = now()
+    WHERE reservation_id = ${cartId} AND status = 'cart'
+    RETURNING card_id
+  `) as { card_id: string }[];
+  return updated.length;
 }
 
 export async function confirmStockReservation(

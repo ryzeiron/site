@@ -3,10 +3,11 @@ import { randomUUID } from "crypto";
 import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
-import { getPromo } from "@/lib/promo"; 
+import { getPromo } from "@/lib/promo";
 import {
   releaseStockReservation,
   reserveStockItems,
+  upgradeCartToReserved,
 } from "@/lib/stock-reservations";
 
 type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
@@ -15,6 +16,7 @@ type Body = {
   items: { cardId: string; variant: VariantKey; quantity: number }[];
   promoCode?: string;
   country?: Country;
+  cartId?: string;
   relay?: {
     code: string;
     name?: string;
@@ -23,6 +25,8 @@ type Body = {
     city?: string;
   };
 };
+
+const CART_ID_RE = /^[a-z0-9-]{8,64}$/i;
 
 const META_VALUE_MAX = 450;
 
@@ -176,7 +180,9 @@ export async function POST(request: Request) {
       "http://localhost:3000";
 
     const itemsMeta = encodeItems(body.items);
-    const reservationId = randomUUID();
+    const cartId =
+      body.cartId && CART_ID_RE.test(body.cartId) ? body.cartId : null;
+    const reservationId = cartId ?? randomUUID();
     const relayMeta: Record<string, string> = {};
 
     relayMeta.relay_code = body.relay.code.trim();
@@ -222,7 +228,20 @@ export async function POST(request: Request) {
       }
     }
 
-    await reserveStockItems(reservationId, reservationItems);
+    let upgraded = 0;
+    if (cartId) {
+      // Le panier a deja reserve - on upgrade en attendant le paiement
+      try {
+        upgraded = await upgradeCartToReserved(cartId, "pending");
+      } catch {
+        upgraded = 0;
+      }
+    }
+
+    if (upgraded === 0) {
+      // Pas de reservation cart trouvee, on reserve from scratch
+      await reserveStockItems(reservationId, reservationItems, "reserved");
+    }
 
     let session;
     try {
