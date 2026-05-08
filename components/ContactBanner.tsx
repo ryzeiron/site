@@ -6,7 +6,7 @@ export default function ContactBanner() {
       <div className="max-w-6xl mx-auto px-4 py-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs sm:text-sm text-center">
         <span aria-hidden className="text-violet-300">✦</span>
         <span className="text-gray-100">
-          Tu cherches une carte commune ou tu as une demande speciale ?
+          Tu cherches des cartes communes ou tu as une demande speciale ?
         </span>
         <Link
           href="/contact"
