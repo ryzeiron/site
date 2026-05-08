@@ -1,146 +1,98 @@
-import { NextResponse } from "next/server"; 
-import type Stripe from "stripe";
-import { and, eq } from "drizzle-orm";
-import { getStripe } from "@/lib/stripe";
-import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { desc } from "drizzle-orm";
+import LogoutButton from "@/components/LogoutButton";
+import { isAdmin } from "@/lib/admin/auth";
 import { getDb } from "@/lib/db/client";
-import { orders, processedEvents, stockOverrides } from "@/lib/db/schema";
+import { orders } from "@/lib/db/schema";
 
-export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-type CompactItem = [string, VariantKey, number];
-
-function decodeItems(metadata: Stripe.Metadata | null): CompactItem[] {
-  if (!metadata) return [];
-  const partsCount = Number(metadata.items_parts ?? "0");
-  let json = "";
-  if (metadata.items) {
-    json = metadata.items;
-  } else if (partsCount > 0) {
-    for (let i = 0; i < partsCount; i++) {
-      const chunk = metadata[`items_${i}`];
-      if (!chunk) return [];
-      json += chunk;
-    }
-  }
-  if (!json) return [];
-  try {
-    const parsed = JSON.parse(json);
-    if (!Array.isArray(parsed)) return [];
-    return parsed as CompactItem[];
-  } catch {
-    return [];
-  }
-}
-
-function metadataValue(value: string | null | undefined): string | null {
-  return value && value.trim() ? value : null;
-}
-
-
-  const signature = request.headers.get("stripe-signature");
-  if (!signature) {
-    return NextResponse.json({ error: "Signature manquante." }, { status: 400 });
-  }
-
-  const payload = await request.text();
-  const stripe = getStripe();
-
-  let event: Stripe.Event;
-  try {
-    event = await stripe.webhooks.constructEventAsync(payload, signature, secret);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Signature invalide.";
-    return NextResponse.json({ error: message }, { status: 400 });
-  }
-
-  if (event.type !== "checkout.session.completed") {
-    return NextResponse.json({ received: true, ignored: event.type });
-  }
+export default async function AdminOrdersPage() {
+  if (!(await isAdmin())) redirect("/admin/login");
 
   const db = getDb();
+  const rows = await db.select().from(orders).orderBy(desc(orders.createdAt));
 
-  const seen = await db
-    .insert(processedEvents)
-    .values({ eventId: event.id })
-    .onConflictDoNothing()
-    .returning({ eventId: processedEvents.eventId });
-  if (seen.length === 0) {
-    return NextResponse.json({ received: true, duplicate: true });
-  }
+  return (
+    <div className="py-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Admin - Commandes</h1>
+          <p className="text-sm text-gray-400 mt-1">
+            Retrouve les commandes Stripe et les informations de point relais.
+          </p>
+        </div>
+        <LogoutButton />
+      </div>
 
-  const session = event.data.object as Stripe.Checkout.Session;
-  const items = decodeItems(session.metadata);
-  const metadata = session.metadata ?? {};
-  const shippingDetails = session.collected_information?.shipping_details;
-  const customerName =
-    session.customer_details?.name ?? shippingDetails?.name ?? "Client";
-  const customerEmail = session.customer_details?.email ?? "";
-  const customerPhone = session.customer_details?.phone ?? "";
-  const country = metadata.country ?? "FR";
+      <div className="mb-6">
+        <Link
+          href="/admin"
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+        >
+          Retour stocks
+        </Link>
+      </div>
 
-  const mondialRelayExpeditionNumber: string | null = null;
-  const mondialRelayLabelUrl: string | null = null;
-  const mondialRelayError: string | null = null;
+      {rows.length === 0 ? (
+        <p className="text-gray-400">Aucune commande pour le moment.</p>
+      ) : (
+        <div className="space-y-3">
+          {rows.map((order) => (
+            <div
+              key={order.id}
+              className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="font-semibold text-white">
+                    {order.customerName ?? "Client"}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    {order.customerEmail}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    {order.customerPhone}
+                  </div>
+                </div>
 
-  await db
-    .insert(orders)
-    .values({
-      id: session.id,
-      stripeSessionId: session.id,
-      customerEmail: metadataValue(customerEmail),
-      customerName: metadataValue(customerName),
-      customerPhone: metadataValue(customerPhone),
-      country: metadataValue(country),
-      relayCode: metadataValue(metadata.relay_code),
-      relayName: metadataValue(metadata.relay_name),
-      relayAddress: metadataValue(metadata.relay_address),
-      relayPostcode: metadataValue(metadata.relay_postcode),
-      relayCity: metadataValue(metadata.relay_city),
-      mondialRelayExpeditionNumber,
-      mondialRelayLabelUrl,
-      mondialRelayError,
-      status: metadata.relay_code ? "label_to_create" : "paid",
-    })
-    .onConflictDoNothing();
+                <div className="text-xs text-gray-400">
+                  {order.createdAt
+                    ? new Date(order.createdAt).toLocaleString("fr-FR")
+                    : ""}
+                </div>
+              </div>
 
-  if (items.length === 0) {
-    return NextResponse.json({ received: true, items: 0 });
-  }
+              <div className="mt-3 text-sm">
+                <div>
+                  <span className="text-gray-400">Pays :</span> {order.country}
+                </div>
+                <div>
+                  <span className="text-gray-400">Point relais :</span>{" "}
+                  {order.relayName ?? "-"}
+                </div>
+                <div>
+                  <span className="text-gray-400">Code relais :</span>{" "}
+                  {order.relayCode ?? "-"}
+                </div>
+                <div>
+                  <span className="text-gray-400">Adresse relais :</span>{" "}
+                  {order.relayAddress ?? "-"} {order.relayPostcode ?? ""}{" "}
+                  {order.relayCity ?? ""}
+                </div>
+                <div>
+                  <span className="text-gray-400">Statut :</span> {order.status}
+                </div>
+              </div>
 
-  for (const [cardId, variant, quantity] of items) {
-    if (!cardId || !variant || !quantity || quantity <= 0) continue;
-    const card = getCard(cardId);
-    if (!card) continue;
-    const v = resolveVariant(card, variant);
-
-    const existing = await db
-      .select()
-      .from(stockOverrides)
-      .where(
-        and(
-          eq(stockOverrides.cardId, cardId),
-          eq(stockOverrides.variant, variant),
-        ),
-      )
-      .limit(1);
-
-    const currentStock = existing[0]?.stock ?? v.stock;
-    const nextStock = Math.max(0, currentStock - quantity);
-
-    await db
-      .insert(stockOverrides)
-      .values({ cardId, variant, stock: nextStock })
-      .onConflictDoUpdate({
-        target: [stockOverrides.cardId, stockOverrides.variant],
-        set: { stock: nextStock, updatedAt: new Date() },
-      });
-  }
-  return NextResponse.json({
-    received: true,
-    decremented: items.length,
-    labelCreated: Boolean(mondialRelayLabelUrl),
-    labelError: mondialRelayError,
-  });
-  
+              <p className="mt-3 text-sm text-yellow-300">
+                Bordereau a creer manuellement sur Mondial Relay.
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
