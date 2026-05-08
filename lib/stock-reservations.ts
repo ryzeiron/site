@@ -22,6 +22,7 @@ function getReservationSql() {
     }
     sqlSingleton = neon(url);
   }
+
   return sqlSingleton!;
 }
 
@@ -51,12 +52,6 @@ export async function reserveStockItems(
               AND variant = ${variant}
               AND stock >= ${item.quantity}
             RETURNING card_id, variant
-          ),
-          guard AS (
-            SELECT CASE
-              WHEN EXISTS (SELECT 1 FROM updated_stock) THEN 1
-              ELSE 1 / 0
-            END AS ok
           )
           INSERT INTO stock_reservations (
             reservation_id,
@@ -69,13 +64,23 @@ export async function reserveStockItems(
           )
           SELECT
             ${reservationId},
-            ${item.cardId},
+            updated_stock.card_id,
+            updated_stock.variant,
+            ${item.quantity},
+            'reserved',
+            now(),
+            now()
+          FROM updated_stock
+          UNION ALL
+          SELECT
+            ${reservationId},
+            NULL::text,
             ${variant},
             ${item.quantity},
             'reserved',
             now(),
             now()
-          FROM guard
+          WHERE NOT EXISTS (SELECT 1 FROM updated_stock)
           RETURNING reservation_id
         `;
       }),
