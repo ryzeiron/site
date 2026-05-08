@@ -1,5 +1,6 @@
 import "server-only";
-import { getSql } from "@/lib/db/client";
+import { neon } from "@neondatabase/serverless";
+import type { NeonQueryFunction } from "@neondatabase/serverless";
 import type { VariantKey } from "@/lib/catalog";
 
 export type StockReservationItem = {
@@ -9,13 +10,28 @@ export type StockReservationItem = {
   initialStock: number;
 };
 
+let sqlSingleton: NeonQueryFunction<false, false> | null = null;
+
+function getReservationSql() {
+  if (!sqlSingleton) {
+    const url = process.env.DATABASE_URL;
+    if (!url) {
+      throw new Error(
+        "DATABASE_URL manquante. Ajoute-la dans .env.local ou sur Vercel.",
+      );
+    }
+    sqlSingleton = neon(url);
+  }
+  return sqlSingleton;
+}
+
 export async function reserveStockItems(
   reservationId: string,
   items: StockReservationItem[],
 ) {
   if (items.length === 0) return;
 
-  const sql = getSql();
+  const sql = getReservationSql();
 
   try {
     await sql.transaction((tx) =>
@@ -75,7 +91,7 @@ export async function confirmStockReservation(
   reservationId: string,
   stripeSessionId: string,
 ) {
-  const sql = getSql();
+  const sql = getReservationSql();
 
   await sql`
     UPDATE stock_reservations
@@ -88,7 +104,7 @@ export async function confirmStockReservation(
 }
 
 export async function releaseStockReservation(reservationId: string) {
-  const sql = getSql();
+  const sql = getReservationSql();
 
   await sql`
     WITH released AS (
