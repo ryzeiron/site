@@ -5,7 +5,6 @@ import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { orders, processedEvents, stockOverrides } from "@/lib/db/schema";
-import { createMondialRelayLabel } from "@/lib/mondial-relay";
 
 export const runtime = "nodejs";
 
@@ -86,38 +85,11 @@ export async function POST(request: Request) {
     session.customer_details?.name ?? shippingDetails?.name ?? "Client";
   const customerEmail = session.customer_details?.email ?? "";
   const customerPhone = session.customer_details?.phone ?? "";
-  const customerAddress = shippingDetails?.address.line1 ?? "";
-  const customerPostcode = shippingDetails?.address.postal_code ?? "";
-  const customerCity = shippingDetails?.address.city ?? "";
   const country = metadata.country ?? "FR";
 
-  let mondialRelayExpeditionNumber: string | null = null;
-  let mondialRelayLabelUrl: string | null = null;
-  let mondialRelayError: string | null = null;
-
-  if (metadata.relay_code) {
-    try {
-      const label = await createMondialRelayLabel({
-        orderId: session.id,
-        customerName,
-        customerEmail,
-        customerPhone,
-        customerAddress,
-        customerPostcode,
-        customerCity,
-        country,
-        relayCode: metadata.relay_code,
-        relayName: metadata.relay_name,
-        weightGrams: 500,
-      });
-
-      mondialRelayExpeditionNumber = label.expeditionNumber;
-      mondialRelayLabelUrl = label.labelUrl;
-    } catch (e) {
-      mondialRelayError =
-        e instanceof Error ? e.message : "Erreur Mondial Relay inconnue.";
-    }
-  }
+  const mondialRelayExpeditionNumber: string | null = null;
+  const mondialRelayLabelUrl: string | null = null;
+  const mondialRelayError: string | null = null;
 
   await db
     .insert(orders)
@@ -136,7 +108,7 @@ export async function POST(request: Request) {
       mondialRelayExpeditionNumber,
       mondialRelayLabelUrl,
       mondialRelayError,
-      status: mondialRelayLabelUrl ? "label_created" : "paid",
+      status: metadata.relay_code ? "label_to_create" : "paid",
     })
     .onConflictDoNothing();
 
