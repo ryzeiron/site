@@ -22,7 +22,7 @@ function getReservationSql() {
     }
     sqlSingleton = neon(url);
   }
-  return sqlSingleton;
+  return sqlSingleton!;
 }
 
 export async function reserveStockItems(
