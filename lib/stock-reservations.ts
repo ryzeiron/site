@@ -34,61 +34,78 @@ export async function reserveStockItems(
 
   const sql = getReservationSql();
 
-  try {
-    await sql.transaction((tx) =>
-      items.map((item) => {
-        const variant = String(item.variant);
+  type DoneItem = { cardId: string; variant: string; quantity: number };
+  const done: DoneItem[] = [];
 
-        return tx`
-          WITH ensure_stock_row AS (
-            INSERT INTO stock_overrides (card_id, variant, stock)
-            VALUES (${item.cardId}, ${variant}, ${item.initialStock})
-            ON CONFLICT (card_id, variant) DO NOTHING
-          ),
-          updated_stock AS (
-            UPDATE stock_overrides
-            SET stock = stock - ${item.quantity}, updated_at = now()
-            WHERE card_id = ${item.cardId}
-              AND variant = ${variant}
-              AND stock >= ${item.quantity}
-            RETURNING card_id, variant
-          )
-          INSERT INTO stock_reservations (
-            reservation_id,
-            card_id,
-            variant,
-            quantity,
-            status,
-            created_at,
-            updated_at
-          )
-          SELECT
-            ${reservationId},
-            updated_stock.card_id,
-            updated_stock.variant,
-            ${item.quantity},
-            'reserved',
-            now(),
-            now()
-          FROM updated_stock
-          UNION ALL
-          SELECT
-            ${reservationId},
-            NULL::text,
-            ${variant},
-            ${item.quantity},
-            'reserved',
-            now(),
-            now()
-          WHERE NOT EXISTS (SELECT 1 FROM updated_stock)
-          RETURNING reservation_id
+  async function rollback() {
+    for (const it of done) {
+      try {
+        await sql`
+          UPDATE stock_overrides
+          SET stock = stock_overrides.stock + ${it.quantity}, updated_at = now()
+          WHERE card_id = ${it.cardId} AND variant = ${it.variant}
         `;
-      }),
-    );
-  } catch {
-    throw new Error(
-      "Stock insuffisant : une carte du panier vient peut-etre d'etre reservee par un autre client.",
-    );
+        await sql`
+          DELETE FROM stock_reservations
+          WHERE reservation_id = ${reservationId}
+            AND card_id = ${it.cardId}
+            AND variant = ${it.variant}
+        `;
+      } catch {
+        // best-effort
+      }
+    }
+  }
+
+  for (const item of items) {
+    const variant = String(item.variant);
+    let inserted: { reservation_id: string }[] = [];
+    try {
+      inserted = (await sql`
+        WITH upsert AS (
+          INSERT INTO stock_overrides (card_id, variant, stock, updated_at)
+          VALUES (
+            ${item.cardId},
+            ${variant},
+            ${item.initialStock - item.quantity},
+            now()
+          )
+          ON CONFLICT (card_id, variant) DO UPDATE
+            SET stock = stock_overrides.stock - ${item.quantity},
+                updated_at = now()
+            WHERE stock_overrides.stock >= ${item.quantity}
+          RETURNING card_id, variant
+        )
+        INSERT INTO stock_reservations (
+          reservation_id, card_id, variant, quantity, status, created_at, updated_at
+        )
+        SELECT
+          ${reservationId},
+          upsert.card_id,
+          upsert.variant,
+          ${item.quantity},
+          'reserved',
+          now(),
+          now()
+        FROM upsert
+        RETURNING reservation_id
+      `) as { reservation_id: string }[];
+    } catch (e) {
+      await rollback();
+      throw e instanceof Error
+        ? e
+        : new Error("Erreur lors de la reservation du stock.");
+    }
+
+    if (inserted.length === 0) {
+      // Stock insuffisant : rollback les precedents et erreur claire
+      await rollback();
+      throw new Error(
+        "Stock insuffisant : une carte du panier vient peut-etre d'etre reservee par un autre client.",
+      );
+    }
+
+    done.push({ cardId: item.cardId, variant, quantity: item.quantity });
   }
 }
 
