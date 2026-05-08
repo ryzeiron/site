@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
-import { getPromo } from "@/lib/promo";
+import { getPromo } from "@/lib/promo"; 
 import {
   releaseStockReservation,
   reserveStockItems,
