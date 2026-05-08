@@ -37,14 +37,6 @@ function metadataValue(value: string | null | undefined): string | null {
   return value && value.trim() ? value : null;
 }
 
-export async function POST(request: Request) {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) {
-    return NextResponse.json(
-      { error: "STRIPE_WEBHOOK_SECRET manquante." },
-      { status: 500 },
-    );
-  }
 
   const signature = request.headers.get("stripe-signature");
   if (!signature) {
