@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
+import {
+  releaseStockReservation,
+  reserveStockItems,
+} from "@/lib/stock-reservations";
 
 type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
 
@@ -105,6 +110,12 @@ export async function POST(request: Request) {
 
     const liveCards = await applyStockOverrides(rawCards);
     const cardMap = new Map(liveCards.map((c) => [c.id, c]));
+    const reservationItemsByKey = new Map<string, {
+      cardId: string;
+      variant: VariantKey;
+      quantity: number;
+      initialStock: number;
+    }>();
 
     const lineItems = body.items.map((item) => {
       const card = cardMap.get(item.cardId);
@@ -121,6 +132,19 @@ export async function POST(request: Request) {
 
       if (item.quantity > v.stock) {
         throw new Error(`Stock insuffisant pour ${card.name}.`);
+      }
+
+      const reservationKey = `${item.cardId}:${item.variant}`;
+      const existingReservation = reservationItemsByKey.get(reservationKey);
+      if (existingReservation) {
+        existingReservation.quantity += item.quantity;
+      } else {
+        reservationItemsByKey.set(reservationKey, {
+          cardId: item.cardId,
+          variant: item.variant,
+          quantity: item.quantity,
+          initialStock: v.stock,
+        });
       }
 
       return {
@@ -152,6 +176,7 @@ export async function POST(request: Request) {
       "http://localhost:3000";
 
     const itemsMeta = encodeItems(body.items);
+    const reservationId = randomUUID();
     const relayMeta: Record<string, string> = {};
 
     relayMeta.relay_code = body.relay.code.trim();
@@ -190,17 +215,38 @@ export async function POST(request: Request) {
 
     const stripe = getStripe();
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-      line_items: lineItems,
-      metadata: { ...itemsMeta, ...relayMeta, country },
-      success_url: `${origin}/succes?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/annule`,
-      shipping_address_collection: { allowed_countries: [country] },
-      phone_number_collection: { enabled: true },
-      shipping_options: [relayShippingOption],
-    });
+    const reservationItems = Array.from(reservationItemsByKey.values());
+    for (const item of reservationItems) {
+      if (item.quantity > item.initialStock) {
+        throw new Error("Stock insuffisant pour une carte du panier.");
+      }
+    }
+
+    await reserveStockItems(reservationId, reservationItems);
+
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: ["card"],
+        line_items: lineItems,
+        metadata: {
+          ...itemsMeta,
+          ...relayMeta,
+          country,
+          reservation_id: reservationId,
+        },
+        success_url: `${origin}/succes?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/annule`,
+        expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
+        shipping_address_collection: { allowed_countries: [country] },
+        phone_number_collection: { enabled: true },
+        shipping_options: [relayShippingOption],
+      });
+    } catch (e) {
+      await releaseStockReservation(reservationId);
+      throw e;
+    }
 
     return NextResponse.json({ url: session.url });
   } catch (e) {
