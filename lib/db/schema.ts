@@ -18,6 +18,21 @@ export const processedEvents = pgTable("processed_events", {
   processedAt: timestamp("processed_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const stockReservations = pgTable(
+  "stock_reservations",
+  {
+    reservationId: text("reservation_id").notNull(),
+    stripeSessionId: text("stripe_session_id"),
+    cardId: text("card_id").notNull(),
+    variant: text("variant").notNull(),
+    quantity: integer("quantity").notNull(),
+    status: text("status").notNull().default("reserved"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.reservationId, t.cardId, t.variant] })],
+);
+
 export const cardOverrides = pgTable("card_overrides", {
   cardId: text("card_id").primaryKey(),
   name: text("name"),
