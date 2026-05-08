@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ContactBanner from "@/components/ContactBanner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SiteBackground from "@/components/SiteBackground";
@@ -27,6 +28,7 @@ export default function RootLayout({
         <SiteBackground />
         <SplashIntro />
         <Header />
+        <ContactBanner />
         <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
           <div className="mb-4">
             <BackButton />
