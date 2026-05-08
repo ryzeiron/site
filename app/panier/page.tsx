@@ -200,7 +200,9 @@ export default function CartPage() {
           if (!card) return null;
 
           const v = resolveVariant(card, item.variant);
-          const outOfStock = v.stock <= 0;
+          // Stock dispo de mon point de vue = stock DB + ce que j'ai deja reserve
+          const myAvailable = v.stock + item.quantity;
+          const outOfStock = myAvailable <= 0;
 
           return (
             <div
@@ -249,7 +251,7 @@ export default function CartPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setQuantity(card.id, item.variant, item.quantity - 1, v.stock)
+                    setQuantity(card.id, item.variant, item.quantity - 1, myAvailable)
                   }
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white"
                   aria-label="Diminuer"
@@ -264,9 +266,9 @@ export default function CartPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setQuantity(card.id, item.variant, item.quantity + 1, v.stock)
+                    setQuantity(card.id, item.variant, item.quantity + 1, myAvailable)
                   }
-                  disabled={item.quantity >= v.stock}
+                  disabled={item.quantity >= myAvailable}
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white"
                   aria-label="Augmenter"
                 >
