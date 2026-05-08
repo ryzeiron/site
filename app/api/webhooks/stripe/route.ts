@@ -5,6 +5,10 @@ import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { orders, processedEvents, stockOverrides } from "@/lib/db/schema";
+import {
+  confirmStockReservation,
+  releaseStockReservation,
+} from "@/lib/stock-reservations";
 
 export const runtime = "nodejs";
 
@@ -62,7 +66,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  if (event.type !== "checkout.session.completed") {
+  if (
+    event.type !== "checkout.session.completed" &&
+    event.type !== "checkout.session.expired"
+  ) {
     return NextResponse.json({ received: true, ignored: event.type });
   }
 
@@ -78,8 +85,22 @@ export async function POST(request: Request) {
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
-  const items = decodeItems(session.metadata);
   const metadata = session.metadata ?? {};
+  const reservationId = metadata.reservation_id;
+
+  if (event.type === "checkout.session.expired") {
+    if (reservationId) {
+      await releaseStockReservation(reservationId);
+    }
+
+    return NextResponse.json({
+      received: true,
+      expired: true,
+      reservationReleased: Boolean(reservationId),
+    });
+  }
+
+  const items = decodeItems(session.metadata);
   const shippingDetails = session.collected_information?.shipping_details;
   const customerName =
     session.customer_details?.name ?? shippingDetails?.name ?? "Client";
@@ -90,6 +111,10 @@ export async function POST(request: Request) {
   const mondialRelayExpeditionNumber: string | null = null;
   const mondialRelayLabelUrl: string | null = null;
   const mondialRelayError: string | null = null;
+
+  if (reservationId) {
+    await confirmStockReservation(reservationId, session.id);
+  }
 
   await db
     .insert(orders)
@@ -112,8 +137,12 @@ export async function POST(request: Request) {
     })
     .onConflictDoNothing();
 
-  if (items.length === 0) {
-    return NextResponse.json({ received: true, items: 0 });
+  if (items.length === 0 || reservationId) {
+    return NextResponse.json({
+      received: true,
+      items: items.length,
+      reservationConfirmed: Boolean(reservationId),
+    });
   }
 
   for (const [cardId, variant, quantity] of items) {
