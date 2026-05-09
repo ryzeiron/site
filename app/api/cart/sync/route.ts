@@ -53,18 +53,13 @@ export async function POST(request: Request) {
   }
 
   if (cleanItems.length === 0) {
-    console.log(`[cart/sync POST] empty cart, releasing cartId=${cartId}`);
     try {
       await releaseCartReservation(cartId);
-    } catch (e) {
-      console.error(`[cart/sync POST] release failed:`, e);
+    } catch {
+      // ignore
     }
     return NextResponse.json({ ok: true });
   }
-
-  console.log(
-    `[cart/sync POST] cartId=${cartId} syncing ${cleanItems.length} items`,
-  );
 
   // Resolve cards + live stock to know initialStock
   const rawCards = cleanItems

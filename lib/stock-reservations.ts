@@ -156,28 +156,27 @@ export async function syncCartReservation(
 
 export async function releaseCartReservation(cartId: string) {
   const sql = getReservationSql();
+  // Libere aussi les reservations 'reserved' avec stripe_session_id='pending'
+  // (cas : l'utilisateur a clique sur "passer au paiement" puis est revenu
+  // en arriere sans payer). On ne touche pas aux reservations confirmees
+  // (status='confirmed') ni aux 'reserved' avec un vrai session_id.
   const released = (await sql`
     DELETE FROM stock_reservations
-    WHERE reservation_id = ${cartId} AND status = 'cart'
+    WHERE reservation_id = ${cartId}
+      AND (
+        status = 'cart'
+        OR (status = 'reserved' AND stripe_session_id = 'pending')
+      )
     RETURNING card_id, variant, quantity
   `) as { card_id: string; variant: string; quantity: number }[];
 
-  console.log(
-    `[releaseCartReservation] cartId=${cartId} released=${released.length} rows`,
-    released,
-  );
-
   for (const r of released) {
-    const updated = (await sql`
+    await sql`
       UPDATE stock_overrides
       SET stock = stock_overrides.stock + ${r.quantity},
           updated_at = now()
       WHERE card_id = ${r.card_id} AND variant = ${r.variant}
-      RETURNING card_id, variant, stock
-    `) as { card_id: string; variant: string; stock: number }[];
-    console.log(
-      `[releaseCartReservation] restored card=${r.card_id} variant=${r.variant} qty=${r.quantity} -> stock=${updated[0]?.stock ?? "n/a"}`,
-    );
+    `;
   }
 }
 
@@ -220,12 +219,18 @@ export async function upgradeCartToReserved(
   stripeSessionId: string,
 ): Promise<number> {
   const sql = getReservationSql();
+  // Idempotent : upgrade 'cart' OU rafraichit une 'reserved'+'pending' existante
+  // (cas : utilisateur revenu de Stripe sans payer puis re-clique sur paiement).
   const updated = (await sql`
     UPDATE stock_reservations
     SET status = 'reserved',
         stripe_session_id = ${stripeSessionId},
         updated_at = now()
-    WHERE reservation_id = ${cartId} AND status = 'cart'
+    WHERE reservation_id = ${cartId}
+      AND (
+        status = 'cart'
+        OR (status = 'reserved' AND stripe_session_id = 'pending')
+      )
     RETURNING card_id
   `) as { card_id: string }[];
   return updated.length;
@@ -270,7 +275,8 @@ export async function releaseStockReservation(reservationId: string) {
 }
 
 /**
- * Lit les reservations 'cart' actives pour un cartId.
+ * Lit les reservations actives du panier de l'utilisateur (statut 'cart' ou
+ * 'reserved'+'pending' pour le cas ou il est revenu de Stripe sans payer).
  * Sert au checkout pour ne pas voir comme "stock 0" ce que l'utilisateur a deja
  * dans son propre panier.
  */
@@ -281,7 +287,11 @@ export async function getCartReservations(
   const rows = (await sql`
     SELECT card_id, variant, quantity
     FROM stock_reservations
-    WHERE reservation_id = ${cartId} AND status = 'cart'
+    WHERE reservation_id = ${cartId}
+      AND (
+        status = 'cart'
+        OR (status = 'reserved' AND stripe_session_id = 'pending')
+      )
   `) as { card_id: string; variant: string; quantity: number }[];
   return rows.map((r) => ({
     cardId: r.card_id,
