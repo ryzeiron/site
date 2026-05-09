@@ -69,7 +69,7 @@ export default function AuthButton() {
             onClick={() => setOpen(false)}
             className="block px-4 py-2 text-sm text-white hover:bg-violet-700 transition"
           >
-            S inscrire
+            S'inscrire
           </Link>
         </div>
       )}
