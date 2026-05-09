@@ -16,6 +16,7 @@ export default function Footer() {
             <li><Link href="/mentions-legales" className="hover:text-brand-500">Mentions legales</Link></li>
             <li><Link href="/cgv" className="hover:text-brand-500">CGV</Link></li>
             <li><Link href="/contact" className="hover:text-brand-500">Contact</Link></li>
+            <li><Link href="/commande" className="hover:text-brand-500">Suivi de commande</Link></li>
           </ul>
         </div>
         <div>

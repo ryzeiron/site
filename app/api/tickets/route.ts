@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getDb } from "@/lib/db/client";
 import { tickets } from "@/lib/db/schema";
+import { sendToAdmin, ticketAdminEmail } from "@/lib/mail";
 
 type Body = {
   subject?: string;
@@ -9,6 +10,8 @@ type Body = {
   name?: string;
   phone?: string;
   message?: string;
+  // Honeypot anti-spam : doit rester vide
+  website?: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26,6 +29,11 @@ export async function POST(request: Request) {
     body = (await request.json()) as Body;
   } catch {
     return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+  }
+
+  // Honeypot : si rempli, on simule un succes mais on ignore
+  if (typeof body.website === "string" && body.website.trim() !== "") {
+    return NextResponse.json({ ok: true });
   }
 
   const subject = clean(body.subject, 200);
@@ -55,6 +63,25 @@ export async function POST(request: Request) {
       phone,
       message,
     });
+    // Email a l'admin (best-effort, n'echoue pas la requete si KO)
+    try {
+      const { text, html } = ticketAdminEmail({
+        id,
+        subject,
+        email,
+        name,
+        phone,
+        message,
+      });
+      await sendToAdmin({
+        subject: `[Ticket PokeDel] ${subject}`,
+        text,
+        html,
+        replyTo: email,
+      });
+    } catch {
+      // ignore
+    }
     return NextResponse.json({ ok: true, id });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Erreur base de donnees.";

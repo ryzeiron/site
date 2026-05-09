@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import {
+  cleanupExpiredCartReservations,
   releaseCartReservation,
   syncCartReservation,
 } from "@/lib/stock-reservations";
@@ -24,6 +25,11 @@ export async function POST(request: Request) {
   const cartId = (body.cartId ?? "").trim();
   if (!CART_ID_RE.test(cartId)) {
     return NextResponse.json({ error: "cartId invalide." }, { status: 400 });
+  }
+
+  // Cleanup paresseux : 1 chance sur 10 d'aussi liberer les vieilles reservations
+  if (Math.random() < 0.1) {
+    void cleanupExpiredCartReservations(30).catch(() => {});
   }
 
   const rawItems = Array.isArray(body.items) ? body.items : [];

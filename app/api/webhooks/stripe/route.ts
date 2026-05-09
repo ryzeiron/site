@@ -9,6 +9,12 @@ import {
   confirmStockReservation,
   releaseStockReservation,
 } from "@/lib/stock-reservations";
+import {
+  customerOrderEmail,
+  orderAdminEmail,
+  sendMail,
+  sendToAdmin,
+} from "@/lib/mail";
 
 export const runtime = "nodejs";
 
@@ -136,6 +142,48 @@ export async function POST(request: Request) {
       status: metadata.relay_code ? "label_to_create" : "paid",
     })
     .onConflictDoNothing();
+
+  // Notifications email (best-effort)
+  try {
+    const amountEuros = ((session.amount_total ?? 0) / 100).toFixed(2) + " EUR";
+    const adminMail = orderAdminEmail({
+      orderId: session.id,
+      amount: amountEuros,
+      customerEmail: customerEmail || null,
+      customerName: customerName || null,
+      customerPhone: customerPhone || null,
+      country,
+      relayName: metadataValue(metadata.relay_name),
+      relayAddress: metadataValue(metadata.relay_address),
+      relayPostcode: metadataValue(metadata.relay_postcode),
+      relayCity: metadataValue(metadata.relay_city),
+      relayCode: metadataValue(metadata.relay_code),
+    });
+    await sendToAdmin({
+      subject: `[Commande PokeDel] ${customerName || customerEmail || session.id} - ${amountEuros}`,
+      text: adminMail.text,
+    });
+    if (customerEmail) {
+      const origin =
+        process.env.NEXT_PUBLIC_SITE_URL ?? "https://site-self-eta-31.vercel.app";
+      const customerMail = customerOrderEmail({
+        orderId: session.id,
+        amount: amountEuros,
+        relayName: metadataValue(metadata.relay_name),
+        relayAddress: metadataValue(metadata.relay_address),
+        relayPostcode: metadataValue(metadata.relay_postcode),
+        relayCity: metadataValue(metadata.relay_city),
+        trackUrl: `${origin}/commande/${session.id}`,
+      });
+      await sendMail({
+        to: customerEmail,
+        subject: "Confirmation de votre commande PokeDel",
+        text: customerMail.text,
+      });
+    }
+  } catch {
+    // ne pas faire echouer le webhook si l'email plante
+  }
 
   if (items.length === 0 || reservationId) {
     return NextResponse.json({

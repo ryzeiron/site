@@ -172,6 +172,35 @@ export async function releaseCartReservation(cartId: string) {
 }
 
 /**
+ * Libere les reservations 'cart' inactives depuis plus de N minutes.
+ * Retourne le nombre de lignes liberees.
+ */
+export async function cleanupExpiredCartReservations(
+  olderThanMinutes = 30,
+): Promise<number> {
+  const sql = getReservationSql();
+  const rows = (await sql`
+    WITH expired AS (
+      DELETE FROM stock_reservations
+      WHERE status = 'cart'
+        AND updated_at < now() - (${olderThanMinutes} || ' minutes')::interval
+      RETURNING card_id, variant, quantity
+    ),
+    restored AS (
+      UPDATE stock_overrides
+      SET stock = stock_overrides.stock + expired.quantity,
+          updated_at = now()
+      FROM expired
+      WHERE stock_overrides.card_id = expired.card_id
+        AND stock_overrides.variant = expired.variant
+      RETURNING 1
+    )
+    SELECT count(*)::int AS n FROM expired
+  `) as { n: number }[];
+  return rows[0]?.n ?? 0;
+}
+
+/**
  * Upgrade an existing cart reservation to a checkout-grade 'reserved' status.
  * Used at checkout to lock the stock for the Stripe session without
  * double-decrementing.

@@ -8,6 +8,7 @@ export default function ContactForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot anti-spam
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export default function ContactForm() {
       const res = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, email, name, phone, message }),
+        body: JSON.stringify({ subject, email, name, phone, message, website }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Erreur");
@@ -67,6 +68,18 @@ export default function ContactForm() {
       className="rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-6 space-y-3 text-gray-200"
     >
       <h2 className="text-lg font-semibold text-white">Envoyer un message</h2>
+      {/* Honeypot : champ cache anti-bots, ne pas remplir */}
+      <div aria-hidden style={{ position: "absolute", left: "-9999px", height: 0, width: 0, overflow: "hidden" }}>
+        <label htmlFor="website-hp">Site web (laisser vide)</label>
+        <input
+          id="website-hp"
+          type="text"
+          autoComplete="off"
+          tabIndex={-1}
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+        />
+      </div>
       <div>
         <label className="text-xs uppercase text-gray-400">Sujet *</label>
         <input
