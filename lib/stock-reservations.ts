@@ -162,13 +162,22 @@ export async function releaseCartReservation(cartId: string) {
     RETURNING card_id, variant, quantity
   `) as { card_id: string; variant: string; quantity: number }[];
 
+  console.log(
+    `[releaseCartReservation] cartId=${cartId} released=${released.length} rows`,
+    released,
+  );
+
   for (const r of released) {
-    await sql`
+    const updated = (await sql`
       UPDATE stock_overrides
       SET stock = stock_overrides.stock + ${r.quantity},
           updated_at = now()
       WHERE card_id = ${r.card_id} AND variant = ${r.variant}
-    `;
+      RETURNING card_id, variant, stock
+    `) as { card_id: string; variant: string; stock: number }[];
+    console.log(
+      `[releaseCartReservation] restored card=${r.card_id} variant=${r.variant} qty=${r.quantity} -> stock=${updated[0]?.stock ?? "n/a"}`,
+    );
   }
 }
 
