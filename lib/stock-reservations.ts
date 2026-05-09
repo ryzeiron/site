@@ -156,19 +156,20 @@ export async function syncCartReservation(
 
 export async function releaseCartReservation(cartId: string) {
   const sql = getReservationSql();
-  await sql`
-    WITH released AS (
-      DELETE FROM stock_reservations
-      WHERE reservation_id = ${cartId} AND status = 'cart'
-      RETURNING card_id, variant, quantity
-    )
-    UPDATE stock_overrides
-    SET stock = stock_overrides.stock + released.quantity,
-        updated_at = now()
-    FROM released
-    WHERE stock_overrides.card_id = released.card_id
-      AND stock_overrides.variant = released.variant
-  `;
+  const released = (await sql`
+    DELETE FROM stock_reservations
+    WHERE reservation_id = ${cartId} AND status = 'cart'
+    RETURNING card_id, variant, quantity
+  `) as { card_id: string; variant: string; quantity: number }[];
+
+  for (const r of released) {
+    await sql`
+      UPDATE stock_overrides
+      SET stock = stock_overrides.stock + ${r.quantity},
+          updated_at = now()
+      WHERE card_id = ${r.card_id} AND variant = ${r.variant}
+    `;
+  }
 }
 
 /**
@@ -240,22 +241,23 @@ export async function confirmStockReservation(
 export async function releaseStockReservation(reservationId: string) {
   const sql = getReservationSql();
 
-  await sql`
-    WITH released AS (
-      UPDATE stock_reservations
-      SET status = 'released',
-          updated_at = now()
-      WHERE reservation_id = ${reservationId}
-        AND status = 'reserved'
-      RETURNING card_id, variant, quantity
-    )
-    UPDATE stock_overrides
-    SET stock = stock_overrides.stock + released.quantity,
+  const released = (await sql`
+    UPDATE stock_reservations
+    SET status = 'released',
         updated_at = now()
-    FROM released
-    WHERE stock_overrides.card_id = released.card_id
-      AND stock_overrides.variant = released.variant
-  `;
+    WHERE reservation_id = ${reservationId}
+      AND status = 'reserved'
+    RETURNING card_id, variant, quantity
+  `) as { card_id: string; variant: string; quantity: number }[];
+
+  for (const r of released) {
+    await sql`
+      UPDATE stock_overrides
+      SET stock = stock_overrides.stock + ${r.quantity},
+          updated_at = now()
+      WHERE card_id = ${r.card_id} AND variant = ${r.variant}
+    `;
+  }
 }
 
 /**
