@@ -44,12 +44,6 @@ export default async function AdminPage({
             {totalCards} cartes dans le catalogue. Modifie le stock et le prix
             par variante - les valeurs ecrasent celles du catalogue.
           </p>
-          <Link
-            href="/admin/tickets"
-            className="inline-block mt-2 text-sm text-violet-300 hover:text-violet-200 underline"
-          >
-            Voir les tickets de contact
-          </Link>
         </div>
         <LogoutButton />
       </div>
@@ -93,6 +87,12 @@ export default async function AdminPage({
           className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
         >
           Commandes
+        </Link>
+        <Link
+          href="/admin/tickets"
+          className="rounded bg-violet-600/80 hover:bg-violet-600 text-white px-4 py-2 text-sm"
+        >
+          Tickets
         </Link>
       </form>
 
