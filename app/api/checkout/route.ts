@@ -4,6 +4,7 @@ import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
+import { auth } from "@/lib/auth";
 import {
   getCartReservations,
   releaseStockReservation,
@@ -263,17 +264,22 @@ export async function POST(request: Request) {
       await reserveStockItems(reservationId, reservationItems, "reserved");
     }
 
+    const userSession = await auth();
+    const userId = userSession?.user?.id ?? null;
+
     let session;
     try {
       session = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card"],
         line_items: lineItems,
+        customer_email: userSession?.user?.email ?? undefined,
         metadata: {
           ...itemsMeta,
           ...relayMeta,
           country,
           reservation_id: reservationId,
+          ...(userId ? { user_id: userId } : {}),
         },
         success_url: `${origin}/succes?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/annule`,

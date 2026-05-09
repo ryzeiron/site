@@ -140,6 +140,35 @@ export function orderAdminEmail(opts: {
   return { text: lines };
 }
 
+export function passwordResetEmail(opts: {
+  resetUrl: string;
+  email: string;
+}) {
+  const text = `Bonjour,
+
+Une demande de reinitialisation de mot de passe a ete faite pour le compte ${opts.email} sur PokeDel.
+
+Pour choisir un nouveau mot de passe, ouvre ce lien (valide 1h) :
+${opts.resetUrl}
+
+Si tu n'as pas demande cette reinitialisation, ignore cet email.
+
+L'equipe PokeDel
+`;
+  const html = `
+<div style="font-family: system-ui, sans-serif; line-height: 1.5; color: #333;">
+  <h2 style="color: #6d28d9;">Reinitialisation de ton mot de passe PokeDel</h2>
+  <p>Une demande de reinitialisation a ete faite pour le compte <strong>${escapeHtml(opts.email)}</strong>.</p>
+  <p>
+    <a href="${opts.resetUrl}" style="display: inline-block; background: #7c3aed; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+      Choisir un nouveau mot de passe
+    </a>
+  </p>
+  <p style="font-size: 12px; color: #888;">Ce lien est valide pendant 1 heure.<br/>Si tu n'as pas demande cette reinitialisation, ignore cet email.</p>
+</div>`;
+  return { text, html };
+}
+
 export function customerOrderEmail(opts: {
   orderId: string;
   amount: string;

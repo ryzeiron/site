@@ -1,4 +1,19 @@
-import { integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core"; 
+import { integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+
+export const users = pgTable("users", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  name: text("name"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const passwordResets = pgTable("password_resets", {
+  token: text("token").primaryKey(),
+  userId: text("user_id").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const stockOverrides = pgTable(
   "stock_overrides",
@@ -46,6 +61,7 @@ export const cardOverrides = pgTable("card_overrides", {
 export const orders = pgTable("orders", {
   id: text("id").primaryKey(),
   stripeSessionId: text("stripe_session_id").notNull(),
+  userId: text("user_id"),
   customerEmail: text("customer_email"),
   customerName: text("customer_name"),
   customerPhone: text("customer_phone"),

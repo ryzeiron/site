@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 
 const LINKS = [
   { href: "/", label: "Accueil" },
@@ -12,6 +13,7 @@ const LINKS = [
 export default function NavMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     if (!open) return;
@@ -46,7 +48,7 @@ export default function NavMenu() {
       </button>
 
       {open && (
-        <div className="absolute left-0 mt-2 w-44 rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur-md shadow-lg overflow-hidden z-50">
+        <div className="absolute left-0 mt-2 w-48 rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur-md shadow-lg overflow-hidden z-50">
           {LINKS.map((l) => (
             <Link
               key={l.href}
@@ -57,6 +59,33 @@ export default function NavMenu() {
               {l.label}
             </Link>
           ))}
+          <div className="border-t border-white/10" />
+          {session?.user ? (
+            <Link
+              href="/compte"
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2 text-sm text-white hover:bg-violet-700 transition"
+            >
+              Mon compte
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/connexion"
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2 text-sm text-white hover:bg-violet-700 transition"
+              >
+                Se connecter
+              </Link>
+              <Link
+                href="/inscription"
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2 text-sm text-white hover:bg-violet-700 transition"
+              >
+                S inscrire
+              </Link>
+            </>
+          )}
         </div>
       )}
     </div>

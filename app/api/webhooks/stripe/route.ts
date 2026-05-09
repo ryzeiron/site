@@ -127,6 +127,7 @@ export async function POST(request: Request) {
     .values({
       id: session.id,
       stripeSessionId: session.id,
+      userId: metadataValue(metadata.user_id),
       customerEmail: metadataValue(customerEmail),
       customerName: metadataValue(customerName),
       customerPhone: metadataValue(customerPhone),

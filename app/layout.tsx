@@ -7,6 +7,7 @@ import SiteBackground from "@/components/SiteBackground";
 import SplashIntro from "@/components/SplashIntro";
 import BackButton from "@/components/BackButton";
 import ScrollToTop from "@/components/ScrollToTop";
+import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 
 export const metadata: Metadata = {
   title: {
@@ -25,18 +26,20 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className="min-h-screen flex flex-col">
-        <SiteBackground />
-        <SplashIntro />
-        <Header />
-        <ContactBanner />
-        <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
-          <div className="mb-4">
-            <BackButton />
-          </div>
-          {children}
-        </main>
-        <Footer />
-        <ScrollToTop />
+        <SessionProviderWrapper>
+          <SiteBackground />
+          <SplashIntro />
+          <Header />
+          <ContactBanner />
+          <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+            <div className="mb-4">
+              <BackButton />
+            </div>
+            {children}
+          </main>
+          <Footer />
+          <ScrollToTop />
+        </SessionProviderWrapper>
       </body>
     </html>
   );
