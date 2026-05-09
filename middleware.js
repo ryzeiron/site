@@ -4,7 +4,7 @@ export function middleware(req) {
   const authHeader = req.headers.get('authorization')
  
   const USER = 'admin' 
-  const PASS = 'Poupoune15@'
+  const PASS = 'Poupoune15@' 
 
   const expected = 'Basic ' + btoa(`${USER}:${PASS}`)
 
