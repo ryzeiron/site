@@ -1,6 +1,6 @@
 import type { Card } from "../../catalog";
 
-// epee-et-bouclier - 2966 cards
+// epee-et-bouclier - 2966 cards 
 export const EPEE_ET_BOUCLIER_CARDS = ([
   { id: "epee-et-bouclier-001", serieId: "eb01", name: "Celebi-V", number: "001/202", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/eb01/1.webp", },
   { id: "epee-et-bouclier-002", serieId: "eb01", name: "Rosélia", number: "002/202", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/eb01/2.webp", },
