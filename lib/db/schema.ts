@@ -78,6 +78,15 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const siteVisits = pgTable("site_visits", {
+  id: text("id").primaryKey(),
+  visitorId: text("visitor_id").notNull(),
+  path: text("path").notNull(),
+  userAgent: text("user_agent"),
+  referer: text("referer"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const tickets = pgTable("tickets", {
   id: text("id").primaryKey(),
   subject: text("subject").notNull(),

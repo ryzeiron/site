@@ -8,6 +8,7 @@ import SplashIntro from "@/components/SplashIntro";
 import BackButton from "@/components/BackButton";
 import ScrollToTop from "@/components/ScrollToTop";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 
 export const metadata: Metadata = {
   title: {
@@ -38,6 +39,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <AnalyticsTracker />
           <ScrollToTop />
         </SessionProviderWrapper>
       </body>
