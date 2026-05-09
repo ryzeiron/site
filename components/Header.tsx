@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AuthButton from "./AuthButton";
 import CartButton from "./CartButton";
 import NavMenu from "./NavMenu";
 
@@ -14,7 +15,10 @@ export default function Header() {
         >
           {shopName}
         </Link>
-        <CartButton />
+        <div className="flex items-center gap-2">
+          <AuthButton />
+          <CartButton />
+        </div>
       </div>
     </header>
   );
