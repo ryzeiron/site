@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { sql } from "drizzle-orm";
+import AdminMenu from "@/components/AdminMenu";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
 import { getDb } from "@/lib/db/client";
@@ -136,26 +136,7 @@ export default async function AdminAnalysePage() {
         <LogoutButton />
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-3">
-        <Link
-          href="/admin"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
-        >
-          Stocks
-        </Link>
-        <Link
-          href="/admin/commandes"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
-        >
-          Commandes
-        </Link>
-        <Link
-          href="/admin/tickets"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
-        >
-          Tickets
-        </Link>
-      </div>
+      <AdminMenu active="analyse" className="mb-6" />
 
       {dbError ? (
         <div className="rounded bg-red-500/10 border border-red-500/30 text-red-300 p-4 text-sm">

@@ -1,5 +1,6 @@
-import Link from "next/link"; 
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import AdminMenu from "@/components/AdminMenu";
 import AdminStockRow from "@/components/AdminStockRow";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
@@ -48,6 +49,8 @@ export default async function AdminPage({
         <LogoutButton />
       </div>
 
+      <AdminMenu active="stocks" className="mb-6" />
+
       <form className="flex flex-wrap gap-3 mb-6" action="/admin">
         <select
           name="serie"
@@ -82,24 +85,6 @@ export default async function AdminPage({
             Reset
           </Link>
         )}
-        <Link
-          href="/admin/analyse"
-          className="rounded bg-emerald-600/80 hover:bg-emerald-600 text-white px-4 py-2 text-sm"
-        >
-          Analyse
-        </Link>
-        <Link
-          href="/admin/commandes"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
-        >
-          Commandes
-        </Link>
-        <Link
-          href="/admin/tickets"
-          className="rounded bg-violet-600/80 hover:bg-violet-600 text-white px-4 py-2 text-sm"
-        >
-          Tickets
-        </Link>
       </form>
 
       {!serie ? (

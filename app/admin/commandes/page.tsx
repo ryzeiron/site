@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { desc } from "drizzle-orm";
+import AdminMenu from "@/components/AdminMenu";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
 import { getDb } from "@/lib/db/client";
@@ -26,26 +26,7 @@ export default async function AdminOrdersPage() {
         <LogoutButton />
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-3">
-        <Link
-          href="/admin"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
-        >
-          Retour stocks
-        </Link>
-        <Link
-          href="/admin/analyse"
-          className="rounded bg-emerald-600/80 hover:bg-emerald-600 text-white px-4 py-2 text-sm"
-        >
-          Analyse
-        </Link>
-        <Link
-          href="/admin/tickets"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
-        >
-          Tickets
-        </Link>
-      </div>
+      <AdminMenu active="commandes" className="mb-6" />
 
       {rows.length === 0 ? (
         <p className="text-gray-400">Aucune commande pour le moment.</p>
