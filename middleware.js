@@ -1,10 +1,10 @@
- import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server' 
 
 export function middleware(req) {
   const authHeader = req.headers.get('authorization')
  
-  const USER = 'admin'  
-  const PASS = 'adminsitep@'  
+  const USER = 'admin' 
+  const PASS = 'Poupoune15@'  
 
   const expected = 'Basic ' + btoa(`${USER}:${PASS}`)
 
@@ -20,7 +20,7 @@ export function middleware(req) {
   return NextResponse.next()
 }
 
- Appliquer le middleware à tout le site
+// Appliquer le middleware à tout le site
 export const config = {
   matcher: '/:path*',
 }
