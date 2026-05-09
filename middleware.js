@@ -13,7 +13,7 @@ export function middleware(req) {
       status: 401,
       headers: {
         'WWW-Authenticate': 'Basic realm="Site privé"'
-      }
+      } 
     })
   }
 
