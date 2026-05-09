@@ -8,6 +8,7 @@ import {
   type NamedVariant,
   type Rarity,
 } from "./catalog";
+import { cleanupExpiredCartReservations } from "./stock-reservations";
 
 type OverrideData = {
   stock: number;
@@ -19,6 +20,12 @@ export async function applyStockOverrides<T extends Card>(
   cards: T[],
 ): Promise<T[]> {
   if (cards.length === 0) return cards;
+
+  // Cleanup paresseux : 5% de chance de liberer les reservations 'cart' expirees.
+  // Remplace le cron Vercel (limite a 1/jour sur Hobby).
+  if (Math.random() < 0.05) {
+    void cleanupExpiredCartReservations(30).catch(() => {});
+  }
 
   const ids = Array.from(new Set(cards.map((c) => c.id)));
   let rows: {
