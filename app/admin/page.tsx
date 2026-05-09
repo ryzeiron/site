@@ -49,10 +49,7 @@ export default async function AdminPage({
         <LogoutButton />
       </div>
 
-      <AdminMenu active="stocks" className="mb-2" />
-      <p className="mb-6 text-sm text-emerald-300">
-        Clique sur le bouton 📊 Analyse ci-dessus pour voir les visites, commandes et statistiques du site.
-      </p>
+      <AdminMenu active="stocks" className="mb-6" />
 
       <form className="flex flex-wrap gap-3 mb-6" action="/admin">
         <select

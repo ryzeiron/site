@@ -8,7 +8,7 @@ type AdminMenuItem = {
 
 const ITEMS: AdminMenuItem[] = [
   { href: "/admin", label: "Stocks", key: "stocks" },
-  { href: "/admin/analyse", label: "📊 Analyse", key: "analyse" },
+  { href: "/admin/analyse", label: "Analyse", key: "analyse" },
   { href: "/admin/commandes", label: "Commandes", key: "commandes" },
   { href: "/admin/tickets", label: "Tickets", key: "tickets" },
 ];
@@ -34,10 +34,8 @@ export default function AdminMenu({
             aria-current={isActive ? "page" : undefined}
             className={`rounded px-4 py-2 text-sm font-medium transition ${
               isActive
-                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-950/30"
-                : item.key === "analyse"
-                  ? "bg-emerald-600/80 text-white shadow-lg shadow-emerald-950/20 hover:bg-emerald-600"
-                  : "bg-white/10 text-white hover:bg-white/20"
+                ? "bg-violet-600/80 text-white"
+                : "bg-white/10 text-white hover:bg-white/20"
             }`}
           >
             {item.label}
