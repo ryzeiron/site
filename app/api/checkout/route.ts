@@ -5,6 +5,7 @@ import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
 import {
+  getCartReservations,
   releaseStockReservation,
   reserveStockItems,
   upgradeCartToReserved,
@@ -114,6 +115,23 @@ export async function POST(request: Request) {
 
     const liveCards = await applyStockOverrides(rawCards);
     const cardMap = new Map(liveCards.map((c) => [c.id, c]));
+
+    // Le stock DB est deja decremente de la reservation 'cart' du user.
+    // On la recupere pour la rajouter au stock dispo lors des checks.
+    const cartIdFromBody =
+      body.cartId && CART_ID_RE.test(body.cartId) ? body.cartId : null;
+    const ownCartReserved = new Map<string, number>();
+    if (cartIdFromBody) {
+      try {
+        const reservations = await getCartReservations(cartIdFromBody);
+        for (const r of reservations) {
+          ownCartReserved.set(`${r.cardId}:${r.variant}`, r.quantity);
+        }
+      } catch {
+        // ignore : on fera le check sans, ca peut faire un faux negatif
+      }
+    }
+
     const reservationItemsByKey = new Map<string, {
       cardId: string;
       variant: VariantKey;
@@ -133,8 +151,10 @@ export async function POST(request: Request) {
       }
 
       const v = resolveVariant(card, item.variant);
+      const ownReserved = ownCartReserved.get(`${item.cardId}:${item.variant}`) ?? 0;
+      const availableForUser = v.stock + ownReserved;
 
-      if (item.quantity > v.stock) {
+      if (item.quantity > availableForUser) {
         throw new Error(`Stock insuffisant pour ${card.name}.`);
       }
 
@@ -147,7 +167,7 @@ export async function POST(request: Request) {
           cardId: item.cardId,
           variant: item.variant,
           quantity: item.quantity,
-          initialStock: v.stock,
+          initialStock: availableForUser,
         });
       }
 

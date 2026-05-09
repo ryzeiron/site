@@ -257,3 +257,24 @@ export async function releaseStockReservation(reservationId: string) {
       AND stock_overrides.variant = released.variant
   `;
 }
+
+/**
+ * Lit les reservations 'cart' actives pour un cartId.
+ * Sert au checkout pour ne pas voir comme "stock 0" ce que l'utilisateur a deja
+ * dans son propre panier.
+ */
+export async function getCartReservations(
+  cartId: string,
+): Promise<{ cardId: string; variant: string; quantity: number }[]> {
+  const sql = getReservationSql();
+  const rows = (await sql`
+    SELECT card_id, variant, quantity
+    FROM stock_reservations
+    WHERE reservation_id = ${cartId} AND status = 'cart'
+  `) as { card_id: string; variant: string; quantity: number }[];
+  return rows.map((r) => ({
+    cardId: r.card_id,
+    variant: r.variant,
+    quantity: r.quantity,
+  }));
+}
