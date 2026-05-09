@@ -61,3 +61,16 @@ export const orders = pgTable("orders", {
   status: text("status").notNull().default("paid"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const tickets = pgTable("tickets", {
+  id: text("id").primaryKey(),
+  subject: text("subject").notNull(),
+  email: text("email").notNull(),
+  name: text("name"),
+  phone: text("phone"),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("open"),
+  adminResponse: text("admin_response"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
