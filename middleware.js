@@ -9,7 +9,7 @@ export function middleware(req) {
   const expected = 'Basic ' + btoa(`${USER}:${PASS}`)
 
   if (authHeader !== expected) {
-    return new NextResponse('Accès refusé', {
+    return new NextResponse('Accès refusé', { 
       status: 401,
       headers: {
         'WWW-Authenticate': 'Basic realm="Site privé"'
