@@ -94,13 +94,13 @@ export async function POST(request: Request) {
       );
     }
 
-   if (body.acceptedCgv !== true) {
+    if (body.acceptedCgv !== true) {
       return NextResponse.json(
         { error: "Tu dois accepter les CGV avant de payer." },
         { status: 400 },
       );
     }
-    
+
     let promo = null;
 
     if (body.promoCode && body.promoCode.trim()) {
@@ -190,7 +190,8 @@ export async function POST(request: Request) {
           unit_amount: Math.max(
             0,
             Math.round(v.price * 100 * percentMultiplier),
-          ),          product_data: {
+          ),
+          product_data: {
             name: `${card.name} (${card.number}) - ${v.rarity}`,
             description: `${v.rarity} - Etat: ${card.condition} - ${card.language}`,
           },
