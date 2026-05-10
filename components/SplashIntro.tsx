@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const SPLASH_LOGO_SRC = "/logo.jpg";
+const SPLASH_LOGO_SRC = "/logo.png";
 const SPLASH_DURATION_MS = 1600;
 const SPLASH_FADE_DELAY_MS = 1100;
 
