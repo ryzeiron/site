@@ -158,6 +158,7 @@ export const BLOCS: Bloc[] = [
     tagline: "2013 - 2016",
     coverColor: "from-emerald-500 to-teal-700",
     image: "/blocs/XY.webp",
+    imageFit: "contain",
   },
   {
     id: "noir-et-blanc",
@@ -165,6 +166,7 @@ export const BLOCS: Bloc[] = [
     tagline: "2011 - 2013",
     coverColor: "from-slate-600 to-slate-900",
     image: "/blocs/NB.webp",
+    imageFit: "contain",
   },
   {
     id: "appel-des-legendes",
@@ -172,6 +174,7 @@ export const BLOCS: Bloc[] = [
     tagline: "2011",
     coverColor: "from-slate-600 to-slate-900",
     image: "/blocs/ADL.webp",
+    imageFit: "contain",
   },
   {
     id: "heartgold-soulsilver",
@@ -179,6 +182,7 @@ export const BLOCS: Bloc[] = [
     tagline: "2010 - 2011",
     coverColor: "from-slate-600 to-slate-900",
     image: "/blocs/HGSS.webp",
+    imageFit: "contain",
   },
   {
     id: "platine",
