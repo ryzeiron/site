@@ -190,6 +190,7 @@ export const BLOCS: Bloc[] = [
     tagline: "2009 - 2010",
     coverColor: "from-slate-600 to-slate-900",
     image: "/blocs/PT.webp",
+    imageFit: "contain",
   },
   {
     id: "diamant-et-perle",
@@ -197,6 +198,7 @@ export const BLOCS: Bloc[] = [
     tagline: "2007 - 2009",
     coverColor: "from-slate-600 to-slate-900",
     image: "/blocs/DP.webp",
+    imageFit: "contain",
   },
   {
     id: "ex",
@@ -204,6 +206,7 @@ export const BLOCS: Bloc[] = [
     tagline: "2003 - 2008",
     coverColor: "from-slate-600 to-slate-900",
     image: "/blocs/EX.png",
+    imageFit: "contain",
   },
 ];
 
