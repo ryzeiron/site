@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-const SPLASH_LOGO_SRC = "/logo.png";
-const SPLASH_DURATION_MS = 1600;
-const SPLASH_FADE_DELAY_MS = 1100;
+const SPLASH_LOGO_SRC = "/logo.jpg";
+const SPLASH_DURATION_MS = 5600;
+const SPLASH_FADE_DELAY_MS = 5100;
 
 export default function SplashIntro() {
   const [visible, setVisible] = useState(true);
@@ -64,8 +64,8 @@ export default function SplashIntro() {
         fadingOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="flex w-[min(88vw,420px)] flex-col items-center gap-7 rounded-[2rem] border border-white/10 bg-zinc-950/80 px-8 py-10 shadow-2xl shadow-violet-950/40 backdrop-blur-md">
-        <div className="relative flex h-40 w-[22rem] items-center justify-center sm:h-52 sm:w-[36rem]">
+      <div className="flex w-[min(94vw,680px)] flex-col items-center gap-7 rounded-[2rem] border border-white/10 bg-zinc-950/80 px-6 py-10 shadow-2xl shadow-violet-950/40 backdrop-blur-md sm:px-10">
+        <div className="relative flex h-40 w-[min(82vw,520px)] items-center justify-center sm:h-56 sm:w-[560px]">
           <div className="absolute inset-0 rounded-[999px] bg-violet-500/20 blur-3xl" />
 
           {/* eslint-disable-next-line @next/next/no-img-element */}
