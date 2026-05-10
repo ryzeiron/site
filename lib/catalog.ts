@@ -300,7 +300,6 @@ export const SERIES: Serie[] = [
   { id: "nb08", blocId: "noir-et-blanc", code: "NB08", name: "Tempete Plasma", releaseYear: 2013, image: "/series/NB/PLS.webp", },
   { id: "nb09", blocId: "noir-et-blanc", code: "NB09", name: "Glaciation Plasma", releaseYear: 2013, image: "/series/NB/PLF.webp", },
   { id: "nb10", blocId: "noir-et-blanc", code: "NB10", name: "Explosion Plasma", releaseYear: 2013, image: "/series/NB/PLB.webp", },
-  { id: "nb11", blocId: "noir-et-blanc", code: "NB11", name: "Trésors Légendaires", releaseYear: 2013, image: "/series/NB/.webp", },
 
   // L'appel Des legendes
   { id: "hs04", blocId: "appel-des-legendes", code: "HS04", name: "L'appel Des Legendes", releaseYear: 2011, image: "/series/ADL/ADL.webp", },
