@@ -319,7 +319,7 @@ export const SERIES: Serie[] = [
   // Platine
   { id: "PT01", blocId: "platine", code: "PT01", name: "Platine", releaseYear: 2009, image: "/series/PT/PT.webp",   },
   { id: "PT02", blocId: "platine", code: "PT02", name: "Rivaux Emergants", releaseYear: 2009, image: "/series/PT/RR.webp",   },
-  { id: "PT03", blocId: "platine", code: "PT03", name: "Vainqueurs Supremes", releaseYear: 2010, image: "/series/PT/TM.webp",   },
+  { id: "PT03", blocId: "platine", code: "PT03", name: "Vainqueurs Supremes", releaseYear: 2010, image: "/series/PT/SV.webp",   },
   { id: "PT04", blocId: "platine", code: "PT04", name: "Arceus", releaseYear: 2010, image: "/series/PT/AR.webp",   },
 
   // Diamant Et Perle
