@@ -65,7 +65,7 @@ export default function SplashIntro() {
       }`}
     >
       <div className="flex w-[min(88vw,420px)] flex-col items-center gap-7 rounded-[2rem] border border-white/10 bg-zinc-950/80 px-8 py-10 shadow-2xl shadow-violet-950/40 backdrop-blur-md">
-        <div className="relative flex h-44 w-44 items-center justify-center sm:h-56 sm:w-56">
+        <div className="relative flex h-64 w-64 items-center justify-center sm:h-80 sm:w-80">
           <div className="absolute inset-0 rounded-full bg-violet-500/20 blur-3xl" />
 
           {/* eslint-disable-next-line @next/next/no-img-element */}
