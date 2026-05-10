@@ -189,7 +189,7 @@ export const BLOCS: Bloc[] = [
     name: "Platine",
     tagline: "2009 - 2010",
     coverColor: "from-slate-600 to-slate-900",
-    image: "/blocs/platine.webp",
+    image: "/blocs/PT.webp",
   },
   {
     id: "diamant-et-perle",
@@ -203,7 +203,7 @@ export const BLOCS: Bloc[] = [
     name: "EX",
     tagline: "2003 - 2008",
     coverColor: "from-slate-600 to-slate-900",
-    image: "/blocs/EX.webp",
+    image: "/blocs/EX.png",
   },
 ];
 
@@ -317,9 +317,10 @@ export const SERIES: Serie[] = [
   { id: "HGSS04", blocId: "heartgold-soulsilver", code: "HGSS04", name: "Triomphe", releaseYear: 2011, image: "/series/HGSS/TM.webp",  },
 
   // Platine
-  { id: "PT01", blocId: "platine", code: "PT01", name: "Platine", releaseYear: 2009, image: "/series/PT/TM.webp",   },
-  { id: "PT02", blocId: "platine", code: "PT02", name: "Rivaux Emergants", releaseYear: 2009, image: "/series/PT/TM.webp",   },
+  { id: "PT01", blocId: "platine", code: "PT01", name: "Platine", releaseYear: 2009, image: "/series/PT/PT.webp",   },
+  { id: "PT02", blocId: "platine", code: "PT02", name: "Rivaux Emergants", releaseYear: 2009, image: "/series/PT/RR.webp",   },
   { id: "PT03", blocId: "platine", code: "PT03", name: "Vainqueurs Supremes", releaseYear: 2010, image: "/series/PT/TM.webp",   },
+  { id: "PT04", blocId: "platine", code: "PT04", name: "Arceus", releaseYear: 2010, image: "/series/PT/AR.webp",   },
 
   // Diamant Et Perle
   { id: "DP01", blocId: "diamant-et-perle", code: "DP01", name: "Diamant Et Perle", releaseYear: 2007 },
