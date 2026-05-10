@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import MondialRelayPicker, { type SelectedRelay } from "@/components/MondialRelayPicker";
+import MondialRelayPicker, {
+  type SelectedRelay,
+} from "@/components/MondialRelayPicker";
 import { useCart } from "@/lib/cart";
 import { resolveVariant, type Card } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
@@ -31,7 +33,10 @@ export default function CartPage() {
 
   const [showRelayPicker, setShowRelayPicker] = useState(false);
   const [relayPostcode, setRelayPostcode] = useState("");
-  const [selectedRelay, setSelectedRelay] = useState<SelectedRelay | null>(null);
+  const [selectedRelay, setSelectedRelay] = useState<SelectedRelay | null>(
+    null,
+  );
+  const [acceptedCgv, setAcceptedCgv] = useState(false);
   const [country, setCountry] = useState<
     "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT"
   >("FR");
@@ -135,7 +140,14 @@ export default function CartPage() {
 
     if (!selectedRelay) {
       setShowRelayPicker(true);
-      setError("Choisis un point relais Mondial Relay avant de passer au paiement.");
+      setError(
+        "Choisis un point relais Mondial Relay avant de passer au paiement.",
+      );
+      return;
+    }
+
+    if (!acceptedCgv) {
+      setError("Tu dois accepter les CGV avant de passer au paiement.");
       return;
     }
 
@@ -151,6 +163,7 @@ export default function CartPage() {
           promoCode: appliedPromo?.code,
           relay: selectedRelay,
           country,
+          acceptedCgv,
         }),
       });
 
@@ -251,7 +264,12 @@ export default function CartPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setQuantity(card.id, item.variant, item.quantity - 1, myAvailable)
+                    setQuantity(
+                      card.id,
+                      item.variant,
+                      item.quantity - 1,
+                      myAvailable,
+                    )
                   }
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white"
                   aria-label="Diminuer"
@@ -266,7 +284,12 @@ export default function CartPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setQuantity(card.id, item.variant, item.quantity + 1, myAvailable)
+                    setQuantity(
+                      card.id,
+                      item.variant,
+                      item.quantity + 1,
+                      myAvailable,
+                    )
                   }
                   disabled={item.quantity >= myAvailable}
                   className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white"
@@ -435,7 +458,7 @@ export default function CartPage() {
           )}
 
           <p className="text-xs text-gray-500 mt-1">
-           Livraison via Mondial Relay uniquement.
+            Livraison via Mondial Relay uniquement.
           </p>
 
           {!selectedRelay && (
@@ -466,6 +489,35 @@ export default function CartPage() {
           )}
         </div>
 
+        <div className="mt-4 border-t border-white/10 pt-3">
+          <label className="flex items-start gap-3 rounded-lg border border-white/10 bg-zinc-950/50 p-3 text-sm text-gray-200">
+            <input
+              type="checkbox"
+              checked={acceptedCgv}
+              onChange={(e) => setAcceptedCgv(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-white/20 bg-zinc-900 accent-brand-500"
+            />
+
+            <span>
+              J'accepte les{" "}
+              <Link
+                href="/cgv"
+                className="text-brand-300 underline hover:text-brand-200"
+              >
+                conditions generales de vente
+              </Link>{" "}
+              (CGV) et je comprends que cette acceptation est obligatoire pour
+              passer au paiement.
+            </span>
+          </label>
+
+          {!acceptedCgv && (
+            <p className="mt-2 text-xs text-yellow-300">
+              Tu dois accepter les CGV avant de passer au paiement.
+            </p>
+          )}
+        </div>
+
         <div className="mt-2 flex items-center justify-between text-lg">
           <span>Total</span>
           <strong className="text-white">{formatPrice(total)}</strong>
@@ -487,13 +539,15 @@ export default function CartPage() {
           <button
             type="button"
             onClick={handleCheckout}
-            disabled={loading || !selectedRelay}
+            disabled={loading || !selectedRelay || !acceptedCgv}
             className="rounded-full bg-brand-500 hover:bg-brand-600 disabled:opacity-60 text-white px-6 py-3 font-medium"
           >
             {loading
               ? "Redirection..."
               : selectedRelay
-                ? "Passer au paiement"
+                ? acceptedCgv
+                  ? "Passer au paiement"
+                  : "Accepter les CGV"
                 : "Choisir un point relais"}
           </button>
 
