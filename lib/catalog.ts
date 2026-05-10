@@ -5,6 +5,7 @@ import { SOLEIL_ET_LUNE_CARDS } from "./catalog/cards/soleil-et-lune";
 import { XY_CARDS } from "./catalog/cards/xy";
 import { NOIR_ET_BLANC_CARDS } from "./catalog/cards/noir-et-blanc";
 import { HEARTGOLD_SOULSILVER_CARDS } from "./catalog/cards/heartgold-soulsilver";
+import { PLATINE_CARDS } from "./catalog/cards/platine";
 
 // Catalogue : blocs > series > cartes 
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
@@ -312,9 +313,9 @@ export const SERIES: Serie[] = [
   { id: "HGSS04", blocId: "heartgold-soulsilver", code: "HGSS04", name: "Triomphe", releaseYear: 2011, image: "/series/HGSS/TM.webp",  },
 
   // Platine
-  { id: "PT01", blocId: "platine", code: "PT01", name: "Platine", releaseYear: 2009 },
-  { id: "PT02", blocId: "platine", code: "PT02", name: "Rivaux Emergants", releaseYear: 2009 },
-  { id: "PT03", blocId: "platine", code: "PT03", name: "Vainqueurs Supremes", releaseYear: 2010 },
+  { id: "PT01", blocId: "platine", code: "PT01", name: "Platine", releaseYear: 2009, image: "/series/PT/TM.webp",   },
+  { id: "PT02", blocId: "platine", code: "PT02", name: "Rivaux Emergants", releaseYear: 2009, image: "/series/PT/TM.webp",   },
+  { id: "PT03", blocId: "platine", code: "PT03", name: "Vainqueurs Supremes", releaseYear: 2010, image: "/series/PT/TM.webp",   },
 
   // Diamant Et Perle
   { id: "DP01", blocId: "diamant-et-perle", code: "DP01", name: "Diamant Et Perle", releaseYear: 2007 },
@@ -352,6 +353,7 @@ export const CARDS: Card[] = [
   ...XY_CARDS,
   ...NOIR_ET_BLANC_CARDS,
   ...HEARTGOLD_SOULSILVER_CARDS,
+  ...PLATINE_CARDS,
 ];
 
 // Helpers
