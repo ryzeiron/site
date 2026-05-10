@@ -19,6 +19,7 @@ type Body = {
   promoCode?: string;
   country?: Country;
   cartId?: string;
+  acceptedCgv?: boolean;
   relay?: {
     code: string;
     name?: string;
@@ -93,6 +94,13 @@ export async function POST(request: Request) {
       );
     }
 
+   if (body.acceptedCgv !== true) {
+      return NextResponse.json(
+        { error: "Tu dois accepter les CGV avant de payer." },
+        { status: 400 },
+      );
+    }
+    
     let promo = null;
 
     if (body.promoCode && body.promoCode.trim()) {
@@ -133,12 +141,15 @@ export async function POST(request: Request) {
       }
     }
 
-    const reservationItemsByKey = new Map<string, {
-      cardId: string;
-      variant: VariantKey;
-      quantity: number;
-      initialStock: number;
-    }>();
+    const reservationItemsByKey = new Map<
+      string,
+      {
+        cardId: string;
+        variant: VariantKey;
+        quantity: number;
+        initialStock: number;
+      }
+    >();
 
     const lineItems = body.items.map((item) => {
       const card = cardMap.get(item.cardId);
@@ -152,7 +163,8 @@ export async function POST(request: Request) {
       }
 
       const v = resolveVariant(card, item.variant);
-      const ownReserved = ownCartReserved.get(`${item.cardId}:${item.variant}`) ?? 0;
+      const ownReserved =
+        ownCartReserved.get(`${item.cardId}:${item.variant}`) ?? 0;
       const availableForUser = v.stock + ownReserved;
 
       if (item.quantity > availableForUser) {
@@ -175,8 +187,10 @@ export async function POST(request: Request) {
       return {
         price_data: {
           currency: "eur",
-          unit_amount: Math.max(0, Math.round(v.price * 100 * percentMultiplier)),
-          product_data: {
+          unit_amount: Math.max(
+            0,
+            Math.round(v.price * 100 * percentMultiplier),
+          ),          product_data: {
             name: `${card.name} (${card.number}) - ${v.rarity}`,
             description: `${v.rarity} - Etat: ${card.condition} - ${card.language}`,
           },
@@ -278,6 +292,7 @@ export async function POST(request: Request) {
           ...itemsMeta,
           ...relayMeta,
           country,
+          cgv_accepted: "true",
           reservation_id: reservationId,
           ...(userId ? { user_id: userId } : {}),
         },
