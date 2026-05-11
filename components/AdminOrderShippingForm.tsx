@@ -41,7 +41,7 @@ export default function AdminOrderShippingForm({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  async function save() {
+  async function save(sendShippingEmail = false) {
     setSaving(true);
     setSaved(false);
     setError(null);
@@ -56,6 +56,7 @@ export default function AdminOrderShippingForm({
           status,
           expeditionNumber,
           labelUrl,
+          sendShippingEmail,
         }),
       });
 
@@ -130,7 +131,7 @@ export default function AdminOrderShippingForm({
         <div className="flex items-end">
           <button
             type="button"
-            onClick={save}
+            onClick={() => save()}
             disabled={saving}
             className={`w-full rounded px-4 py-2 text-sm font-medium transition md:w-auto ${
               saved
@@ -142,6 +143,17 @@ export default function AdminOrderShippingForm({
           </button>
         </div>
       </div>
+
+      {status === "shipped" ? (
+        <button
+          type="button"
+          onClick={() => save(true)}
+          disabled={saving || !expeditionNumber.trim()}
+          className="mt-3 rounded bg-white/10 border border-white/20 hover:bg-white/20 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Renvoyer le mail d'expedition
+        </button>
+      ) : null}
 
       {error ? <p className="mt-2 text-xs text-red-300">{error}</p> : null}
 
