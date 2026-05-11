@@ -44,13 +44,14 @@ export default function NavMenu() {
         aria-label="Ouvrir le menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-violet-600/80 text-white backdrop-blur-sm transition hover:bg-violet-700"
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-violet-600/80 px-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-violet-700"
       >
         <span className="flex flex-col gap-1">
           <span className="block h-0.5 w-5 rounded bg-white" />
           <span className="block h-0.5 w-5 rounded bg-white" />
           <span className="block h-0.5 w-5 rounded bg-white" />
         </span>
+        <span>Menu</span>
       </button>
 
       {open && (
