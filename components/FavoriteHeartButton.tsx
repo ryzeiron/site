@@ -89,8 +89,8 @@ export default function FavoriteHeartButton({
       }}
       className={`absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur-md transition disabled:opacity-70 ${
         favorite
-          ? "border-red-300/80 bg-red-500/30 text-red-100 shadow-[0_0_14px_rgba(239,68,68,0.45)]"
-          : "border-white/20 bg-black/50 text-red-300 hover:border-red-300/80 hover:bg-red-500/25 hover:text-red-100 hover:shadow-[0_0_14px_rgba(239,68,68,0.5)]"
+          ? "border-red-300/80 bg-red-200/85 text-red-600 shadow-[0_0_14px_rgba(239,68,68,0.45)]"
+          : "border-red-200/80 bg-red-100/85 text-red-600 hover:border-red-300 hover:bg-red-200 hover:text-red-700 hover:shadow-[0_0_14px_rgba(239,68,68,0.45)]"
       }`}
     >
       <svg
