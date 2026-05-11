@@ -23,7 +23,6 @@ export default async function AdminPage({
 
   const serie = serieId ? getSerie(serieId) : undefined;
   let cards = serie ? cardsForSerie(serie.id) : [];
-
   if (query) {
     cards = cards.filter(
       (c) =>
@@ -31,17 +30,19 @@ export default async function AdminPage({
         c.number.toLowerCase().includes(query),
     );
   }
-
   const withStock = await applyStockOverrides(cards);
+
   const sortedSeries = [...SERIES].sort((a, b) => a.code.localeCompare(b.code));
   const totalCards = CARDS.length;
 
   return (
     <div className="py-6">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-white">Admin - Stocks & prix</h1>
-          <p className="mt-1 text-sm text-gray-400">
+          <h1 className="text-3xl font-bold text-white">
+            Admin - Stocks & prix
+          </h1>
+          <p className="text-sm text-gray-400 mt-1">
             {totalCards} cartes dans le catalogue. Modifie le stock et le prix
             par variante - les valeurs écrasent celles du catalogue.
           </p>
@@ -49,11 +50,11 @@ export default async function AdminPage({
         <LogoutButton />
       </div>
 
-      <form className="mb-6 flex flex-wrap gap-3" action="/admin">
+      <form className="flex flex-wrap gap-3 mb-6" action="/admin">
         <select
           name="serie"
           defaultValue={serieId}
-          className="rounded border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white"
+          className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         >
           <option value="">-- Choisis une série --</option>
           {sortedSeries.map((s) => (
@@ -68,12 +69,12 @@ export default async function AdminPage({
           name="q"
           defaultValue={query}
           placeholder="Rechercher (nom ou numéro)"
-          className="rounded border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white"
+          className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         />
 
         <button
           type="submit"
-          className="rounded bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+          className="rounded bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 text-sm font-medium"
         >
           Filtrer
         </button>
@@ -81,7 +82,7 @@ export default async function AdminPage({
         {serieId && (
           <Link
             href="/admin"
-            className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+            className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
           >
             Reset
           </Link>
@@ -89,16 +90,23 @@ export default async function AdminPage({
 
         <Link
           href="/admin/commandes"
-          className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
         >
           Commandes
         </Link>
 
         <Link
           href="/admin/clients"
-          className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
         >
           Clients
+        </Link>
+
+        <Link
+          href="/admin/ruptures"
+          className="rounded bg-red-500/20 hover:bg-red-500/30 text-red-100 px-4 py-2 text-sm"
+        >
+          Ruptures
         </Link>
       </form>
 
