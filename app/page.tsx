@@ -107,41 +107,82 @@ export default async function HomePage() {
         </div>
 
         <div className="space-y-3">
-          <details className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
-            <summary className="cursor-pointer list-none font-semibold text-white">
-              Quels sont les délais de livraison en France ?
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
+              <span>Le stock affiché est-il vraiment disponible ?</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
+                +
+              </span>
             </summary>
-            <p className="mt-3 text-sm leading-6 text-gray-300">
-              Chez PokeDel62, nous expédions sous 24 à 48h ouvrées après validation de la commande. La livraison prend ensuite 3 à 5 jours via Mondial Relay. Chaque colis est emballé avec du carton renforcé et des protections internes pour garantir l'intégrité de tes cartes.
+            <p className="px-4 pb-4 text-sm leading-6 text-gray-300">
+              Oui. Les quantités sont mises à jour automatiquement après les paiements
+              validés pour limiter les doubles ventes.
             </p>
           </details>
 
-          <details className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
-            <summary className="cursor-pointer list-none font-semibold text-white">
-              Les cartes sont-elles 100% authentiques ?
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
+              <span>Comment se passe la livraison ?</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
+                +
+              </span>
             </summary>
-            <p className="mt-3 text-sm leading-6 text-gray-300">
-             Toutes nos cartes sont contrôlées avant mise en vente : nous ne vendons aucune contrefaçon, uniquement des cartes venant de l'étideur : The Pokémon Company, 100 % authentiques.
+            <p className="px-4 pb-4 text-sm leading-6 text-gray-300">
+              Les commandes sont préparées avec soin puis expédiées en point relais.
+              Un numéro de suivi est envoyé dès que le colis est expédié.
             </p>
           </details>
 
-          <details className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
-            <summary className="cursor-pointer list-none font-semibold text-white">
-              Comment suivre ma commande ?
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
+              <span>Comment suivre ma commande ?</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
+                +
+              </span>
             </summary>
-            <p className="mt-3 text-sm leading-6 text-gray-300">
-              Le lien de suivi est envoyé par email après le paiement. Tu peux
-              aussi retrouver le suivi avec le numéro de commande reçu par mail.
+            <p className="px-4 pb-4 text-sm leading-6 text-gray-300">
+              Le lien de suivi est envoyé par email après le paiement. Tu peux aussi
+              retrouver le suivi avec le numéro de commande reçu par mail.
             </p>
           </details>
 
-          <details className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
-            <summary className="cursor-pointer list-none font-semibold text-white">
-              Livrez-vous en Belgique, Suisse et en Europe ?
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
+              <span>Les cartes sont-elles vérifiées ?</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
+                +
+              </span>
             </summary>
-            <p className="mt-3 text-sm leading-6 text-gray-300">
-              Oui, PokeDel62 livre dans toute l'Union Européenne,
-              en Suisse et dans les DOM-TOM. Les délais et frais varient selon la destination et sont calculés automatiquement au moment du checkout.
+            <p className="px-4 pb-4 text-sm leading-6 text-gray-300">
+              Oui. L&apos;état, la langue, la rareté et le visuel sont contrôlés avant
+              la mise en vente.
+            </p>
+          </details>
+
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
+              <span>Les cartes vendues sont-elles authentiques ?</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
+                +
+              </span>
+            </summary>
+            <p className="px-4 pb-4 text-sm leading-6 text-gray-300">
+              Oui. Nous ne vendons aucune contrefaçon : toutes les cartes proposées
+              sur le site sont 100 % authentiques et contrôlées avant leur mise en
+              vente.
+            </p>
+          </details>
+
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
+              <span>Puis-je poser une question avant d&apos;acheter ?</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
+                +
+              </span>
+            </summary>
+            <p className="px-4 pb-4 text-sm leading-6 text-gray-300">
+              Oui, tu peux utiliser la page contact pour une question sur une carte,
+              une commande ou une demande précise.
             </p>
           </details>
         </div>
