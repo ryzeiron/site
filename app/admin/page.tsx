@@ -102,6 +102,13 @@ export default async function AdminPage({
         >
           Clients
         </Link>
+
+        <Link
+          href="/admin/favoris"
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+        >
+          Favoris
+        </Link>
       </form>
 
       {!serie ? (
