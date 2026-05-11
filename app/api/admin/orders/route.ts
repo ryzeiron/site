@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/admin/auth";
 import { getDb } from "@/lib/db/client";
 import { orders } from "@/lib/db/schema";
+import { sendOrderShippedEmail } from "@/lib/email";
 
 type OrderStatus =
   | "paid"
@@ -15,6 +16,7 @@ type Body = {
   status?: string;
   expeditionNumber?: string;
   labelUrl?: string;
+  sendShippingEmail?: boolean;
 };
 
 const ALLOWED_STATUSES: OrderStatus[] = [
@@ -60,6 +62,49 @@ export async function POST(request: Request) {
   try {
     const db = getDb();
 
+    const existingRows = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+
+    const existingOrder = existingRows[0];
+
+    if (!existingOrder) {
+      return NextResponse.json(
+        { error: "Commande introuvable." },
+        { status: 404 },
+      );
+    }
+
+    const shouldSendShippingEmail =
+      status === "shipped" &&
+      (body.sendShippingEmail === true || existingOrder.status !== "shipped");
+
+    if (shouldSendShippingEmail) {
+      if (!existingOrder.customerEmail) {
+        return NextResponse.json(
+          { error: "Email client introuvable pour cette commande." },
+          { status: 400 },
+        );
+      }
+
+      if (!expeditionNumber) {
+        return NextResponse.json(
+          { error: "Numero de suivi obligatoire pour expedier la commande." },
+          { status: 400 },
+        );
+      }
+
+      await sendOrderShippedEmail({
+        to: existingOrder.customerEmail,
+        customerName: existingOrder.customerName,
+        orderId: existingOrder.stripeSessionId,
+        trackingNumber: expeditionNumber,
+        labelUrl,
+      });
+    }
+
     await db
       .update(orders)
       .set({
@@ -69,12 +114,15 @@ export async function POST(request: Request) {
         mondialRelayError: null,
       })
       .where(eq(orders.id, orderId));
+
+    return NextResponse.json({
+      ok: true,
+      emailSent: shouldSendShippingEmail,
+    });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const message = e instanceof Error ? e.message : "Erreur inconnue.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json({ ok: true });
 }
 
 function cleanOptional(value: string | undefined): string | null {
