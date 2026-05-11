@@ -9,6 +9,7 @@ import {
 } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { stockOverrides } from "@/lib/db/schema";
+import { notifyRestockSubscribers } from "@/lib/restock-alerts";
 import { and, eq } from "drizzle-orm";
 
 type Body = {
@@ -87,8 +88,6 @@ export async function POST(request: Request) {
 
   const priceCentsValue = hasPrice ? Math.round(price * 100) : undefined;
 
-  // Determiner s'il s'agit d'une nouvelle variante (sans correspondance dans le catalogue
-  // ET sans override existant dans la DB)
   const isAltCreatingNew = variantKey === "alt" && !card.altVariant;
   const isExtraCreatingNew =
     variantKey !== "base" &&
@@ -96,8 +95,6 @@ export async function POST(request: Request) {
     !(card.extraVariants ?? []).some((v) => v.key === variantKey);
   let creatingNew = isAltCreatingNew || isExtraCreatingNew;
 
-  // Si on pense creer une nouvelle variante, verifie d'abord en DB :
-  // une variante deja stockee (creee precedemment via l'admin) ne doit pas etre traitee comme nouvelle.
   if (creatingNew) {
     try {
       const existing = await getDb()
@@ -114,7 +111,7 @@ export async function POST(request: Request) {
         creatingNew = false;
       }
     } catch {
-      // Si la verification echoue on garde creatingNew comme avant
+      // On garde la valeur calculee si la verification echoue.
     }
   }
 
@@ -125,9 +122,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // Stock initial (si on cree, on n'a pas de fallback catalogue)
   let currentStock = 0;
   let currentPrice = card.price;
+
   if (variantKey === "base") {
     currentStock = card.stock;
     currentPrice = card.price;
@@ -154,6 +151,8 @@ export async function POST(request: Request) {
       : null;
   const insertRarity = rarityValue ?? null;
 
+  let restockNotifications: { sent: number; failed: number } | null = null;
+
   try {
     const db = getDb();
     await db
@@ -174,6 +173,13 @@ export async function POST(request: Request) {
           updatedAt: new Date(),
         },
       });
+
+    if (hasStock && currentStock <= 0 && stock > 0) {
+      restockNotifications = await notifyRestockSubscribers({
+        cardId,
+        variant: variantKey,
+      });
+    }
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur base de donnees.";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -184,6 +190,7 @@ export async function POST(request: Request) {
     stock: insertStock,
     price: priceCentsValue !== undefined ? priceCentsValue / 100 : undefined,
     rarity: rarityValue,
+    restockNotifications,
   });
 }
 
