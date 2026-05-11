@@ -6,7 +6,7 @@ export default function SiteBackground() {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/header-logo.png"
+        src="/logo.png"
         alt=""
         className="opacity-[0.32] w-screen max-w-none object-contain"
       />
