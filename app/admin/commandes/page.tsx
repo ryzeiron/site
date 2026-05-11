@@ -9,6 +9,13 @@ import { orders } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
 
+const STATUS_LABELS: Record<string, string> = {
+  paid: "Commande payee",
+  label_to_create: "Bordereau a creer",
+  label_created: "Etiquette creee",
+  shipped: "Colis expedie",
+};
+
 export default async function AdminOrdersPage() {
   if (!(await isAdmin())) redirect("/admin/login");
 
@@ -90,7 +97,8 @@ export default async function AdminOrdersPage() {
                 </div>
 
                 <div>
-                  <span className="text-gray-400">Statut :</span> {order.status}
+                  <span className="text-gray-400">Statut :</span>{" "}
+                  {STATUS_LABELS[order.status] ?? order.status}
                 </div>
               </div>
 
