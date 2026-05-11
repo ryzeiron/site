@@ -111,21 +111,19 @@ export default async function HomePage() {
         <div className="space-y-3">
           <details className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
             <summary className="cursor-pointer list-none font-semibold text-white">
-              Le stock affiché est-il vraiment disponible ?
+              Quels sont les délais de livraison en France ?
             </summary>
             <p className="mt-3 text-sm leading-6 text-gray-300">
-              Oui. Les quantités sont mises à jour automatiquement après les
-              paiements validés pour limiter les doubles ventes.
+              Chez PokeDel62, nous expédions sous 24 à 48h ouvrées après validation de la commande. La livraison prend ensuite 3 à 5 jours via Mondial Relay. Chaque colis est emballé avec du carton renforcé et des protections internes pour garantir l'intégrité de tes cartes.
             </p>
           </details>
 
           <details className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
             <summary className="cursor-pointer list-none font-semibold text-white">
-              Comment se passe la livraison ?
+              Les cartes sont-elles 100% authentiques ?
             </summary>
             <p className="mt-3 text-sm leading-6 text-gray-300">
-              Les commandes sont préparées avec soin puis expédiées en point
-              relais. Un numéro de suivi est envoyé dès que le colis est expédié.
+             Toutes nos cartes sont contrôlées avant mise en vente : nous ne vendons aucune contrefaçon, uniquement des cartes venant de l'étideur : The Pokémon Company, 100 % authentiques.
             </p>
           </details>
 
@@ -141,11 +139,11 @@ export default async function HomePage() {
 
           <details className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
             <summary className="cursor-pointer list-none font-semibold text-white">
-              Les cartes sont-elles vérifiées ?
+              Livrez-vous en Belgique, Suisse et en Europe ?
             </summary>
             <p className="mt-3 text-sm leading-6 text-gray-300">
-              Oui. L&apos;état, la langue, la rareté et le visuel sont contrôlés
-              avant la mise en vente.
+              Oui, PokeDel62 livre dans toute l'Union Européenne,
+              en Suisse et dans les DOM-TOM. Les délais et frais varient selon la destination et sont calculés automatiquement au moment du checkout.
             </p>
           </details>
         </div>
