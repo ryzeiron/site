@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";  
+import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { and, eq } from "drizzle-orm";
 import { getStripe } from "@/lib/stripe";
@@ -9,12 +9,6 @@ import {
   confirmStockReservation,
   releaseStockReservation,
 } from "@/lib/stock-reservations";
-import {
-  customerOrderEmail,
-  orderAdminEmail,
-  sendMail,
-  sendToAdmin,
-} from "@/lib/mail";
 
 export const runtime = "nodejs";
 
@@ -24,6 +18,7 @@ function decodeItems(metadata: Stripe.Metadata | null): CompactItem[] {
   if (!metadata) return [];
   const partsCount = Number(metadata.items_parts ?? "0");
   let json = "";
+
   if (metadata.items) {
     json = metadata.items;
   } else if (partsCount > 0) {
@@ -33,7 +28,9 @@ function decodeItems(metadata: Stripe.Metadata | null): CompactItem[] {
       json += chunk;
     }
   }
+
   if (!json) return [];
+
   try {
     const parsed = JSON.parse(json);
     if (!Array.isArray(parsed)) return [];
@@ -86,6 +83,7 @@ export async function POST(request: Request) {
     .values({ eventId: event.id })
     .onConflictDoNothing()
     .returning({ eventId: processedEvents.eventId });
+
   if (seen.length === 0) {
     return NextResponse.json({ received: true, duplicate: true });
   }
@@ -144,48 +142,6 @@ export async function POST(request: Request) {
     })
     .onConflictDoNothing();
 
-  // Notifications email (best-effort)
-  try {
-    const amountEuros = ((session.amount_total ?? 0) / 100).toFixed(2) + " EUR";
-    const adminMail = orderAdminEmail({
-      orderId: session.id,
-      amount: amountEuros,
-      customerEmail: customerEmail || null,
-      customerName: customerName || null,
-      customerPhone: customerPhone || null,
-      country,
-      relayName: metadataValue(metadata.relay_name),
-      relayAddress: metadataValue(metadata.relay_address),
-      relayPostcode: metadataValue(metadata.relay_postcode),
-      relayCity: metadataValue(metadata.relay_city),
-      relayCode: metadataValue(metadata.relay_code),
-    });
-    await sendToAdmin({
-      subject: `[Commande PokeDel] ${customerName || customerEmail || session.id} - ${amountEuros}`,
-      text: adminMail.text,
-    });
-    if (customerEmail) {
-      const origin =
-        process.env.NEXT_PUBLIC_SITE_URL ?? "https://site-self-eta-31.vercel.app";
-      const customerMail = customerOrderEmail({
-        orderId: session.id,
-        amount: amountEuros,
-        relayName: metadataValue(metadata.relay_name),
-        relayAddress: metadataValue(metadata.relay_address),
-        relayPostcode: metadataValue(metadata.relay_postcode),
-        relayCity: metadataValue(metadata.relay_city),
-        trackUrl: `${origin}/commande/${session.id}`,
-      });
-      await sendMail({
-        to: customerEmail,
-        subject: "Confirmation de votre commande PokeDel",
-        text: customerMail.text,
-      });
-    }
-  } catch {
-    // ne pas faire echouer le webhook si l'email plante
-  }
-
   if (items.length === 0 || reservationId) {
     return NextResponse.json({
       received: true,
@@ -196,8 +152,10 @@ export async function POST(request: Request) {
 
   for (const [cardId, variant, quantity] of items) {
     if (!cardId || !variant || !quantity || quantity <= 0) continue;
+
     const card = getCard(cardId);
     if (!card) continue;
+
     const v = resolveVariant(card, variant);
 
     const existing = await db
@@ -222,11 +180,11 @@ export async function POST(request: Request) {
         set: { stock: nextStock, updatedAt: new Date() },
       });
   }
+
   return NextResponse.json({
     received: true,
     decremented: items.length,
     labelCreated: Boolean(mondialRelayLabelUrl),
     labelError: mondialRelayError,
   });
-  
 }
