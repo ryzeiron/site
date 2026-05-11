@@ -124,30 +124,33 @@ export async function sendRestockEmail({
     body: JSON.stringify({
       from,
       to,
-      subject: `${cardName} est de retour en stock`,
+      subject: "Votre alerte PokeDel",
       html: `
         <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
-          <h1 style="font-size:22px;margin:0 0 16px">Bonne nouvelle : une carte est de retour en stock</h1>
           <p>Bonjour,</p>
+          <p>Vous aviez demandé à être prévenu pour cette carte :</p>
           <p>
-            La carte <strong>${safeCardName}</strong>
-            (${safeCardNumber}, ${safeVariantLabel}) est de nouveau disponible sur PokeDel.
+            <strong>${safeCardName}</strong><br />
+            ${safeCardNumber} - ${safeVariantLabel}
           </p>
+          <p>Elle est maintenant disponible sur PokeDel.</p>
           <p>
-            Tu peux la retrouver ici :
+            Voir la carte :
             <a href="${safeCardUrl}">${safeCardUrl}</a>
           </p>
-          <p>Merci pour ta confiance.</p>
           <p>L'équipe PokeDel</p>
         </div>
       `,
       text: [
         "Bonjour,",
         "",
-        `Bonne nouvelle : ${cardName} (${cardNumber}, ${variantLabel}) est de retour en stock sur PokeDel.`,
+        "Vous aviez demandé à être prévenu pour cette carte :",
+        `${cardName} - ${cardNumber} - ${variantLabel}`,
+        "",
+        "Elle est maintenant disponible sur PokeDel.",
+        "",
         `Voir la carte : ${cardUrl}`,
         "",
-        "Merci pour ta confiance.",
         "L'équipe PokeDel",
       ].join("\n"),
     }),
