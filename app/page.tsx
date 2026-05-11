@@ -40,8 +40,7 @@ export default async function HomePage() {
             Disponibilités à jour
           </h2>
           <p className="mt-2 text-sm leading-6 text-gray-300">
-            Les quantités sont suivies automatiquement pour éviter les doubles
-            ventes.
+            Les quantités sont suivies automatiquement pour éviter les doubles ventes.
           </p>
         </div>
 
@@ -58,16 +57,15 @@ export default async function HomePage() {
             Expédition avec suivi
           </h2>
           <p className="mt-2 text-sm leading-6 text-gray-300">
-            Chaque commande est préparée avec soin et suivie jusqu&apos;au point
-            relais.
+            Chaque commande est préparée avec soin et suivie jusqu&apos;au point relais.
           </p>
         </div>
       </section>
 
-      <section className="rounded-2xl bg-gradient-to-br from-violet-900/60 via-purple-900/50 to-zinc-950/70 backdrop-blur-sm border border-white/10 p-6 md:p-10 text-gray-100">
-        <div className="flex items-end justify-between gap-4 mb-6">
+      <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-violet-900/60 via-purple-900/50 to-zinc-950/70 p-6 text-gray-100 backdrop-blur-sm md:p-10">
+        <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
               Les blocs
             </h1>
             <p className="mt-2 text-gray-300">
@@ -76,7 +74,7 @@ export default async function HomePage() {
           </div>
           <Link
             href="/blocs"
-            className="hidden sm:inline-flex rounded-full bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 font-medium transition"
+            className="hidden rounded-full bg-violet-600 px-5 py-2.5 font-medium text-white transition hover:bg-violet-700 sm:inline-flex"
           >
             Tout parcourir
           </Link>
@@ -87,7 +85,7 @@ export default async function HomePage() {
             {blocsLoop.map((b, i) => (
               <div
                 key={`${b.id}-${i}`}
-                className={`w-72 sm:w-80 shrink-0 ${
+                className={`w-72 shrink-0 sm:w-80 ${
                   i >= BLOCS.length ? "marquee-duplicate" : ""
                 }`}
               >
@@ -98,9 +96,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="rounded-2xl bg-zinc-950/75 backdrop-blur-sm border border-white/10 p-6 md:p-10 text-gray-100">
+      <section className="rounded-2xl border border-white/10 bg-zinc-950/75 p-6 text-gray-100 backdrop-blur-sm md:p-10">
         <div className="mb-6">
-          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+          <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
             FAQ
           </h2>
           <p className="mt-2 text-gray-300">
@@ -154,7 +152,16 @@ export default async function HomePage() {
 
 function VerifiedIcon() {
   return (
-    <svg aria-hidden viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    >
       <path d="M12 3 4.5 6v5.5c0 4.7 3.2 7.8 7.5 9.5 4.3-1.7 7.5-4.8 7.5-9.5V6L12 3Z" />
       <path d="m9 12 2 2 4-5" />
     </svg>
@@ -163,7 +170,16 @@ function VerifiedIcon() {
 
 function StockIcon() {
   return (
-    <svg aria-hidden viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    >
       <path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7Z" />
       <path d="m3.3 7 8.7 5 8.7-5" />
       <path d="M12 22V12" />
@@ -173,7 +189,16 @@ function StockIcon() {
 
 function TruckIcon() {
   return (
-    <svg aria-hidden viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    >
       <path d="M3 6h11v10H3z" />
       <path d="M14 9h4l3 3v4h-7z" />
       <path d="M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
