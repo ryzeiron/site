@@ -48,6 +48,17 @@ export const stockReservations = pgTable(
   (t) => [primaryKey({ columns: [t.reservationId, t.cardId, t.variant] })],
 );
 
+export const favoriteCards = pgTable(
+  "favorite_cards",
+  {
+    userId: text("user_id").notNull(),
+    cardId: text("card_id").notNull(),
+    variant: text("variant").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.cardId, t.variant] })],
+);
+
 export const cardOverrides = pgTable("card_overrides", {
   cardId: text("card_id").primaryKey(),
   name: text("name"),
