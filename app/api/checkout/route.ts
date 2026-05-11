@@ -4,12 +4,10 @@ import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
-import { auth } from "@/lib/auth";
+import { getRequestOrigin } from "@/lib/site-url";
 import {
-  getCartReservations,
   releaseStockReservation,
   reserveStockItems,
-  upgradeCartToReserved,
 } from "@/lib/stock-reservations";
 
 type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
@@ -18,8 +16,6 @@ type Body = {
   items: { cardId: string; variant: VariantKey; quantity: number }[];
   promoCode?: string;
   country?: Country;
-  cartId?: string;
-  acceptedCgv?: boolean;
   relay?: {
     code: string;
     name?: string;
@@ -29,11 +25,8 @@ type Body = {
   };
 };
 
-const CART_ID_RE = /^[a-z0-9-]{8,64}$/i;
-
 const META_VALUE_MAX = 450;
 
-// Tarifs Mondial Relay par pays (centimes EUR, colis ~500g)
 const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
   FR: 490,
   BE: 690,
@@ -94,13 +87,6 @@ export async function POST(request: Request) {
       );
     }
 
-    if (body.acceptedCgv !== true) {
-      return NextResponse.json(
-        { error: "Tu dois accepter les CGV avant de payer." },
-        { status: 400 },
-      );
-    }
-
     let promo = null;
 
     if (body.promoCode && body.promoCode.trim()) {
@@ -124,23 +110,6 @@ export async function POST(request: Request) {
 
     const liveCards = await applyStockOverrides(rawCards);
     const cardMap = new Map(liveCards.map((c) => [c.id, c]));
-
-    // Le stock DB est deja decremente de la reservation 'cart' du user.
-    // On la recupere pour la rajouter au stock dispo lors des checks.
-    const cartIdFromBody =
-      body.cartId && CART_ID_RE.test(body.cartId) ? body.cartId : null;
-    const ownCartReserved = new Map<string, number>();
-    if (cartIdFromBody) {
-      try {
-        const reservations = await getCartReservations(cartIdFromBody);
-        for (const r of reservations) {
-          ownCartReserved.set(`${r.cardId}:${r.variant}`, r.quantity);
-        }
-      } catch {
-        // ignore : on fera le check sans, ca peut faire un faux negatif
-      }
-    }
-
     const reservationItemsByKey = new Map<
       string,
       {
@@ -163,16 +132,14 @@ export async function POST(request: Request) {
       }
 
       const v = resolveVariant(card, item.variant);
-      const ownReserved =
-        ownCartReserved.get(`${item.cardId}:${item.variant}`) ?? 0;
-      const availableForUser = v.stock + ownReserved;
 
-      if (item.quantity > availableForUser) {
+      if (item.quantity > v.stock) {
         throw new Error(`Stock insuffisant pour ${card.name}.`);
       }
 
       const reservationKey = `${item.cardId}:${item.variant}`;
       const existingReservation = reservationItemsByKey.get(reservationKey);
+
       if (existingReservation) {
         existingReservation.quantity += item.quantity;
       } else {
@@ -180,7 +147,7 @@ export async function POST(request: Request) {
           cardId: item.cardId,
           variant: item.variant,
           quantity: item.quantity,
-          initialStock: availableForUser,
+          initialStock: v.stock,
         });
       }
 
@@ -210,15 +177,10 @@ export async function POST(request: Request) {
     const relayBase = MR_PRICE_BY_COUNTRY[country];
     const relayCents = Math.round(relayBase * shippingMultiplier);
 
-    const origin =
-      process.env.NEXT_PUBLIC_SITE_URL ??
-      request.headers.get("origin") ??
-      "http://localhost:3000";
+    const origin = getRequestOrigin(request);
 
     const itemsMeta = encodeItems(body.items);
-    const cartId =
-      body.cartId && CART_ID_RE.test(body.cartId) ? body.cartId : null;
-    const reservationId = cartId ?? randomUUID();
+    const reservationId = randomUUID();
     const relayMeta: Record<string, string> = {};
 
     relayMeta.relay_code = body.relay.code.trim();
@@ -258,46 +220,29 @@ export async function POST(request: Request) {
     const stripe = getStripe();
 
     const reservationItems = Array.from(reservationItemsByKey.values());
+
     for (const item of reservationItems) {
       if (item.quantity > item.initialStock) {
         throw new Error("Stock insuffisant pour une carte du panier.");
       }
     }
 
-    let upgraded = 0;
-    if (cartId) {
-      // Le panier a deja reserve - on upgrade en attendant le paiement
-      try {
-        upgraded = await upgradeCartToReserved(cartId, "pending");
-      } catch {
-        upgraded = 0;
-      }
-    }
-
-    if (upgraded === 0) {
-      // Pas de reservation cart trouvee, on reserve from scratch
-      await reserveStockItems(reservationId, reservationItems, "reserved");
-    }
-
-    const userSession = await auth();
-    const userId = userSession?.user?.id ?? null;
+    await reserveStockItems(reservationId, reservationItems);
 
     let session;
+
     try {
       session = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card"],
         line_items: lineItems,
-        customer_email: userSession?.user?.email ?? undefined,
         metadata: {
           ...itemsMeta,
           ...relayMeta,
           country,
-          cgv_accepted: "true",
           reservation_id: reservationId,
-          ...(userId ? { user_id: userId } : {}),
         },
-        success_url: `${origin}/succes?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${origin}/suivi-commande/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/annule`,
         expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
         shipping_address_collection: { allowed_countries: [country] },
