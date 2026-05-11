@@ -87,16 +87,16 @@ export default function FavoriteHeartButton({
         event.stopPropagation();
         toggleFavorite();
       }}
-      className={`absolute right-2 top-2 z-20 flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md transition disabled:opacity-70 ${
+      className={`absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur-md transition disabled:opacity-70 ${
         favorite
-          ? "border-pink-300/80 bg-pink-500/30 text-pink-100 shadow-[0_0_14px_rgba(236,72,153,0.45)]"
-          : "border-white/20 bg-black/50 text-white hover:border-violet-300/80 hover:bg-violet-500/30 hover:shadow-[0_0_14px_rgba(139,92,246,0.55)]"
+          ? "border-red-300/80 bg-red-500/30 text-red-100 shadow-[0_0_14px_rgba(239,68,68,0.45)]"
+          : "border-white/20 bg-black/50 text-red-300 hover:border-red-300/80 hover:bg-red-500/25 hover:text-red-100 hover:shadow-[0_0_14px_rgba(239,68,68,0.5)]"
       }`}
     >
       <svg
         aria-hidden
         viewBox="0 0 24 24"
-        className="h-4.5 w-4.5"
+        className="h-4 w-4"
         fill={favorite ? "currentColor" : "none"}
         stroke="currentColor"
         strokeLinecap="round"
