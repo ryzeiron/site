@@ -11,7 +11,7 @@ export default function Header() {
 
         <Link
           href="/"
-          className="absolute left-1/2 -translate-x-1/2 block h-14 w-14 md:h-16 md:w-16 overflow-hidden rounded-full ring-2 ring-white/20 shadow-lg shadow-violet-500/20"
+          className="absolute left-1/2 -translate-x-1/2 block h-12 w-40 sm:h-14 sm:w-48 md:h-16 md:w-56"
           aria-label="Accueil PokeDel"
         >
           <Image
@@ -19,8 +19,8 @@ export default function Header() {
             alt="PokeDel"
             fill
             priority
-            sizes="64px"
-            className="object-cover object-center"
+            sizes="(min-width: 768px) 224px, (min-width: 640px) 192px, 160px"
+            className="object-contain object-center"
           />
         </Link>
 
