@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import FavoriteCardButton from "@/components/FavoriteCardButton";
 import { useCart } from "@/lib/cart";
 import { listVariants, resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
@@ -27,11 +28,13 @@ function VariantBlock({
           {formatPrice(v.price)}
         </span>
       </div>
+
       <div className="text-xs text-gray-400 mt-2">
         {outOfStock
           ? "Rupture"
           : `${v.stock} exemplaire${v.stock > 1 ? "s" : ""} en stock`}
       </div>
+
       <button
         type="button"
         disabled={outOfStock}
@@ -65,12 +68,18 @@ function VariantBlock({
             >
               <path d="M5 12l5 5L20 7" />
             </svg>
-            Ajoute
+            Ajouté
           </>
         ) : (
           "Ajouter au panier"
         )}
       </button>
+
+      <FavoriteCardButton
+        cardId={card.id}
+        variant={variant}
+        outOfStock={outOfStock}
+      />
     </div>
   );
 }
@@ -100,11 +109,14 @@ export default function CardDetailBody({ card }: { card: Card }) {
           <img
             src={currentImage}
             alt={`${card.name}${imageIndex === 1 ? " (dos)" : ""}`}
-            className={`w-full h-full object-contain ${allOutOfStock ? "opacity-40 grayscale" : ""}`}
+            className={`w-full h-full object-contain ${
+              allOutOfStock ? "opacity-40 grayscale" : ""
+            }`}
           />
         ) : (
           <span className="px-4 text-center">{card.name}</span>
         )}
+
         {hasMultipleImages && (
           <>
             <button
@@ -112,7 +124,7 @@ export default function CardDetailBody({ card }: { card: Card }) {
               onClick={() =>
                 setImageIndex((i) => (i - 1 + images.length) % images.length)
               }
-              aria-label="Image precedente"
+              aria-label="Image précédente"
               className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
             >
               <svg
@@ -128,6 +140,7 @@ export default function CardDetailBody({ card }: { card: Card }) {
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
+
             <button
               type="button"
               onClick={() => setImageIndex((i) => (i + 1) % images.length)}
@@ -147,11 +160,13 @@ export default function CardDetailBody({ card }: { card: Card }) {
                 <path d="M9 18l6-6-6-6" />
               </svg>
             </button>
+
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 text-white text-xs px-3 py-1">
               {imageIndex === 0 ? "Devant" : "Dos"}
             </div>
           </>
         )}
+
         {allOutOfStock && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span className="rounded-full bg-red-600 text-white text-base font-bold uppercase tracking-wider px-6 py-2 shadow-lg -rotate-12 border-2 border-white/90">
@@ -164,9 +179,10 @@ export default function CardDetailBody({ card }: { card: Card }) {
       <div>
         <div className="text-sm text-gray-400">{card.number}</div>
         <h1 className="text-3xl font-bold mt-1 text-white">{card.name}</h1>
+
         <div className="mt-2 flex flex-wrap gap-2 text-xs">
           <span className="rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-1">
-            Etat : {card.condition}
+            État : {card.condition}
           </span>
           <span className="rounded-full bg-sky-500/20 text-sky-300 px-2 py-1">
             {card.language}
