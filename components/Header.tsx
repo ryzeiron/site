@@ -11,16 +11,16 @@ export default function Header() {
 
         <Link
           href="/"
-          className="relative block h-10 w-28 justify-self-center sm:h-14 sm:w-48 md:h-16 md:w-56"
-          aria-label="Accueil PokeDel62"
+          className="relative block h-14 w-40 justify-self-center overflow-hidden sm:h-18 sm:w-64 md:h-20 md:w-72"
+          aria-label="Accueil PokeDel"
         >
           <Image
-            src="/logo.png"
+            src="/header-logo.png"
             alt="PokeDel"
             fill
             priority
-            sizes="(min-width: 768px) 288px, (min-width: 640px) 224px, 144px"
-            className="relative block h-12 w-36 justify-self-center sm:h-16 sm:w-56 md:h-20 md:w-72"
+            sizes="(min-width: 768px) 288px, (min-width: 640px) 256px, 160px"
+            className="scale-150 object-contain object-center"
           />
         </Link>
 
