@@ -10,10 +10,10 @@ type OrderStatus =
   | "shipped";
 
 const STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
-  { value: "label_to_create", label: "Bordereau a creer" },
+  { value: "paid", label: "Commande payee" },
   { value: "label_created", label: "Etiquette creee" },
   { value: "shipped", label: "Colis expedie" },
-  { value: "paid", label: "Commande payee" },
+  { value: "label_to_create", label: "Bordereau a creer" },
 ];
 
 export default function AdminOrderShippingForm({
@@ -30,7 +30,7 @@ export default function AdminOrderShippingForm({
   const router = useRouter();
 
   const [status, setStatus] = useState<OrderStatus>(
-    isOrderStatus(initialStatus) ? initialStatus : "label_to_create",
+    isOrderStatus(initialStatus) ? initialStatus : "paid",
   );
   const [expeditionNumber, setExpeditionNumber] = useState(
     initialExpeditionNumber ?? "",
@@ -39,11 +39,13 @@ export default function AdminOrderShippingForm({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   async function save() {
     setSaving(true);
     setSaved(false);
     setError(null);
+    setNotice(null);
 
     try {
       const response = await fetch("/api/admin/orders", {
@@ -64,6 +66,11 @@ export default function AdminOrderShippingForm({
       }
 
       setSaved(true);
+
+      if (data.emailSent) {
+        setNotice("Email d'expedition envoye au client.");
+      }
+
       setTimeout(() => setSaved(false), 1600);
       router.refresh();
     } catch (e) {
@@ -82,6 +89,7 @@ export default function AdminOrderShippingForm({
       <div className="mt-3 grid gap-3 md:grid-cols-[180px_1fr_1fr_auto]">
         <label className="text-sm">
           <span className="block text-gray-400 mb-1">Statut</span>
+
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as OrderStatus)}
@@ -97,6 +105,7 @@ export default function AdminOrderShippingForm({
 
         <label className="text-sm">
           <span className="block text-gray-400 mb-1">Numero de suivi</span>
+
           <input
             type="text"
             value={expeditionNumber}
@@ -108,6 +117,7 @@ export default function AdminOrderShippingForm({
 
         <label className="text-sm">
           <span className="block text-gray-400 mb-1">Lien bordereau</span>
+
           <input
             type="url"
             value={labelUrl}
@@ -134,6 +144,10 @@ export default function AdminOrderShippingForm({
       </div>
 
       {error ? <p className="mt-2 text-xs text-red-300">{error}</p> : null}
+
+      {notice ? (
+        <p className="mt-2 text-xs text-emerald-300">{notice}</p>
+      ) : null}
     </div>
   );
 }
