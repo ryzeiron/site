@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getStripe } from "@/lib/stripe";
+import { auth } from "@/lib/auth";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
@@ -80,6 +81,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Panier vide." }, { status: 400 });
     }
 
+    const sessionUser = await auth().catch(() => null);
+
     if (!body.relay?.code?.trim()) {
       return NextResponse.json(
         { error: "Choisis un point relais Mondial Relay avant de payer." },
@@ -110,6 +113,7 @@ export async function POST(request: Request) {
 
     const liveCards = await applyStockOverrides(rawCards);
     const cardMap = new Map(liveCards.map((c) => [c.id, c]));
+
     const reservationItemsByKey = new Map<
       string,
       {
@@ -241,6 +245,7 @@ export async function POST(request: Request) {
           ...relayMeta,
           country,
           reservation_id: reservationId,
+          ...(sessionUser?.user?.id ? { user_id: sessionUser.user.id } : {}),
         },
         success_url: `${origin}/suivi-commande/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/annule`,
