@@ -12,10 +12,10 @@ export default function Header() {
         <Link
           href="/"
           className="relative block h-10 w-28 justify-self-center sm:h-14 sm:w-48 md:h-16 md:w-56"
-          aria-label="Accueil PokeDel"
+          aria-label="Accueil PokeDel62"
         >
           <Image
-            src="/header-logo.png"
+            src="/logo.png"
             alt="PokeDel"
             fill
             priority
