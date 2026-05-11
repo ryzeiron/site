@@ -58,8 +58,7 @@ export default async function HomePage() {
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-gray-300">
-            Les quantités sont suivies automatiquement pour éviter les doubles
-            ventes.
+            Le stock est mis à jour quotidiennement. 
           </p>
         </div>
 
