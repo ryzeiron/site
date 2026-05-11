@@ -20,7 +20,7 @@ export default function Header() {
             fill
             priority
             sizes="(min-width: 768px) 224px, (min-width: 640px) 192px, 112px"
-            className="object-contain object-center"
+            className="relative block h-12 w-36 justify-self-center sm:h-16 sm:w-56 md:h-20 md:w-72"
           />
         </Link>
 
