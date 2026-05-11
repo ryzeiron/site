@@ -23,6 +23,7 @@ export default async function AdminPage({
 
   const serie = serieId ? getSerie(serieId) : undefined;
   let cards = serie ? cardsForSerie(serie.id) : [];
+
   if (query) {
     cards = cards.filter(
       (c) =>
@@ -30,8 +31,8 @@ export default async function AdminPage({
         c.number.toLowerCase().includes(query),
     );
   }
-  const withStock = await applyStockOverrides(cards);
 
+  const withStock = await applyStockOverrides(cards);
   const sortedSeries = [...SERIES].sort((a, b) => a.code.localeCompare(b.code));
   const totalCards = CARDS.length;
 
@@ -100,13 +101,6 @@ export default async function AdminPage({
           className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
         >
           Clients
-        </Link>
-
-        <Link
-          href="/admin/ruptures"
-          className="rounded bg-red-500/20 hover:bg-red-500/30 text-red-100 px-4 py-2 text-sm"
-        >
-          Ruptures
         </Link>
       </form>
 
