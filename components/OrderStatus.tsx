@@ -34,7 +34,8 @@ const STATUS_LABELS: Record<string, { title: string; detail: string }> = {
   },
   label_created: {
     title: "Expedition prete",
-    detail: "Le bordereau est cree. Le colis peut etre depose en point relais.",
+    detail:
+      "L'etiquette du colis est creee. Le colis va etre depose en point relais.",
   },
   shipped: {
     title: "Colis expedie",
@@ -169,6 +170,26 @@ export default async function OrderStatus({
         <h2 className="mt-2 text-2xl font-bold text-white">{status.title}</h2>
 
         <p className="mt-2 text-emerald-100/80">{status.detail}</p>
+
+        {order?.mondialRelayExpeditionNumber ? (
+          <div className="mt-4 rounded border border-emerald-400/30 bg-emerald-950/30 px-3 py-2 text-sm text-emerald-100">
+            Numero de suivi :{" "}
+            <span className="font-mono text-white">
+              {order.mondialRelayExpeditionNumber}
+            </span>
+          </div>
+        ) : null}
+
+        {order?.mondialRelayLabelUrl ? (
+          <a
+            href={order.mondialRelayLabelUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-block rounded-full bg-white/10 border border-white/20 hover:bg-white/20 text-white px-4 py-2 text-sm font-medium"
+          >
+            Voir le bordereau
+          </a>
+        ) : null}
       </section>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
