@@ -23,8 +23,14 @@ export default async function HomePage() {
     <div className="space-y-12">
       <section className="grid gap-4 md:grid-cols-3">
         <div className="rounded-lg border border-white/10 bg-zinc-950/75 p-5 text-gray-100 backdrop-blur-sm">
-          <div className="text-xs font-semibold uppercase tracking-wider text-violet-300">
-            Cartes verifiees
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-violet-500/15 text-violet-200 ring-1 ring-violet-300/25">
+              <VerifiedIcon />
+            </div>
+
+            <div className="text-xs font-semibold uppercase tracking-wider text-violet-300">
+              Cartes verifiees
+            </div>
           </div>
 
           <h1 className="mt-3 text-2xl font-extrabold text-white">
@@ -37,8 +43,14 @@ export default async function HomePage() {
         </div>
 
         <div className="rounded-lg border border-white/10 bg-zinc-950/75 p-5 text-gray-100 backdrop-blur-sm">
-          <div className="text-xs font-semibold uppercase tracking-wider text-sky-300">
-            Stock en temps reel
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-sky-500/15 text-sky-200 ring-1 ring-sky-300/25">
+              <StockIcon />
+            </div>
+
+            <div className="text-xs font-semibold uppercase tracking-wider text-sky-300">
+              Stock en temps reel
+            </div>
           </div>
 
           <h2 className="mt-3 text-2xl font-extrabold text-white">
@@ -52,8 +64,14 @@ export default async function HomePage() {
         </div>
 
         <div className="rounded-lg border border-white/10 bg-zinc-950/75 p-5 text-gray-100 backdrop-blur-sm">
-          <div className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
-            Livraison suivie
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-300/25">
+              <TruckIcon />
+            </div>
+
+            <div className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
+              Livraison suivie
+            </div>
           </div>
 
           <h2 className="mt-3 text-2xl font-extrabold text-white">
@@ -139,5 +157,62 @@ export default async function HomePage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function VerifiedIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    >
+      <path d="M12 3 4.5 6v5.5c0 4.7 3.2 7.8 7.5 9.5 4.3-1.7 7.5-4.8 7.5-9.5V6L12 3Z" />
+      <path d="m9 12 2 2 4-5" />
+    </svg>
+  );
+}
+
+function StockIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    >
+      <path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7Z" />
+      <path d="m3.3 7 8.7 5 8.7-5" />
+      <path d="M12 22V12" />
+    </svg>
+  );
+}
+
+function TruckIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    >
+      <path d="M3 6h11v10H3z" />
+      <path d="M14 9h4l3 3v4h-7z" />
+      <path d="M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+      <path d="M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+    </svg>
   );
 }
