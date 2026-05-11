@@ -20,7 +20,7 @@ export default function Header() {
             fill
             priority
             sizes="(min-width: 768px) 224px, (min-width: 640px) 192px, 160px"
-            className="object-cover object-center scale-110"
+            className="object-cover object-center scale-110" 
           />
         </Link>
 
