@@ -6,12 +6,14 @@ import NavMenu from "./NavMenu";
 export default function Header() {
   return (
     <header className="relative z-50 border-b border-white/10 bg-black/60 text-gray-100 backdrop-blur-md">
-      <div className="mx-auto grid max-w-6xl grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-3 sm:px-4 sm:py-4">
-        <NavMenu />
+      <div className="relative mx-auto flex max-w-6xl items-center justify-between px-3 py-5 sm:px-4 sm:py-6">
+        <div className="relative z-10">
+          <NavMenu />
+        </div>
 
         <Link
           href="/"
-          className="relative block h-14 w-40 justify-self-center overflow-hidden sm:h-18 sm:w-64 md:h-20 md:w-72"
+          className="absolute left-1/2 top-1/2 block h-16 w-56 -translate-x-1/2 -translate-y-1/2 overflow-hidden sm:h-20 sm:w-72 md:h-24 md:w-96"
           aria-label="Accueil PokeDel"
         >
           <Image
@@ -19,12 +21,12 @@ export default function Header() {
             alt="PokeDel"
             fill
             priority
-            sizes="(min-width: 768px) 288px, (min-width: 640px) 256px, 160px"
-            className="scale-150 object-contain object-center"
+            sizes="(min-width: 768px) 384px, (min-width: 640px) 288px, 224px"
+            className="scale-[1.35] object-contain object-center"
           />
         </Link>
 
-        <div className="flex items-center gap-2 justify-self-end">
+        <div className="relative z-10 flex items-center gap-2">
           <Link
             href="/compte"
             className="inline-flex items-center rounded-full bg-violet-600/80 px-3 py-2 text-xs font-medium text-white backdrop-blur-sm transition hover:bg-violet-700 sm:px-4 sm:text-sm"
