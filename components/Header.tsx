@@ -15,7 +15,7 @@ export default function Header() {
           aria-label="Accueil PokeDel"
         >
           <Image
-            src="/header-logo.png"
+            src="/logo.png"
             alt="PokeDel"
             fill
             priority
