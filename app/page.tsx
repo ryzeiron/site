@@ -29,16 +29,16 @@ export default async function HomePage() {
             </div>
 
             <div className="text-xs font-semibold uppercase tracking-wider text-violet-300">
-              Cartes verifiees
+              Cartes vérifiées
             </div>
           </div>
 
           <h1 className="mt-3 text-2xl font-extrabold text-white">
-            Chaque carte controlee
+            Chaque carte contrôlée
           </h1>
 
           <p className="mt-2 text-sm leading-6 text-gray-300">
-            Etat, langue, rarete et visuel sont verifies avant la mise en vente.
+            État, langue, rareté et visuel sont vérifiés avant la mise en vente.
           </p>
         </div>
 
@@ -49,16 +49,16 @@ export default async function HomePage() {
             </div>
 
             <div className="text-xs font-semibold uppercase tracking-wider text-sky-300">
-              Stock en temps reel
+              Stock en temps réel
             </div>
           </div>
 
           <h2 className="mt-3 text-2xl font-extrabold text-white">
-            Disponibilites a jour
+            Disponibilités à jour
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-gray-300">
-            Les quantites sont suivies automatiquement pour eviter les doubles
+            Les quantités sont suivies automatiquement pour éviter les doubles
             ventes.
           </p>
         </div>
@@ -75,11 +75,11 @@ export default async function HomePage() {
           </div>
 
           <h2 className="mt-3 text-2xl font-extrabold text-white">
-            Expedition avec suivi
+            Expédition avec suivi
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-gray-300">
-            Chaque commande est preparee avec soin et suivie jusqu&apos;au point
+            Chaque commande est préparée avec soin et suivie jusqu&apos;au point
             relais.
           </p>
         </div>
@@ -93,7 +93,7 @@ export default async function HomePage() {
             </h1>
 
             <p className="mt-2 text-gray-300">
-              Les pieces les plus recherchees de la boutique.
+              Les pièces les plus recherchées de la boutique.
             </p>
           </div>
 
@@ -129,7 +129,7 @@ export default async function HomePage() {
             </h2>
 
             <p className="mt-2 text-gray-300">
-              Explorez les series par bloc.
+              Explorez les séries par bloc.
             </p>
           </div>
 
