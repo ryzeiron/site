@@ -19,7 +19,7 @@ export default function Header() {
             alt="PokeDel"
             fill
             priority
-            sizes="(min-width: 768px) 224px, (min-width: 640px) 192px, 112px"
+            sizes="(min-width: 768px) 288px, (min-width: 640px) 224px, 144px"
             className="relative block h-12 w-36 justify-self-center sm:h-16 sm:w-56 md:h-20 md:w-72"
           />
         </Link>
