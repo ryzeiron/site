@@ -140,7 +140,7 @@ export async function POST(request: Request) {
       mondialRelayExpeditionNumber,
       mondialRelayLabelUrl,
       mondialRelayError,
-      status: metadata.relay_code ? "label_to_create" : "paid",
+      status: "paid",
     })
     .onConflictDoNothing();
 
