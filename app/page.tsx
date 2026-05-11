@@ -107,7 +107,7 @@ export default async function HomePage() {
         </div>
 
         <div className="space-y-3">
-          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
               <span>Le stock affiché est-il vraiment disponible ?</span>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
@@ -120,7 +120,7 @@ export default async function HomePage() {
             </p>
           </details>
 
-          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
               <span>Comment se passe la livraison ?</span>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
@@ -133,7 +133,7 @@ export default async function HomePage() {
             </p>
           </details>
 
-          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
               <span>Comment suivre ma commande ?</span>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
@@ -146,7 +146,7 @@ export default async function HomePage() {
             </p>
           </details>
 
-          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
               <span>Les cartes sont-elles vérifiées ?</span>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
@@ -159,7 +159,7 @@ export default async function HomePage() {
             </p>
           </details>
 
-          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
               <span>Les cartes vendues sont-elles authentiques ?</span>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
@@ -173,7 +173,7 @@ export default async function HomePage() {
             </p>
           </details>
 
-          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-400/70 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.35)] open:border-violet-400/60">
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
               <span>Puis-je poser une question avant d&apos;acheter ?</span>
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-xl leading-none text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
