@@ -10,7 +10,20 @@ import { PLATINE_CARDS } from "./catalog/cards/platine";
 // Catalogue : blocs > series > cartes 
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
 
-export type Condition = "Mint" | "Near Mint" | "Excellent" | "Good" | "Played";
+export const CONDITIONS = [
+  "Mint",
+  "Near Mint",
+  "Excellent",
+  "Good",
+  "Played",
+] as const;
+
+export type Condition = (typeof CONDITIONS)[number];
+
+export function isCondition(value: string): value is Condition {
+  return (CONDITIONS as readonly string[]).includes(value);
+}
+
 
 export const RARITIES = [
   "Promo",
