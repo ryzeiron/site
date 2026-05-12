@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  CONDITIONS,
   RARITIES,
   RESERVED_VARIANT_KEYS,
   type Card,
@@ -12,7 +13,7 @@ import {
 
 type VariantSpec = {
   key: VariantKey;
-  label: string; // ex: "Base", "Alt", ou la rarete pour les customs
+  label: string;
   rarity: Rarity;
   stock: number;
   price: number;
@@ -28,6 +29,7 @@ function buildVariants(card: Card): VariantSpec[] {
       price: card.price,
     },
   ];
+
   if (card.altVariant) {
     out.push({
       key: "alt",
@@ -37,6 +39,7 @@ function buildVariants(card: Card): VariantSpec[] {
       price: card.altVariant.price,
     });
   }
+
   if (card.extraVariants) {
     for (const v of card.extraVariants) {
       out.push({
@@ -48,6 +51,7 @@ function buildVariants(card: Card): VariantSpec[] {
       });
     }
   }
+
   return out;
 }
 
@@ -64,15 +68,19 @@ function slugifyRarity(rarity: string): string {
 function pickUniqueKey(card: Card, rarity: Rarity): string {
   const base = slugifyRarity(rarity) || "variante";
   const usedKeys = new Set<string>(["base", "alt"]);
+
   if (card.extraVariants) {
     for (const v of card.extraVariants) usedKeys.add(v.key);
   }
+
   let candidate = base;
   let i = 2;
+
   while (usedKeys.has(candidate) || RESERVED_VARIANT_KEYS.has(candidate)) {
     candidate = `${base}-${i++}`;
     if (i > 50) break;
   }
+
   return candidate;
 }
 
@@ -83,9 +91,10 @@ export default function AdminStockRow({ card }: { card: Card }) {
 
   return (
     <div className="rounded-lg border border-white/10 bg-zinc-900/50 p-4">
-      <div className="flex items-baseline gap-3 mb-3 flex-wrap">
-        <span className="text-sm text-gray-400 font-mono">{card.number}</span>
-        <span className="text-white font-semibold">{card.name}</span>
+      <div className="mb-3 flex flex-wrap items-baseline gap-3">
+        <span className="font-mono text-sm text-gray-400">{card.number}</span>
+        <span className="font-semibold text-white">{card.name}</span>
+
         {!editingMeta && (
           <button
             type="button"
@@ -96,11 +105,13 @@ export default function AdminStockRow({ card }: { card: Card }) {
           </button>
         )}
       </div>
+
       {editingMeta && (
         <div className="mb-3">
           <CardMetaForm card={card} onClose={() => setEditingMeta(false)} />
         </div>
       )}
+
       <div className="flex flex-wrap gap-3">
         {variants.map((v) => (
           <VariantCell
@@ -114,16 +125,14 @@ export default function AdminStockRow({ card }: { card: Card }) {
             isNew={false}
           />
         ))}
+
         {showAddForm ? (
-          <NewVariantForm
-            card={card}
-            onCancel={() => setShowAddForm(false)}
-          />
+          <NewVariantForm card={card} onCancel={() => setShowAddForm(false)} />
         ) : (
           <button
             type="button"
             onClick={() => setShowAddForm(true)}
-            className="self-start rounded border border-dashed border-white/20 text-gray-300 hover:text-white hover:border-white/40 px-3 py-2 text-sm"
+            className="self-start rounded border border-dashed border-white/20 px-3 py-2 text-sm text-gray-300 hover:border-white/40 hover:text-white"
           >
             + Ajouter une variante
           </button>
@@ -136,6 +145,7 @@ export default function AdminStockRow({ card }: { card: Card }) {
 function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
   const router = useRouter();
   const [name, setName] = useState(card.name);
+  const [condition, setCondition] = useState(card.condition);
   const [image, setImage] = useState(card.image ?? "");
   const [imageBack, setImageBack] = useState(card.imageBack ?? "");
   const [description, setDescription] = useState(card.description ?? "");
@@ -145,15 +155,19 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
 
   const changed =
     name !== card.name ||
+    condition !== card.condition ||
     image !== (card.image ?? "") ||
     imageBack !== (card.imageBack ?? "") ||
     description !== (card.description ?? "");
+
   const canSave = changed && name.trim().length > 0;
 
   async function save() {
     if (!canSave) return;
+
     setSaving(true);
     setError(null);
+
     try {
       const res = await fetch("/api/admin/card", {
         method: "POST",
@@ -161,13 +175,16 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
         body: JSON.stringify({
           cardId: card.id,
           name,
+          condition,
           image,
           imageBack,
           description,
         }),
       });
+
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Erreur");
+
       onClose();
       router.refresh();
     } catch (e) {
@@ -179,19 +196,24 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
 
   async function reset() {
     const ok = window.confirm(
-      `Reinitialiser ${card.name} aux valeurs du catalogue ?\n\nCela retire les infos personnalisees (nom, image, description) stockees dans la base.`,
+      `Réinitialiser ${card.name} aux valeurs du catalogue ?\n\nCela retire les infos personnalisées stockées dans la base.`,
     );
+
     if (!ok) return;
+
     setResetting(true);
     setError(null);
+
     try {
       const res = await fetch("/api/admin/card", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cardId: card.id }),
       });
+
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Erreur");
+
       onClose();
       router.refresh();
     } catch (e) {
@@ -202,77 +224,100 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
   }
 
   return (
-    <div className="rounded-lg border border-violet-400/40 bg-zinc-900/80 p-3 space-y-2">
-      <div className="text-xs uppercase text-violet-300 font-semibold tracking-wider">
+    <div className="space-y-2 rounded-lg border border-violet-400/40 bg-zinc-900/80 p-3">
+      <div className="text-xs font-semibold uppercase tracking-wider text-violet-300">
         Modifier les infos
       </div>
+
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-24 shrink-0">Nom</label>
+        <label className="w-24 shrink-0 text-gray-400">Nom</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         />
       </div>
+
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-24 shrink-0">Image (devant)</label>
+        <label className="w-24 shrink-0 text-gray-400">État</label>
+        <select
+          value={condition}
+          onChange={(e) => setCondition(e.target.value as typeof condition)}
+          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
+        >
+          {CONDITIONS.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex items-center gap-2 text-sm">
+        <label className="w-24 shrink-0 text-gray-400">Image devant</label>
         <input
           type="text"
           value={image}
           onChange={(e) => setImage(e.target.value)}
           placeholder="/cartes/serie/numero.webp"
-          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         />
       </div>
+
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-24 shrink-0">Image (dos)</label>
+        <label className="w-24 shrink-0 text-gray-400">Image dos</label>
         <input
           type="text"
           value={imageBack}
           onChange={(e) => setImageBack(e.target.value)}
-          placeholder="/cartes/serie/numero-dos.webp (optionnel)"
-          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+          placeholder="/cartes/serie/numero-dos.webp"
+          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         />
       </div>
+
       <div className="flex items-start gap-2 text-sm">
-        <label className="text-gray-400 w-24 shrink-0 pt-1">Description</label>
+        <label className="w-24 shrink-0 pt-1 text-gray-400">Description</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
-          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         />
       </div>
-      <div className="flex items-center gap-2 flex-wrap">
+
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={save}
           disabled={!canSave || saving}
           className={`rounded px-3 py-1 text-xs font-medium transition ${
             canSave
-              ? "bg-brand-500 hover:bg-brand-600 text-white"
-              : "bg-white/10 text-gray-400 cursor-not-allowed"
+              ? "bg-brand-500 text-white hover:bg-brand-600"
+              : "cursor-not-allowed bg-white/10 text-gray-400"
           }`}
         >
           {saving ? "..." : "Enregistrer"}
         </button>
+
         <button
           type="button"
           onClick={onClose}
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-xs"
+          className="rounded bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20"
         >
           Annuler
         </button>
+
         <button
           type="button"
           onClick={reset}
           disabled={resetting}
-          className="rounded bg-red-600/80 hover:bg-red-600 text-white px-3 py-1 text-xs font-medium disabled:opacity-60 ml-auto"
-          title="Retire les infos personnalisees, revient au catalogue"
+          className="ml-auto rounded bg-red-600/80 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
+          title="Retire les infos personnalisées et revient au catalogue"
         >
           {resetting ? "..." : "Reset au catalogue"}
         </button>
+
         {error && <span className="text-xs text-red-400">{error}</span>}
       </div>
     </div>
@@ -295,6 +340,7 @@ function NewVariantForm({
 
   const stock = Number.parseInt(stockValue, 10);
   const price = Number.parseFloat(priceValue.replace(",", "."));
+
   const valid =
     !!rarityValue &&
     Number.isInteger(stock) &&
@@ -304,10 +350,13 @@ function NewVariantForm({
 
   async function create() {
     if (!valid) return;
+
     setSaving(true);
     setError(null);
+
     try {
       const key = pickUniqueKey(card, rarityValue as Rarity);
+
       const res = await fetch("/api/admin/stock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -319,8 +368,10 @@ function NewVariantForm({
           rarity: rarityValue,
         }),
       });
+
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Erreur");
+
       onCancel();
       router.refresh();
     } catch (e) {
@@ -331,16 +382,17 @@ function NewVariantForm({
   }
 
   return (
-    <div className="rounded-lg border border-violet-400/40 bg-zinc-900/80 p-3 flex flex-col gap-2 min-w-[260px]">
-      <div className="text-xs uppercase text-violet-300 font-semibold tracking-wider">
+    <div className="flex min-w-[260px] flex-col gap-2 rounded-lg border border-violet-400/40 bg-zinc-900/80 p-3">
+      <div className="text-xs font-semibold uppercase tracking-wider text-violet-300">
         Nouvelle variante
       </div>
+
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-12">Rarete</label>
+        <label className="w-12 text-gray-400">Rareté</label>
         <select
           value={rarityValue}
           onChange={(e) => setRarityValue(e.target.value)}
-          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         >
           <option value="">-- Choisir --</option>
           {RARITIES.map((r) => (
@@ -350,28 +402,31 @@ function NewVariantForm({
           ))}
         </select>
       </div>
+
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-12">Stock</label>
+        <label className="w-12 text-gray-400">Stock</label>
         <input
           type="number"
           min={0}
           value={stockValue}
           onChange={(e) => setStockValue(e.target.value)}
-          className="w-20 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+          className="w-20 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         />
       </div>
+
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-12">Prix</label>
+        <label className="w-12 text-gray-400">Prix</label>
         <input
           type="number"
           min={0}
           step="0.01"
           value={priceValue}
           onChange={(e) => setPriceValue(e.target.value)}
-          className="w-24 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+          className="w-24 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         />
-        <span className="text-gray-500 text-xs">€</span>
+        <span className="text-xs text-gray-500">€</span>
       </div>
+
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -379,19 +434,21 @@ function NewVariantForm({
           disabled={!valid || saving}
           className={`rounded px-3 py-1 text-xs font-medium transition ${
             valid
-              ? "bg-brand-500 hover:bg-brand-600 text-white"
-              : "bg-white/10 text-gray-400 cursor-not-allowed"
+              ? "bg-brand-500 text-white hover:bg-brand-600"
+              : "cursor-not-allowed bg-white/10 text-gray-400"
           }`}
         >
-          {saving ? "..." : "Creer"}
+          {saving ? "..." : "Créer"}
         </button>
+
         <button
           type="button"
           onClick={onCancel}
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-xs"
+          className="rounded bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20"
         >
           Annuler
         </button>
+
         {error && <span className="text-xs text-red-400">{error}</span>}
       </div>
     </div>
@@ -443,20 +500,29 @@ function VariantCell({
 
   async function save() {
     if (!canSave) return;
+
     setSaving(true);
     setError(null);
+
     try {
-      const body: Record<string, unknown> = { cardId: card.id, variant: variantKey };
+      const body: Record<string, unknown> = {
+        cardId: card.id,
+        variant: variantKey,
+      };
+
       if (stockChanged) body.stock = currentStock;
       if (priceChanged) body.price = currentPrice;
       if (rarityChanged) body.rarity = rarityValue;
+
       const res = await fetch("/api/admin/stock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Erreur");
+
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
       router.refresh();
@@ -468,21 +534,22 @@ function VariantCell({
   }
 
   return (
-    <div className="rounded-lg border border-white/10 bg-zinc-900/60 p-3 flex flex-col gap-2 min-w-[240px]">
+    <div className="flex min-w-[240px] flex-col gap-2 rounded-lg border border-white/10 bg-zinc-900/60 p-3">
       <div className="flex items-center gap-2 text-xs">
-        <span className="rounded bg-violet-500/20 text-violet-300 px-2 py-0.5 uppercase tracking-wider font-semibold">
+        <span className="rounded bg-violet-500/20 px-2 py-0.5 font-semibold uppercase tracking-wider text-violet-300">
           {label}
         </span>
-        <span className="text-gray-500 font-mono text-[10px]">
+        <span className="font-mono text-[10px] text-gray-500">
           {variantKey}
         </span>
       </div>
+
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-12">Rarete</label>
+        <label className="w-12 text-gray-400">Rareté</label>
         <select
           value={rarityValue}
           onChange={(e) => setRarityValue(e.target.value)}
-          className="flex-1 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         >
           {RARITIES.map((r) => (
             <option key={r} value={r}>
@@ -491,29 +558,32 @@ function VariantCell({
           ))}
         </select>
       </div>
+
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-12">Stock</label>
+        <label className="w-12 text-gray-400">Stock</label>
         <input
           type="number"
           min={0}
           value={stockValue}
           onChange={(e) => setStockValue(e.target.value)}
-          className="w-20 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+          className="w-20 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         />
       </div>
+
       <div className="flex items-center gap-2 text-sm">
-        <label className="text-gray-400 w-12">Prix</label>
+        <label className="w-12 text-gray-400">Prix</label>
         <input
           type="number"
           min={0}
           step="0.01"
           value={priceValue}
           onChange={(e) => setPriceValue(e.target.value)}
-          className="w-24 rounded bg-zinc-900 border border-white/10 text-white px-2 py-1"
+          className="w-24 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         />
-        <span className="text-gray-500 text-xs">€</span>
+        <span className="text-xs text-gray-500">€</span>
       </div>
-      <div className="flex items-center gap-2 flex-wrap">
+
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={save}
@@ -522,12 +592,13 @@ function VariantCell({
             saved
               ? "bg-emerald-500 text-white"
               : canSave
-                ? "bg-brand-500 hover:bg-brand-600 text-white"
-                : "bg-white/10 text-gray-400 cursor-not-allowed"
+                ? "bg-brand-500 text-white hover:bg-brand-600"
+                : "cursor-not-allowed bg-white/10 text-gray-400"
           }`}
         >
           {saved ? "OK" : saving ? "..." : "Enregistrer"}
         </button>
+
         {!isNew && hasChanges && (
           <button
             type="button"
@@ -537,14 +608,16 @@ function VariantCell({
               setPriceValue(String(initialPrice));
               setError(null);
             }}
-            className="rounded bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-xs"
+            className="rounded bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20"
           >
             Annuler
           </button>
         )}
+
         {!isNew && (
           <DeleteButton card={card} variant={variantKey} label={label} />
         )}
+
         {error && <span className="text-xs text-red-400">{error}</span>}
       </div>
     </div>
@@ -567,21 +640,26 @@ function DeleteButton({
   async function del() {
     const ok = window.confirm(
       `Supprimer la variante ${label} de ${card.name} ?\n\n` +
-        `Cela retire les valeurs personnalisees stockees dans la base.\n` +
-        `Si la variante n'existait pas dans le catalogue, elle disparait du site.\n` +
+        `Cela retire les valeurs personnalisées stockées dans la base.\n` +
+        `Si la variante n'existait pas dans le catalogue, elle disparaît du site.\n` +
         `Sinon, elle revient aux valeurs du catalogue.`,
     );
+
     if (!ok) return;
+
     setBusy(true);
     setError(null);
+
     try {
       const res = await fetch("/api/admin/stock", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cardId: card.id, variant }),
       });
+
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Erreur");
+
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
@@ -596,10 +674,11 @@ function DeleteButton({
         type="button"
         onClick={del}
         disabled={busy}
-        className="rounded bg-red-600/80 hover:bg-red-600 text-white px-3 py-1 text-xs font-medium disabled:opacity-60"
+        className="rounded bg-red-600/80 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
       >
         {busy ? "..." : "Supprimer"}
       </button>
+
       {error && <span className="text-xs text-red-400">{error}</span>}
     </>
   );
