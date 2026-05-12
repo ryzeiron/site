@@ -19,11 +19,13 @@ function formatDate(d: Date): string {
 
 export default async function ComptePage() {
   const session = await auth();
+
   if (!session?.user) {
     redirect("/connexion?callbackUrl=/compte");
   }
 
   const db = getDb();
+
   const [userOrders, userFavorites] = await Promise.all([
     db
       .select()
@@ -50,6 +52,7 @@ export default async function ComptePage() {
             Connecté en tant que <strong>{session.user.email}</strong>
           </p>
         </div>
+
         <form
           action={async () => {
             "use server";
@@ -73,6 +76,7 @@ export default async function ComptePage() {
               <span className="text-gray-400">Nom :</span> {session.user.name}
             </div>
           )}
+
           <div className="text-sm">
             <span className="text-gray-400">Email :</span> {session.user.email}
           </div>
@@ -84,6 +88,7 @@ export default async function ComptePage() {
           <h2 className="text-xl font-bold text-white">
             Mes favoris ({userFavorites.length})
           </h2>
+
           <Link
             href="/favoris"
             className="rounded-full bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
@@ -91,9 +96,31 @@ export default async function ComptePage() {
             Voir mes favoris
           </Link>
         </div>
+
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-sm text-gray-300">
           Les cartes ajoutées ici te permettent de recevoir un email si une carte
           en rupture revient en stock.
+        </div>
+      </section>
+
+      <section>
+        <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold text-white">Mon avis</h2>
+              <p className="mt-1 text-sm text-gray-400">
+                Les clients ayant déjà commandé peuvent laisser un avis sur la
+                boutique.
+              </p>
+            </div>
+
+            <Link
+              href="/avis"
+              className="rounded-full bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+            >
+              Laisser un avis
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -105,6 +132,7 @@ export default async function ComptePage() {
         {userOrders.length === 0 ? (
           <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-6 text-center text-gray-400">
             <p>Aucune commande pour le moment.</p>
+
             <Link
               href="/blocs"
               className="mt-4 inline-block rounded-full bg-brand-500 px-5 py-2 text-sm font-medium text-white hover:bg-brand-600"
@@ -124,9 +152,11 @@ export default async function ComptePage() {
                     <div className="text-xs text-gray-400">
                       {formatDate(new Date(order.createdAt))}
                     </div>
+
                     <div className="mt-1 font-mono text-xs text-gray-500">
                       N {order.id.slice(-12)}
                     </div>
+
                     <div className="mt-2 text-sm">
                       <span
                         className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
