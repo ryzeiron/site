@@ -2932,7 +2932,7 @@ export const EPEE_ET_BOUCLIER_CARDS = ([
   { id: "origine-perdue-TG23", serieId: "eb11", name: "Découverte de l'Aventurière", number: "TG23", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/eb11/240.webp", },
   { id: "origine-perdue-TG24", serieId: "eb11", name: "Ordres du Boss", number: "TG24", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/eb11/241.webp", },
   { id: "origine-perdue-TG25", serieId: "eb11", name: "Cuisinier", number: "TG25", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/eb11/242.webp", },
-  { id: "origine-perdue-TG26", serieId: "eb11", name: "Kabu", number: "TG26", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/eb11/243.webP", },
+  { id: "origine-perdue-TG26", serieId: "eb11", name: "Kabu", number: "TG26", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/eb11/243.webp", },
   { id: "origine-perdue-TG27", serieId: "eb11", name: "Donna", number: "TG27", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/eb11/244.webp", },
   { id: "origine-perdue-TG28", serieId: "eb11", name: "Sally", number: "TG28", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/eb11/245.webp", },
   { id: "origine-perdue-TG29", serieId: "eb11", name: "Pikachu VMAX", number: "TG29", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/eb11/246.webp", },
