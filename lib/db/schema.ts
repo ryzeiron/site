@@ -72,6 +72,7 @@ export const reviews = pgTable("reviews", {
 export const cardOverrides = pgTable("card_overrides", {
   cardId: text("card_id").primaryKey(),
   name: text("name"),
+  condition: text("condition"),
   image: text("image"),
   imageBack: text("image_back"),
   description: text("description"),
