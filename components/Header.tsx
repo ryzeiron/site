@@ -12,7 +12,7 @@ export default function Header() {
 
           <Link
             href="/"
-            className="relative block h-14 w-[clamp(8rem,38vw,11.5rem)] justify-self-center overflow-hidden sm:h-[4.5rem] sm:w-72 md:h-20 md:w-96"
+            className="relative block h-14 w-[clamp(8rem,38vw,11.5rem)] justify-self-center overflow-hidden sm:h-[4.5rem] sm:w-72 md:h-24 md:w-[30rem] lg:h-28 lg:w-[34rem]"
             aria-label="Accueil PokeDel"
           >
             <Image
@@ -20,7 +20,7 @@ export default function Header() {
               alt="PokeDel"
               fill
               priority
-              sizes="(min-width: 768px) 384px, (min-width: 640px) 288px, 38vw"
+              sizes="(min-width: 1024px) 544px, (min-width: 768px) 480px, (min-width: 640px) 288px, 38vw"
               className="scale-[1.28] object-contain object-center"
             />
           </Link>
