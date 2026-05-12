@@ -5,7 +5,7 @@ import { SOLEIL_ET_LUNE_CARDS } from "./catalog/cards/soleil-et-lune";
 import { XY_CARDS } from "./catalog/cards/xy";
 import { NOIR_ET_BLANC_CARDS } from "./catalog/cards/noir-et-blanc";
 import { HEARTGOLD_SOULSILVER_CARDS } from "./catalog/cards/heartgold-soulsilver";
-import { PLATINE_CARDS } from "./catalog/cards/platine";
+import { PLATINE_CARDS } from "./catalog/cards/platine"; 
 
 // Catalogue : blocs > series > cartes 
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
