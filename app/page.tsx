@@ -1,11 +1,76 @@
 import Link from "next/link";
+import { desc, eq, inArray } from "drizzle-orm";
 import BlocTile from "@/components/BlocTile";
 import { BLOCS } from "@/lib/catalog";
+import { getDb } from "@/lib/db/client";
+import { reviews, users } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
 
+type LatestReview = {
+  id: string;
+  rating: number;
+  comment: string;
+  createdAt: Date;
+  userName: string;
+};
+
+async function getLatestReviews(limit = 3): Promise<LatestReview[]> {
+  try {
+    const db = getDb();
+    const reviewRows = await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.status, "approved"))
+      .orderBy(desc(reviews.createdAt))
+      .limit(limit);
+
+    if (reviewRows.length === 0) return [];
+
+    const userIds = Array.from(new Set(reviewRows.map((review) => review.userId)));
+
+    const userRows = await db
+      .select({
+        id: users.id,
+        name: users.name,
+      })
+      .from(users)
+      .where(inArray(users.id, userIds));
+
+    const usersById = new Map(userRows.map((user) => [user.id, user]));
+
+    return reviewRows.map((review) => ({
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: review.createdAt,
+      userName: usersById.get(review.userId)?.name || "Client PokeDel",
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function formatReviewDate(value: Date) {
+  return new Date(value).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function ReviewStars({ rating }: { rating: number }) {
+  return (
+    <div className="text-lg tracking-wide text-yellow-200">
+      {"★".repeat(rating)}
+      <span className="text-gray-600">{"★".repeat(5 - rating)}</span>
+    </div>
+  );
+}
+
 export default async function HomePage() {
   const blocsLoop = [...BLOCS, ...BLOCS];
+  const latestReviews = await getLatestReviews();
 
   return (
     <div className="space-y-12">
@@ -85,15 +150,58 @@ export default async function HomePage() {
             {blocsLoop.map((b, i) => (
               <div
                 key={`${b.id}-${i}`}
-                className={`w-72 shrink-0 sm:w-80 ${
-                  i >= BLOCS.length ? "marquee-duplicate" : ""
-                }`}
+                className={`w-72 shrink-0 sm:w-80 ${i >= BLOCS.length ? "marquee-duplicate" : ""}`}
               >
                 <BlocTile bloc={b} />
               </div>
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-zinc-950/75 p-6 text-gray-100 backdrop-blur-sm md:p-10">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-300">
+              Avis clients
+            </p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+              Les derniers retours
+            </h2>
+            <p className="mt-2 text-gray-300">
+              Les avis publiés par les clients après leur commande.
+            </p>
+          </div>
+          <Link
+            href="/avis"
+            className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700"
+          >
+            Voir les avis
+          </Link>
+        </div>
+
+        {latestReviews.length === 0 ? (
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5 text-sm text-gray-300">
+            Aucun avis pour le moment.
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-3">
+            {latestReviews.map((review) => (
+              <article
+                key={review.id}
+                className="rounded-lg border border-white/10 bg-white/[0.03] p-5 transition hover:border-violet-300/70 hover:shadow-[0_0_18px_rgba(139,92,246,0.35)]"
+              >
+                <ReviewStars rating={review.rating} />
+                <p className="mt-3 line-clamp-4 text-sm leading-6 text-gray-300">
+                  {review.comment}
+                </p>
+                <div className="mt-4 text-xs text-gray-500">
+                  {review.userName} - {formatReviewDate(review.createdAt)}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-zinc-950/75 p-6 text-gray-100 backdrop-blur-sm md:p-10">
@@ -109,28 +217,30 @@ export default async function HomePage() {
         <div className="space-y-3">
           <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
-              <span>Quels sont les délais de livraison en France ?</span>
+              <span>Le stock affiché est-il vraiment disponible ?</span>
               <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
                 <span className="absolute left-1/2 top-1/2 h-3.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current" />
                 <span className="absolute left-1/2 top-1/2 h-0.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current" />
               </span>
             </summary>
             <p className="px-4 pb-4 text-sm leading-6 text-gray-300">
-              Chez PokeDel62, nous expédions sous 24 à 48h ouvrées après validation de la commande. La livraison prend ensuite 3 à 5 jours via Mondial Relay.
-              Chaque colis est emballé avec du carton renforcé et des protections internes pour garantir l'intégrité de tes cartes.
+              Oui. Les quantités sont mises à jour automatiquement après les paiements
+              validés pour limiter les doubles ventes.
             </p>
           </details>
 
           <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
-              <span>Les cartes sont-elles 100% authentiques ?</span>
+              <span>Comment se passe la livraison ?</span>
               <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
                 <span className="absolute left-1/2 top-1/2 h-3.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current" />
                 <span className="absolute left-1/2 top-1/2 h-0.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current" />
               </span>
             </summary>
             <p className="px-4 pb-4 text-sm leading-6 text-gray-300">
-              Toutes nos cartes sont contrôlées avant mise en vente : nous ne vendons aucune contrefaçon, uniquement des cartes venant de l'étideur : The Pokémon Company, 100 % authentiques.</p>
+              Les commandes sont préparées avec soin puis expédiées en point relais.
+              Un numéro de suivi est envoyé dès que le colis est expédié.
+            </p>
           </details>
 
           <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
@@ -149,18 +259,32 @@ export default async function HomePage() {
 
           <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
-              <span>Livrez-vous en Belgique, Suisse et en Europe ?</span>
+              <span>Les cartes sont-elles vérifiées ?</span>
               <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
                 <span className="absolute left-1/2 top-1/2 h-3.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current" />
                 <span className="absolute left-1/2 top-1/2 h-0.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current" />
               </span>
             </summary>
             <p className="px-4 pb-4 text-sm leading-6 text-gray-300">
-              Oui, PokeDel62 livre dans toute l'Union Européenne,
-              en Suisse et dans les. Les délais et frais varient selon la destination et sont calculés automatiquement au moment du checkout.
+              Oui. L&apos;état, la langue, la rareté et le visuel sont contrôlés avant
+              la mise en vente.
             </p>
           </details>
 
+          <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
+              <span>Les cartes vendues sont-elles authentiques ?</span>
+              <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-violet-300/30 bg-violet-500/15 text-violet-200 transition group-open:rotate-45 group-hover:border-violet-300/70 group-hover:bg-violet-500/25">
+                <span className="absolute left-1/2 top-1/2 h-3.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current" />
+                <span className="absolute left-1/2 top-1/2 h-0.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current" />
+              </span>
+            </summary>
+            <p className="px-4 pb-4 text-sm leading-6 text-gray-300">
+              Oui. Nous ne vendons aucune contrefaçon : toutes les cartes proposées
+              sur le site sont 100 % authentiques et contrôlées avant leur mise en
+              vente.
+            </p>
+          </details>
 
           <details className="group rounded-lg border border-white/10 bg-white/[0.03] transition hover:border-violet-300/90 hover:shadow-[0_0_18px_rgba(139,92,246,0.55),0_0_4px_rgba(216,180,254,0.7)] open:border-violet-300/80 open:shadow-[0_0_18px_rgba(139,92,246,0.45)]">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-semibold text-white">
@@ -233,7 +357,7 @@ function TruckIcon() {
       <path d="M3 6h11v10H3z" />
       <path d="M14 9h4l3 3v4h-7z" />
       <path d="M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
-      <path d="M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+      <path d="M17 19a2 2 0 1 0 0-4 2 2 0 1 0 0 4Z" />
     </svg>
   );
 }
