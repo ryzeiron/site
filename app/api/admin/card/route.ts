@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/admin/auth";
-import { getCard } from "@/lib/catalog";
+import { getCard, isCondition } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { cardOverrides } from "@/lib/db/schema";
 
 type Body = {
   cardId?: string;
   name?: string | null;
+  condition?: string | null;
   image?: string | null;
   imageBack?: string | null;
   description?: string | null;
@@ -29,12 +30,24 @@ function cleanWeight(v: unknown): number | null | undefined {
   return Math.round(v);
 }
 
+function cleanCondition(v: unknown): string | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null) return null;
+  if (typeof v !== "string") return undefined;
+
+  const trimmed = v.trim();
+  if (trimmed === "") return null;
+
+  return isCondition(trimmed) ? trimmed : undefined;
+}
+
 export async function POST(request: Request) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Non autorise." }, { status: 401 });
   }
 
   let body: Body;
+
   try {
     body = (await request.json()) as Body;
   } catch {
@@ -42,6 +55,7 @@ export async function POST(request: Request) {
   }
 
   const { cardId } = body;
+
   if (!cardId || !getCard(cardId)) {
     return NextResponse.json(
       { error: "Carte introuvable." },
@@ -50,6 +64,7 @@ export async function POST(request: Request) {
   }
 
   const name = clean(body.name);
+  const condition = cleanCondition(body.condition);
   const image = clean(body.image);
   const imageBack = clean(body.imageBack);
   const description = clean(body.description);
@@ -57,6 +72,7 @@ export async function POST(request: Request) {
 
   if (
     name === undefined &&
+    condition === undefined &&
     image === undefined &&
     imageBack === undefined &&
     description === undefined &&
@@ -70,11 +86,13 @@ export async function POST(request: Request) {
 
   try {
     const db = getDb();
+
     await db
       .insert(cardOverrides)
       .values({
         cardId,
         name: name ?? null,
+        condition: condition ?? null,
         image: image ?? null,
         imageBack: imageBack ?? null,
         description: description ?? null,
@@ -84,6 +102,7 @@ export async function POST(request: Request) {
         target: cardOverrides.cardId,
         set: {
           ...(name !== undefined ? { name } : {}),
+          ...(condition !== undefined ? { condition } : {}),
           ...(image !== undefined ? { image } : {}),
           ...(imageBack !== undefined ? { imageBack } : {}),
           ...(description !== undefined ? { description } : {}),
@@ -96,7 +115,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, name, image, imageBack, description, weightGrams });
+  return NextResponse.json({
+    ok: true,
+    name,
+    condition,
+    image,
+    imageBack,
+    description,
+    weightGrams,
+  });
 }
 
 export async function DELETE(request: Request) {
@@ -105,6 +132,7 @@ export async function DELETE(request: Request) {
   }
 
   let body: { cardId?: string };
+
   try {
     body = (await request.json()) as { cardId?: string };
   } catch {
