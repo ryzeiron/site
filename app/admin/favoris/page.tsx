@@ -136,6 +136,7 @@ export default async function AdminFavoritesPage({
   const query = (params.q ?? "").trim();
 
   const db = getDb();
+
   const [favoriteRows, userRows] = await Promise.all([
     db.select().from(favoriteCards).orderBy(desc(favoriteCards.createdAt)),
     db.select().from(users),
@@ -193,6 +194,7 @@ export default async function AdminFavoritesPage({
             Regroupe toutes les cartes mises en favori par les clients.
           </p>
         </div>
+
         <LogoutButton />
       </div>
 
@@ -216,6 +218,13 @@ export default async function AdminFavoritesPage({
           className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
         >
           Clients
+        </Link>
+
+        <Link
+          href="/admin/avis"
+          className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+        >
+          Avis
         </Link>
       </div>
 
@@ -345,6 +354,7 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
               <h3 className="truncate text-xl font-bold text-white">
                 {card?.name ?? group.cardId}
               </h3>
+
               <div className="mt-1 text-sm text-gray-400">
                 {card?.number ?? "-"} - Variante {variantLabel(group.variant)}
               </div>
@@ -361,6 +371,7 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
                 <span className="rounded bg-violet-500/15 px-2 py-1 text-violet-200">
                   {variant.rarity}
                 </span>
+
                 <span className="rounded bg-white/10 px-2 py-1 text-gray-200">
                   {formatPrice(variant.price)}
                 </span>
