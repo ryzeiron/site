@@ -3,12 +3,12 @@ import { inArray } from "drizzle-orm";
 import { getDb } from "./db/client";
 import { cardOverrides, stockOverrides } from "./db/schema";
 import {
+  isCondition,
   isRarity,
   type Card,
   type NamedVariant,
   type Rarity,
 } from "./catalog";
-import { cleanupExpiredCartReservations } from "./stock-reservations";
 
 type OverrideData = {
   stock: number;
@@ -21,12 +21,6 @@ export async function applyStockOverrides<T extends Card>(
 ): Promise<T[]> {
   if (cards.length === 0) return cards;
 
-  // Cleanup paresseux : 5% de chance de liberer les reservations 'cart' expirees.
-  // Remplace le cron Vercel (limite a 1/jour sur Hobby).
-  if (Math.random() < 0.05) {
-    void cleanupExpiredCartReservations(30).catch(() => {});
-  }
-
   const ids = Array.from(new Set(cards.map((c) => c.id)));
   let rows: {
     cardId: string;
@@ -38,11 +32,13 @@ export async function applyStockOverrides<T extends Card>(
   let metaRows: {
     cardId: string;
     name: string | null;
+    condition: string | null;
     image: string | null;
     imageBack: string | null;
     description: string | null;
     weightGrams: number | null;
   }[] = [];
+
   try {
     const db = getDb();
     [rows, metaRows] = await Promise.all([
@@ -60,6 +56,7 @@ export async function applyStockOverrides<T extends Card>(
         .select({
           cardId: cardOverrides.cardId,
           name: cardOverrides.name,
+          condition: cardOverrides.condition,
           image: cardOverrides.image,
           imageBack: cardOverrides.imageBack,
           description: cardOverrides.description,
@@ -77,7 +74,6 @@ export async function applyStockOverrides<T extends Card>(
   const metaByCard = new Map<string, (typeof metaRows)[number]>();
   for (const m of metaRows) metaByCard.set(m.cardId, m);
 
-  // Group overrides by cardId
   const byCard = new Map<string, Map<string, OverrideData>>();
   for (const r of rows) {
     let inner = byCard.get(r.cardId);
@@ -85,6 +81,7 @@ export async function applyStockOverrides<T extends Card>(
       inner = new Map();
       byCard.set(r.cardId, inner);
     }
+
     inner.set(r.variant, {
       stock: r.stock,
       priceCents: r.priceCents,
@@ -101,6 +98,9 @@ export async function applyStockOverrides<T extends Card>(
 
     if (meta) {
       if (meta.name) next.name = meta.name;
+      if (meta.condition && isCondition(meta.condition)) {
+        next.condition = meta.condition;
+      }
       if (meta.image) next.image = meta.image;
       if (meta.imageBack) next.imageBack = meta.imageBack;
       if (meta.description) next.description = meta.description;
@@ -146,10 +146,11 @@ export async function applyStockOverrides<T extends Card>(
       }
     }
 
-    // Variantes custom (autres que base/alt)
     let extras = next.extraVariants ? [...next.extraVariants] : [];
+
     for (const [key, ov] of overrides.entries()) {
       if (key === "base" || key === "alt") continue;
+
       const idx = extras.findIndex((x) => x.key === key);
       if (idx >= 0) {
         const existing = extras[idx];
@@ -160,7 +161,6 @@ export async function applyStockOverrides<T extends Card>(
           rarity: ov.rarity ?? existing.rarity,
         };
       } else if (ov.rarity !== null) {
-        // Variante creee uniquement via la DB
         const created: NamedVariant = {
           key,
           rarity: ov.rarity,
@@ -170,6 +170,7 @@ export async function applyStockOverrides<T extends Card>(
         extras.push(created);
       }
     }
+
     if (extras.length > 0) {
       next.extraVariants = extras;
     }
