@@ -48,6 +48,7 @@ export default async function AdminPage({
             par variante - les valeurs écrasent celles du catalogue.
           </p>
         </div>
+
         <LogoutButton />
       </div>
 
@@ -108,6 +109,13 @@ export default async function AdminPage({
           className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
         >
           Favoris
+        </Link>
+
+        <Link
+          href="/admin/avis"
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+        >
+          Avis
         </Link>
       </form>
 
