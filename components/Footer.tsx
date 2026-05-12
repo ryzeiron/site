@@ -7,27 +7,51 @@ export default function Footer() {
         <div>
           <h3 className="font-semibold mb-2 text-white">La boutique</h3>
           <p className="text-gray-400">
-            Micro-entreprise specialisee dans la vente de cartes Pokemon singles et scellees.
+            Micro-entreprise spécialisée dans la vente de cartes Pokémon singles
+            et scellées.
           </p>
         </div>
+
         <div>
           <h3 className="font-semibold mb-2 text-white">Informations</h3>
           <ul className="space-y-1 text-gray-300">
-            <li><Link href="/mentions-legales" className="hover:text-brand-500">Mentions legales</Link></li>
-            <li><Link href="/cgv" className="hover:text-brand-500">CGV</Link></li>
-            <li><Link href="/contact" className="hover:text-brand-500">Contact</Link></li>
-            <li><Link href="/commande" className="hover:text-brand-500">Suivi de commande</Link></li>
+            <li>
+              <Link href="/mentions-legales" className="hover:text-brand-500">
+                Mentions légales
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/politique-confidentialite"
+                className="hover:text-brand-500"
+              >
+                Politique de confidentialité
+              </Link>
+            </li>
+            <li>
+              <Link href="/cgv" className="hover:text-brand-500">
+                CGV
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact" className="hover:text-brand-500">
+                Contact
+              </Link>
+            </li>
           </ul>
         </div>
+
         <div>
-          <h3 className="font-semibold mb-2 text-white">Paiement securise</h3>
+          <h3 className="font-semibold mb-2 text-white">Paiement sécurisé</h3>
           <p className="text-gray-400">
-            Paiement par carte bancaire via Stripe. Livraison suivie partout en France.
+            Paiement par carte bancaire via Stripe. Livraison suivie partout en
+            France.
           </p>
         </div>
       </div>
+
       <div className="border-t border-white/10 py-4 text-center text-xs text-gray-500">
-        (c) {new Date().getFullYear()} - Tous droits reserves.
+        © {new Date().getFullYear()} - Tous droits réservés.
       </div>
     </footer>
   );
