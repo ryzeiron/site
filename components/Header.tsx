@@ -5,7 +5,7 @@ import NavMenu from "./NavMenu";
 
 export default function Header() {
   return (
-    <header className="relative z-50 border-b border-white/10 bg-black/60 backdrop-blur-md text-gray-100">
+    <header className="relative z-50 border-b border-white/10 bg-[#02030b] backdrop-blur-md text-gray-100">
       <div className="mx-auto max-w-6xl px-3 py-3 sm:px-4 sm:py-4">
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
           <NavMenu />
