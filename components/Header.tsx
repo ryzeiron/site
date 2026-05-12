@@ -21,7 +21,7 @@ export default function Header() {
               fill
               priority
               sizes="(min-width: 1024px) 544px, (min-width: 768px) 480px, (min-width: 640px) 288px, 38vw"
-              className="scale-[1.48] object-contain object-center"
+              className="scale-x-[1.7] scale-y-[1.48] object-contain object-center"
             />
           </Link>
 
