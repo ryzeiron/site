@@ -18,7 +18,7 @@ export default function PolitiqueConfidentialitePage() {
 
       <p className="text-gray-300">
         La présente politique explique quelles données personnelles sont
-        collectées sur PokeDel, pourquoi elles sont utilisées et quels sont vos
+        collectées sur PokeDel62, pourquoi elles sont utilisées et quels sont vos
         droits.
       </p>
 
@@ -26,12 +26,12 @@ export default function PolitiqueConfidentialitePage() {
         1. Responsable du traitement
       </h2>
       <p className="text-gray-300">
-        Le responsable du traitement est PokeDel, micro-entreprise spécialisée
+        Le responsable du traitement est PokeDel62, micro-entreprise spécialisée
         dans la vente de cartes Pokémon à collectionner.
       </p>
       <ul className="mt-2 space-y-1 text-gray-300">
-        <li>Nom / raison sociale : [à compléter]</li>
-        <li>SIREN / SIRET : [à compléter]</li>
+        <li>Nom / raison sociale : PokeDel62</li>
+        <li>SIREN / SIRET : 75347133300025</li>
         <li>Email de contact : contact@pokedel62.fr</li>
       </ul>
 
@@ -49,7 +49,7 @@ export default function PolitiqueConfidentialitePage() {
           point relais, produits commandés et statut de commande ;
         </li>
         <li>
-          informations de paiement : le paiement est traité par Stripe, PokeDel
+          informations de paiement : le paiement est traité par Stripe, PokeDel62
           ne stocke pas les numéros de carte bancaire ;
         </li>
         <li>
