@@ -59,6 +59,16 @@ export const favoriteCards = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.cardId, t.variant] })],
 );
 
+export const reviews = pgTable("reviews", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().unique(),
+  rating: integer("rating").notNull(),
+  comment: text("comment").notNull(),
+  status: text("status").notNull().default("approved"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const cardOverrides = pgTable("card_overrides", {
   cardId: text("card_id").primaryKey(),
   name: text("name"),
