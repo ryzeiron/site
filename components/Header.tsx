@@ -5,37 +5,59 @@ import NavMenu from "./NavMenu";
 
 export default function Header() {
   return (
-    <header className="relative z-50 border-b border-white/10 bg-black/60 text-gray-100 backdrop-blur-md">
-      <div className="relative mx-auto flex max-w-6xl items-center justify-between px-3 py-5 sm:px-4 sm:py-6">
-        <div className="relative z-10">
+    <header className="relative z-50 border-b border-white/10 bg-black/60 backdrop-blur-md text-gray-100">
+      <div className="mx-auto max-w-6xl px-3 py-3 sm:px-4 sm:py-4">
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
           <NavMenu />
-        </div>
 
-        <Link
-          href="/"
-          className="absolute left-1/2 top-1/2 block h-16 w-56 -translate-x-1/2 -translate-y-1/2 overflow-hidden sm:h-20 sm:w-72 md:h-24 md:w-96"
-          aria-label="Accueil PokeDel"
-        >
-          <Image
-            src="/logo.png"
-            alt="PokeDel"
-            fill
-            priority
-            sizes="(min-width: 768px) 384px, (min-width: 640px) 288px, 224px"
-            className="scale-[1.35] object-contain object-center"
-          />
-        </Link>
-
-        <div className="relative z-10 flex items-center gap-2">
           <Link
-            href="/compte"
-            className="inline-flex items-center rounded-full bg-violet-600/80 px-3 py-2 text-xs font-medium text-white backdrop-blur-sm transition hover:bg-violet-700 sm:px-4 sm:text-sm"
+            href="/"
+            className="relative block h-10 w-28 justify-self-center sm:h-14 sm:w-48 md:h-16 md:w-56"
+            aria-label="Accueil PokeDel"
           >
-            Mon compte
+            <Image
+              src="logo.png"
+              alt="PokeDel"
+              fill
+              priority
+              sizes="(min-width: 768px) 224px, (min-width: 640px) 192px, 112px"
+              className="object-contain object-center"
+            />
           </Link>
-          <CartButton />
+
+          <div className="flex items-center gap-2 justify-self-end">
+            <Link
+              href="/compte"
+              aria-label="Mon compte"
+              title="Mon compte"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-violet-600/80 text-white backdrop-blur-sm transition hover:bg-violet-700 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
+            >
+              <AccountIcon />
+              <span className="hidden sm:inline">Mon compte</span>
+            </Link>
+
+            <CartButton />
+          </div>
         </div>
       </div>
     </header>
+  );
+}
+
+function AccountIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5 sm:hidden"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 21a8 8 0 0 0-16 0" />
+      <circle cx="12" cy="8" r="4" />
+    </svg>
   );
 }
