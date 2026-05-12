@@ -42,9 +42,11 @@ export default async function AdminClientsPage() {
   const favoriteCardIds = Array.from(
     new Set(favoriteRows.map((favorite) => favorite.cardId)),
   );
+
   const rawFavoriteCards = favoriteCardIds
     .map((cardId) => getCard(cardId))
     .filter((card): card is NonNullable<typeof card> => !!card);
+
   const liveFavoriteCards = await applyStockOverrides(rawFavoriteCards);
   const favoriteCardMap = new Map(
     liveFavoriteCards.map((card) => [card.id, card]),
@@ -56,6 +58,7 @@ export default async function AdminClientsPage() {
   for (const order of orderRows) {
     const key = order.userId || order.customerEmail || "";
     if (!key) continue;
+
     const group = ordersByUser.get(key) ?? [];
     group.push(order);
     ordersByUser.set(key, group);
@@ -76,6 +79,7 @@ export default async function AdminClientsPage() {
             Consulte les comptes clients, leurs commandes et leurs favoris.
           </p>
         </div>
+
         <LogoutButton />
       </div>
 
@@ -86,11 +90,26 @@ export default async function AdminClientsPage() {
         >
           Retour stocks
         </Link>
+
         <Link
           href="/admin/commandes"
           className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
         >
           Commandes
+        </Link>
+
+        <Link
+          href="/admin/favoris"
+          className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+        >
+          Favoris
+        </Link>
+
+        <Link
+          href="/admin/avis"
+          className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+        >
+          Avis
         </Link>
       </div>
 
@@ -101,12 +120,14 @@ export default async function AdminClientsPage() {
             {clientRows.length}
           </div>
         </div>
+
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
           <div className="text-sm text-gray-400">Commandes enregistrées</div>
           <div className="mt-1 text-2xl font-bold text-white">
             {orderRows.length}
           </div>
         </div>
+
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
           <div className="text-sm text-gray-400">Favoris enregistrés</div>
           <div className="mt-1 text-2xl font-bold text-white">
@@ -124,6 +145,7 @@ export default async function AdminClientsPage() {
               ...(ordersByUser.get(client.id) ?? []),
               ...(ordersByUser.get(client.email) ?? []),
             ];
+
             const clientFavorites = favoritesByUser.get(client.id) ?? [];
 
             return (
@@ -136,9 +158,11 @@ export default async function AdminClientsPage() {
                     <h2 className="text-xl font-bold text-white">
                       {client.name || "Client sans nom"}
                     </h2>
+
                     <div className="mt-1 text-sm text-gray-300">
                       {client.email}
                     </div>
+
                     <div className="mt-1 font-mono text-xs text-gray-500">
                       ID : {client.id}
                     </div>
@@ -154,9 +178,11 @@ export default async function AdminClientsPage() {
 
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
                   <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                    <h3 className="mb-3 font-semibold text-white">
-                      Commandes ({clientOrders.length})
-                    </h3>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="font-semibold text-white">
+                        Commandes ({clientOrders.length})
+                      </h3>
+                    </div>
 
                     {clientOrders.length === 0 ? (
                       <p className="text-sm text-gray-400">
@@ -178,6 +204,7 @@ export default async function AdminClientsPage() {
                                 ↓
                               </span>
                             </summary>
+
                             <div className="space-y-3 border-t border-white/10 p-3">
                               {clientOrders.slice(1).map((order) => (
                                 <AdminOrderMiniCard key={order.id} order={order} />
@@ -217,6 +244,7 @@ export default async function AdminClientsPage() {
                                 ↓
                               </span>
                             </summary>
+
                             <div className="space-y-3 border-t border-white/10 p-3">
                               {clientFavorites.slice(1).map((favorite) => (
                                 <AdminFavoriteMiniCard
@@ -255,6 +283,7 @@ function AdminOrderMiniCard({ order }: { order: OrderRow }) {
             {STATUS_LABELS[order.status] ?? order.status}
           </div>
         </div>
+
         <div className="text-xs text-gray-400">
           {formatDate(order.createdAt)}
         </div>
@@ -265,21 +294,26 @@ function AdminOrderMiniCard({ order }: { order: OrderRow }) {
           <span className="text-gray-500">Nom :</span>{" "}
           {order.customerName ?? "-"}
         </div>
+
         <div>
           <span className="text-gray-500">Email :</span>{" "}
           {order.customerEmail ?? "-"}
         </div>
+
         <div>
           <span className="text-gray-500">Téléphone :</span>{" "}
           {order.customerPhone ?? "-"}
         </div>
+
         <div>
           <span className="text-gray-500">Pays :</span> {order.country ?? "-"}
         </div>
+
         <div>
           <span className="text-gray-500">Relais :</span>{" "}
           {order.relayName ?? "-"}
         </div>
+
         {order.mondialRelayExpeditionNumber && (
           <div className="text-emerald-300">
             Suivi : {order.mondialRelayExpeditionNumber}
@@ -309,17 +343,21 @@ function AdminFavoriteMiniCard({
       <div className="font-semibold text-white">
         {card?.name ?? favorite.cardId}
       </div>
+
       <div className="mt-1 text-xs text-gray-400">
         {card?.number ?? "-"} - Variante {favorite.variant}
       </div>
+
       {variant && (
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
           <span className="rounded bg-violet-500/15 px-2 py-1 text-violet-200">
             {variant.rarity}
           </span>
+
           <span className="rounded bg-white/10 px-2 py-1 text-gray-200">
             {formatPrice(variant.price)}
           </span>
+
           <span
             className={`rounded px-2 py-1 ${
               outOfStock
@@ -331,6 +369,7 @@ function AdminFavoriteMiniCard({
           </span>
         </div>
       )}
+
       <div className="mt-2 text-xs text-gray-500">
         Ajouté le {formatDate(favorite.createdAt)}
       </div>
