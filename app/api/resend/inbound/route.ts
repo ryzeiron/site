@@ -1,3 +1,4 @@
+import { Resend } from "resend";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -87,16 +88,23 @@ export async function POST(request: Request) {
 
   const receivedEmail = await getReceivedEmail(apiKey, emailId);
   const fallback = event.data ?? {};
-  const originalFrom = receivedEmail?.from ?? fallback.from ?? "Expediteur inconnu";
+  const originalFrom =
+    receivedEmail?.from ?? fallback.from ?? "Expediteur inconnu";
   const originalTo = receivedEmail?.to ?? fallback.to ?? [];
   const originalCc = receivedEmail?.cc ?? fallback.cc ?? [];
   const subject = receivedEmail?.subject ?? fallback.subject ?? "Sans objet";
   const textContent = receivedEmail?.text?.trim() || "";
   const htmlContent = receivedEmail?.html?.trim() || "";
+  const rawContent =
+    !textContent && !htmlContent && receivedEmail?.raw?.download_url
+      ? await getRawEmailContent(receivedEmail.raw.download_url)
+      : "";
   const plainContent =
     textContent ||
     stripHtml(htmlContent) ||
-    "Aucun contenu texte disponible pour ce message.";
+    extractReadableRawEmail(rawContent) ||
+    `Le contenu du mail n'a pas pu etre recupere automatiquement. ID Resend : ${emailId}`;
+
   const attachments = receivedEmail?.attachments ?? fallback.attachments ?? [];
   const rawUrl = receivedEmail?.raw?.download_url;
   const replyTo = extractEmail(receivedEmail?.reply_to?.[0] ?? originalFrom);
@@ -201,19 +209,52 @@ async function getReceivedEmail(
   apiKey: string,
   emailId: string,
 ): Promise<ReceivedEmail | null> {
-  const response = await fetch(
-    `https://api.resend.com/emails/receiving/${encodeURIComponent(emailId)}`,
-    {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      cache: "no-store",
-    },
+  const resend = new Resend(apiKey);
+  const result = await resend.emails.receiving.get(emailId);
+
+  if (result.error || !result.data) return null;
+
+  return result.data as ReceivedEmail;
+}
+
+async function getRawEmailContent(downloadUrl: string): Promise<string> {
+  try {
+    const response = await fetch(downloadUrl, { cache: "no-store" });
+    if (!response.ok) return "";
+    return await response.text();
+  } catch {
+    return "";
+  }
+}
+
+function extractReadableRawEmail(value: string): string {
+  if (!value) return "";
+
+  const textPart = value.match(
+    /Content-Type:\s*text\/plain[\s\S]*?\r?\n\r?\n([\s\S]*?)(?:\r?\n--|$)/i,
   );
 
-  if (!response.ok) return null;
+  if (textPart?.[1]) {
+    return decodeQuotedPrintable(textPart[1]).trim();
+  }
 
-  return (await response.json()) as ReceivedEmail;
+  const htmlPart = value.match(
+    /Content-Type:\s*text\/html[\s\S]*?\r?\n\r?\n([\s\S]*?)(?:\r?\n--|$)/i,
+  );
+
+  if (htmlPart?.[1]) {
+    return stripHtml(decodeQuotedPrintable(htmlPart[1])).trim();
+  }
+
+  return "";
+}
+
+function decodeQuotedPrintable(value: string): string {
+  return value
+    .replace(/=\r?\n/g, "")
+    .replace(/=([0-9A-F]{2})/gi, (_, hex: string) =>
+      String.fromCharCode(Number.parseInt(hex, 16)),
+    );
 }
 
 function stripHtml(value: string): string {
