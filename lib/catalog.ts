@@ -142,7 +142,6 @@ export const BLOCS: Bloc[] = [
     tagline: "2025 - 2028",
     coverColor: "from-amber-400 to-orange-600",
     image: "/blocs/me.webp",
-    imageFit: "contain",
   },
   {
     id: "ecarlate-et-violet",
@@ -150,7 +149,6 @@ export const BLOCS: Bloc[] = [
     tagline: "2023 - 2025 ",
     coverColor: "from-rose-500 to-violet-600",
     image: "/blocs/ecarlate-violet.jpg",
-    imageFit: "contain",
   },
   {
     id: "epee-et-bouclier",
@@ -158,7 +156,6 @@ export const BLOCS: Bloc[] = [
     tagline: "2020 - 2023",
     coverColor: "from-sky-500 to-indigo-600",
     image: "/blocs/SWSH1.jpg",
-    imageFit: "contain",
   },
   {
     id: "soleil-et-lune",
