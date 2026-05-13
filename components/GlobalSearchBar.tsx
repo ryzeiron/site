@@ -8,7 +8,7 @@ export default function GlobalSearchBar() {
           <input
             type="search"
             name="q"
-            placeholder="Rechercher une carte dans tout le site..."
+            placeholder="Rechercher une carte ou un pokémon dans tout le site."
             className="h-11 w-full rounded-full border border-white/10 bg-zinc-950/80 pl-11 pr-28 text-sm text-white outline-none placeholder:text-gray-500 transition focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30"
           />
           <SearchIcon />
