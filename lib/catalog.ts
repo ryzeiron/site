@@ -156,6 +156,7 @@ export const BLOCS: Bloc[] = [
     tagline: "2020 - 2023",
     coverColor: "from-sky-500 to-indigo-600",
     image: "/blocs/SWSH1.jpg",
+    imageFit: "contain",
   },
   {
     id: "soleil-et-lune",
@@ -163,7 +164,6 @@ export const BLOCS: Bloc[] = [
     tagline: "2017 - 2019",
     coverColor: "from-amber-400 to-orange-600",
     image: "/blocs/soleil-et-lune.jpg",
-    imageFit: "contain",
   },
   {
     id: "xy",
