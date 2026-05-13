@@ -23,8 +23,8 @@ function formatDate(value: Date | string | null | undefined) {
 function Stars({ rating }: { rating: number }) {
   return (
     <div className="text-lg tracking-wide text-yellow-200">
-      {"★".repeat(rating)}
-      <span className="text-gray-600">{"★".repeat(5 - rating)}</span>
+      {"*".repeat(rating)}
+      <span className="text-gray-600">{"*".repeat(5 - rating)}</span>
     </div>
   );
 }
@@ -62,31 +62,23 @@ export default async function AdminAvisPage() {
       </div>
 
       <div className="mb-6 flex flex-wrap gap-3">
-        <Link
-          href="/admin"
-          className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
-        >
+        <Link href="/admin" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
           Retour stocks
         </Link>
 
-        <Link
-          href="/admin/commandes"
-          className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
-        >
+        <Link href="/admin/modifications" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
+          Modifications
+        </Link>
+
+        <Link href="/admin/commandes" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
           Commandes
         </Link>
 
-        <Link
-          href="/admin/clients"
-          className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
-        >
+        <Link href="/admin/clients" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
           Clients
         </Link>
 
-        <Link
-          href="/admin/favoris"
-          className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
-        >
+        <Link href="/admin/favoris" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
           Favoris
         </Link>
       </div>
@@ -94,9 +86,7 @@ export default async function AdminAvisPage() {
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
           <div className="text-sm text-gray-400">Avis total</div>
-          <div className="mt-1 text-2xl font-bold text-white">
-            {reviewRows.length}
-          </div>
+          <div className="mt-1 text-2xl font-bold text-white">{reviewRows.length}</div>
         </div>
 
         <div className="rounded-lg border border-yellow-400/20 bg-yellow-500/10 p-4">
@@ -120,10 +110,7 @@ export default async function AdminAvisPage() {
             const user = usersById.get(review.userId);
 
             return (
-              <section
-                key={review.id}
-                className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200"
-              >
+              <section key={review.id} className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <Stars rating={review.rating} />
