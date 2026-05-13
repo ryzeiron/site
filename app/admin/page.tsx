@@ -3,12 +3,20 @@ import { redirect } from "next/navigation";
 import AdminStockRow from "@/components/AdminStockRow";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
-import { CARDS, SERIES, cardsForSerie, getSerie } from "@/lib/catalog";
+import {
+  CARDS,
+  RARITIES,
+  SERIES,
+  cardsForSerie,
+  getSerie,
+  isRarity,
+  listVariants,
+} from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
-type Search = { serie?: string; q?: string };
+type Search = { serie?: string; q?: string; rarity?: string };
 
 export default async function AdminPage({
   searchParams,
@@ -20,19 +28,27 @@ export default async function AdminPage({
   const params = await searchParams;
   const serieId = params.serie ?? "";
   const query = (params.q ?? "").trim().toLowerCase();
+  const rarity = params.rarity && isRarity(params.rarity) ? params.rarity : "";
 
   const serie = serieId ? getSerie(serieId) : undefined;
-  let cards = serie ? cardsForSerie(serie.id) : [];
+  const cards = serie ? cardsForSerie(serie.id) : [];
+  const withStock = await applyStockOverrides(cards);
+  let filteredCards = withStock;
 
   if (query) {
-    cards = cards.filter(
+    filteredCards = filteredCards.filter(
       (c) =>
         c.name.toLowerCase().includes(query) ||
         c.number.toLowerCase().includes(query),
     );
   }
 
-  const withStock = await applyStockOverrides(cards);
+  if (rarity) {
+    filteredCards = filteredCards.filter((c) =>
+      listVariants(c).some(({ variant }) => variant.rarity === rarity),
+    );
+  }
+
   const sortedSeries = [...SERIES].sort((a, b) => a.code.localeCompare(b.code));
   const totalCards = CARDS.length;
 
@@ -45,7 +61,7 @@ export default async function AdminPage({
           </h1>
           <p className="text-sm text-gray-400 mt-1">
             {totalCards} cartes dans le catalogue. Modifie le stock et le prix
-            par variante - les valeurs écrasent celles du catalogue.
+            par variante - les valeurs ecrasent celles du catalogue.
           </p>
         </div>
 
@@ -58,7 +74,7 @@ export default async function AdminPage({
           defaultValue={serieId}
           className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         >
-          <option value="">-- Choisis une série --</option>
+          <option value="">-- Choisis une serie --</option>
           {sortedSeries.map((s) => (
             <option key={s.id} value={s.id}>
               {s.code} - {s.name}
@@ -70,9 +86,22 @@ export default async function AdminPage({
           type="text"
           name="q"
           defaultValue={query}
-          placeholder="Rechercher (nom ou numéro)"
+          placeholder="Rechercher (nom ou numero)"
           className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         />
+
+        <select
+          name="rarity"
+          defaultValue={rarity}
+          className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
+        >
+          <option value="">-- Toutes les raretes --</option>
+          {RARITIES.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
 
         <button
           type="submit"
@@ -81,7 +110,7 @@ export default async function AdminPage({
           Filtrer
         </button>
 
-        {serieId && (
+        {(serieId || query || rarity) && (
           <Link
             href="/admin"
             className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
@@ -121,13 +150,13 @@ export default async function AdminPage({
 
       {!serie ? (
         <p className="text-gray-400">
-          Sélectionne une série pour afficher ses cartes.
+          Selectionne une serie pour afficher ses cartes.
         </p>
-      ) : withStock.length === 0 ? (
-        <p className="text-gray-400">Aucune carte trouvée.</p>
+      ) : filteredCards.length === 0 ? (
+        <p className="text-gray-400">Aucune carte trouvee.</p>
       ) : (
         <div className="space-y-3">
-          {withStock.map((c) => (
+          {filteredCards.map((c) => (
             <AdminStockRow key={c.id} card={c} />
           ))}
         </div>
