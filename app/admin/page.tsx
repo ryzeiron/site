@@ -120,6 +120,13 @@ export default async function AdminPage({
         )}
 
         <Link
+          href="/admin/modifications"
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+        >
+          Modifications
+        </Link>
+
+        <Link
           href="/admin/commandes"
           className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
         >
