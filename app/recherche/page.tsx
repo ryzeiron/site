@@ -72,7 +72,7 @@ export default async function SearchPage({
           Recherche globale
         </h1>
         <p className="mt-2 text-gray-300">
-          Recherche une carte dans tous les blocs et toutes les séries.
+          Recherche une carte ou un pokémon dans tous les blocs et toutes les séries.
         </p>
 
         <form action="/recherche" className="mt-5 flex flex-col gap-3 sm:flex-row">
