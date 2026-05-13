@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import AdminTicketsList from "@/components/AdminTicketsList";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
@@ -46,6 +47,16 @@ export default async function AdminTicketsPage() {
           </p>
         </div>
         <LogoutButton />
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-3">
+        <Link href="/admin" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
+          Retour stocks
+        </Link>
+
+        <Link href="/admin/modifications" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
+          Modifications
+        </Link>
       </div>
 
       {dbError && (
