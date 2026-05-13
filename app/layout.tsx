@@ -8,6 +8,7 @@ import SplashIntro from "@/components/SplashIntro";
 import BackButton from "@/components/BackButton";
 import ScrollToTop from "@/components/ScrollToTop";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import GlobalSearchBar from "@/components/GlobalSearchBar";
 
 export const metadata: Metadata = {
   title: {
@@ -31,6 +32,7 @@ export default function RootLayout({
           <SplashIntro />
           <Header />
           <ContactBanner />
+          <GlobalSearchBar />
           <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
             <div className="mb-4">
               <BackButton />
