@@ -31,7 +31,7 @@ export default async function AdminPage({
   const rarity = params.rarity && isRarity(params.rarity) ? params.rarity : "";
 
   const serie = serieId ? getSerie(serieId) : undefined;
-  const cards = serie ? cardsForSerie(serie.id) : [];
+  const cards = serie ? cardsForSerie(serie.id) : CARDS;
   const withStock = await applyStockOverrides(cards);
   let filteredCards = withStock;
 
@@ -74,7 +74,7 @@ export default async function AdminPage({
           defaultValue={serieId}
           className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         >
-          <option value="">-- Choisis une serie --</option>
+          <option value="">-- Toutes les series --</option>
           {sortedSeries.map((s) => (
             <option key={s.id} value={s.id}>
               {s.code} - {s.name}
@@ -155,11 +155,7 @@ export default async function AdminPage({
         </Link>
       </form>
 
-      {!serie ? (
-        <p className="text-gray-400">
-          Selectionne une serie pour afficher ses cartes.
-        </p>
-      ) : filteredCards.length === 0 ? (
+      {filteredCards.length === 0 ? (
         <p className="text-gray-400">Aucune carte trouvee.</p>
       ) : (
         <div className="space-y-3">
