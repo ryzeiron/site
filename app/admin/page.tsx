@@ -8,15 +8,45 @@ import {
   RARITIES,
   SERIES,
   cardsForSerie,
+  getBloc,
   getSerie,
   isRarity,
   listVariants,
+  type Card,
 } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
 type Search = { serie?: string; q?: string; rarity?: string };
+
+function normalizeSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function searchableText(card: Card) {
+  const serie = getSerie(card.serieId);
+  const bloc = serie ? getBloc(serie.blocId) : undefined;
+
+  return normalizeSearch(
+    [
+      card.name,
+      card.number,
+      card.rarity,
+      card.condition,
+      card.language,
+      serie?.name,
+      serie?.code,
+      bloc?.name,
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+}
 
 export default async function AdminPage({
   searchParams,
@@ -27,20 +57,21 @@ export default async function AdminPage({
 
   const params = await searchParams;
   const serieId = params.serie ?? "";
-  const query = (params.q ?? "").trim().toLowerCase();
+  const query = (params.q ?? "").trim();
+  const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
   const rarity = params.rarity && isRarity(params.rarity) ? params.rarity : "";
+  const hasSearch = terms.length > 0 || Boolean(rarity);
 
   const serie = serieId ? getSerie(serieId) : undefined;
-  const cards = serie ? cardsForSerie(serie.id) : CARDS;
+  const cards = serie ? cardsForSerie(serie.id) : serieId ? [] : hasSearch ? CARDS : [];
   const withStock = await applyStockOverrides(cards);
   let filteredCards = withStock;
 
-  if (query) {
-    filteredCards = filteredCards.filter(
-      (c) =>
-        c.name.toLowerCase().includes(query) ||
-        c.number.toLowerCase().includes(query),
-    );
+  if (terms.length > 0) {
+    filteredCards = filteredCards.filter((c) => {
+      const text = searchableText(c);
+      return terms.every((term) => text.includes(term));
+    });
   }
 
   if (rarity) {
@@ -86,7 +117,7 @@ export default async function AdminPage({
           type="text"
           name="q"
           defaultValue={query}
-          placeholder="Rechercher (nom ou numero)"
+          placeholder="Rechercher dans les series"
           className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         />
 
@@ -155,7 +186,11 @@ export default async function AdminPage({
         </Link>
       </form>
 
-      {filteredCards.length === 0 ? (
+      {!serie && !hasSearch ? (
+        <p className="text-gray-400">
+          Choisis une serie ou lance une recherche dans toutes les series.
+        </p>
+      ) : filteredCards.length === 0 ? (
         <p className="text-gray-400">Aucune carte trouvee.</p>
       ) : (
         <div className="space-y-3">
