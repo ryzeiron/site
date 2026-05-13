@@ -19,11 +19,12 @@ const RARITY_ORDER: Rarity[] = [
 ];
 
 export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
-  const [selected, setSelected] = useState<Rarity | "all">("all");
+  const [selectedRarities, setSelectedRarities] = useState<Rarity[]>([]);
   const [query, setQuery] = useState("");
 
   const availableRarities = useMemo(() => {
     const present = new Set<Rarity>();
+
     for (const c of cards) {
       present.add(c.rarity);
       if (c.altVariant) present.add(c.altVariant.rarity);
@@ -31,6 +32,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
         for (const v of c.extraVariants) present.add(v.rarity);
       }
     }
+
     return RARITY_ORDER.filter((r) => present.has(r));
   }, [cards]);
 
@@ -38,20 +40,32 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
 
   const filtered = useMemo(() => {
     return cards.filter((c) => {
-      if (selected !== "all") {
+      if (selectedRarities.length > 0) {
         const matchRarity =
-          c.rarity === selected ||
-          (c.altVariant && c.altVariant.rarity === selected) ||
-          (c.extraVariants?.some((v) => v.rarity === selected) ?? false);
+          selectedRarities.includes(c.rarity) ||
+          (c.altVariant && selectedRarities.includes(c.altVariant.rarity)) ||
+          (c.extraVariants?.some((v) => selectedRarities.includes(v.rarity)) ??
+            false);
+
         if (!matchRarity) return false;
       }
+
       if (normalizedQuery) {
         const haystack = `${c.name} ${c.number}`.toLowerCase();
         if (!haystack.includes(normalizedQuery)) return false;
       }
+
       return true;
     });
-  }, [cards, selected, normalizedQuery]);
+  }, [cards, selectedRarities, normalizedQuery]);
+
+  function toggleRarity(rarity: Rarity) {
+    setSelectedRarities((current) =>
+      current.includes(rarity)
+        ? current.filter((item) => item !== rarity)
+        : [...current, rarity],
+    );
+  }
 
   const pillBase =
     "rounded-full border px-3 py-1.5 text-xs font-medium transition";
@@ -82,6 +96,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
+
           {query && (
             <button
               type="button"
@@ -98,17 +113,22 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => setSelected("all")}
-          className={`${pillBase} ${selected === "all" ? pillActive : pillIdle}`}
+          onClick={() => setSelectedRarities([])}
+          className={`${pillBase} ${
+            selectedRarities.length === 0 ? pillActive : pillIdle
+          }`}
         >
           Toutes
         </button>
+
         {availableRarities.map((r) => (
           <button
             key={r}
             type="button"
-            onClick={() => setSelected(r)}
-            className={`${pillBase} ${selected === r ? pillActive : pillIdle}`}
+            onClick={() => toggleRarity(r)}
+            className={`${pillBase} ${
+              selectedRarities.includes(r) ? pillActive : pillIdle
+            }`}
           >
             {r}
           </button>
@@ -119,7 +139,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
         <p className="mt-8 text-gray-400">
           {normalizedQuery
             ? `Aucune carte ne correspond a "${query.trim()}".`
-            : "Aucune carte pour cette rarete."}
+            : "Aucune carte pour ces filtres."}
         </p>
       ) : (
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
