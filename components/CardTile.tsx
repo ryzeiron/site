@@ -1,18 +1,39 @@
 import Link from "next/link";
 import FavoriteHeartButton from "@/components/FavoriteHeartButton";
-import type { Card } from "@/lib/catalog";
+import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
-export default function CardTile({ card }: { card: Card }) {
+export default function CardTile({
+  card,
+  variantKey,
+}: {
+  card: Card;
+  variantKey?: VariantKey;
+}) {
+  const displayVariant = variantKey ? resolveVariant(card, variantKey) : null;
   const baseOut = card.stock <= 0;
   const altOut = !card.altVariant || card.altVariant.stock <= 0;
   const extrasOut =
     !card.extraVariants || card.extraVariants.every((v) => v.stock <= 0);
-  const outOfStock = baseOut && altOut && extrasOut;
+  const outOfStock = displayVariant
+    ? displayVariant.stock <= 0
+    : baseOut && altOut && extrasOut;
+  const rarityLabel = displayVariant
+    ? displayVariant.rarity
+    : `${card.rarity}${card.altVariant ? ` / ${card.altVariant.rarity}` : ""}${
+        card.extraVariants
+          ? card.extraVariants.map((v) => ` / ${v.rarity}`).join("")
+          : ""
+      }`;
+  const price = displayVariant ? displayVariant.price : card.price;
 
   return (
     <div className="card-hover relative rounded-lg border border-white/10 bg-zinc-900/70 text-gray-200 backdrop-blur-sm overflow-hidden">
-      <FavoriteHeartButton cardId={card.id} outOfStock={outOfStock} />
+      <FavoriteHeartButton
+        cardId={card.id}
+        variant={variantKey}
+        outOfStock={outOfStock}
+      />
 
       <Link href={`/carte/${card.id}`} className="block">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center text-gray-300 font-semibold overflow-hidden">
@@ -40,18 +61,14 @@ export default function CardTile({ card }: { card: Card }) {
 
         <div className="p-3">
           <div className="text-xs text-gray-500 truncate">
-            {card.number} - {card.rarity}
-            {card.altVariant ? ` / ${card.altVariant.rarity}` : ""}
-            {card.extraVariants
-              ? card.extraVariants.map((v) => ` / ${v.rarity}`).join("")
-              : ""}
+            {card.number} - {rarityLabel}
           </div>
 
           <div className="font-semibold truncate text-white">{card.name}</div>
 
           <div className="flex items-center justify-between mt-2">
             <span className="font-bold text-brand-500">
-              {formatPrice(card.price)}
+              {formatPrice(price)}
             </span>
             <span className="text-xs text-gray-500">{card.condition}</span>
           </div>
