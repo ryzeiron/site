@@ -323,7 +323,7 @@ export const SERIES: Serie[] = [
   { id: "nb10", blocId: "noir-et-blanc", code: "NB10", name: "Explosion Plasma", releaseYear: 2013, image: "/series/NB/PLB.webp", },
 
   // L'appel Des legendes
-  { id: "hs04", blocId: "appel-des-legendes", code: "HS04", name: "L'appel Des Legendes", releaseYear: 2011, image: "/series/ADL/ADL.webp", },
+  { id: "adl", blocId: "appel-des-legendes", code: "ADL", name: "L'appel Des Legendes", releaseYear: 2011, image: "/series/ADL/ADL.webp", },
 
   // HeartGold SoulSilver
   { id: "prhgss", blocId: "heartgold-soulsilver", code: "PRHGSS", name: "Promos HGSS", releaseYear: 2010, image: "/series/HGSS/PRHS.webp",  },
