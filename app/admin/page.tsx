@@ -7,7 +7,6 @@ import {
   CARDS,
   RARITIES,
   SERIES,
-  cardsForSerie,
   getBloc,
   getSerie,
   isRarity,
@@ -63,9 +62,31 @@ export default async function AdminPage({
   const hasSearch = terms.length > 0 || Boolean(rarity);
 
   const serie = serieId ? getSerie(serieId) : undefined;
-  const cards = serie ? cardsForSerie(serie.id) : serieId ? [] : hasSearch ? CARDS : [];
-  const withStock = await applyStockOverrides(cards);
-  let filteredCards = withStock;
+  const allCardsWithStock = await applyStockOverrides(CARDS);
+
+  const stockedCards = allCardsWithStock.filter((card) =>
+    listVariants(card).some(({ variant }) => variant.stock > 0),
+  ).length;
+
+  const totalStock = allCardsWithStock.reduce(
+    (total, card) =>
+      total +
+      listVariants(card).reduce(
+        (variantTotal, { variant }) => variantTotal + variant.stock,
+        0,
+      ),
+    0,
+  );
+
+  const cards = serie
+    ? allCardsWithStock.filter((card) => card.serieId === serie.id)
+    : serieId
+      ? []
+      : hasSearch
+        ? allCardsWithStock
+        : [];
+
+  let filteredCards = cards;
 
   if (terms.length > 0) {
     filteredCards = filteredCards.filter((c) => {
@@ -91,8 +112,9 @@ export default async function AdminPage({
             Admin - Stocks & prix
           </h1>
           <p className="text-sm text-gray-400 mt-1">
-            {totalCards} cartes dans le catalogue. Modifie le stock et le prix
-            par variante - les valeurs ecrasent celles du catalogue.
+            {stockedCards} cartes en stock sur {totalCards} cartes
+            enregistrees, {totalStock} exemplaires au total. Modifie le stock
+            et le prix par variante - les valeurs ecrasent celles du catalogue.
           </p>
         </div>
 
