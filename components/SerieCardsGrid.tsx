@@ -5,6 +5,7 @@ import CardTile from "@/components/CardTile";
 import type { Card, Rarity } from "@/lib/catalog";
 
 const RARITY_ORDER: Rarity[] = [
+  "Commune",
   "Reverse",
   "Reverse Pokéball",
   "Reverse Masterball",
