@@ -12,7 +12,7 @@ import {
 const RARITY_ORDER: Rarity[] = [
   "Commune",
   "Reverse",
-  "Reverse Pokeball",
+  "Reverse Pokéball",
   "Reverse Masterball",
   "Holo",
   "Holo Cracked Ice",
