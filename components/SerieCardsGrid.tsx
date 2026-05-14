@@ -2,12 +2,17 @@
 
 import { useMemo, useState } from "react";
 import CardTile from "@/components/CardTile";
-import type { Card, Rarity } from "@/lib/catalog";
+import {
+  listVariants,
+  type Card,
+  type Rarity,
+  type VariantKey,
+} from "@/lib/catalog";
 
 const RARITY_ORDER: Rarity[] = [
   "Commune",
   "Reverse",
-  "Reverse Pokéball",
+  "Reverse Pokeball",
   "Reverse Masterball",
   "Holo",
   "Holo Cracked Ice",
@@ -25,7 +30,6 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
 
   const availableRarities = useMemo(() => {
     const present = new Set<Rarity>();
-
     for (const c of cards) {
       present.add(c.rarity);
       if (c.altVariant) present.add(c.altVariant.rarity);
@@ -33,29 +37,31 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
         for (const v of c.extraVariants) present.add(v.rarity);
       }
     }
-
     return RARITY_ORDER.filter((r) => present.has(r));
   }, [cards]);
 
   const normalizedQuery = query.trim().toLowerCase();
 
+  function displayVariantKey(card: Card): VariantKey | undefined {
+    if (selectedRarities.length === 0) return undefined;
+
+    return listVariants(card).find(({ variant }) =>
+      selectedRarities.includes(variant.rarity),
+    )?.key;
+  }
+
   const filtered = useMemo(() => {
     return cards.filter((c) => {
       if (selectedRarities.length > 0) {
-        const matchRarity =
-          selectedRarities.includes(c.rarity) ||
-          (c.altVariant && selectedRarities.includes(c.altVariant.rarity)) ||
-          (c.extraVariants?.some((v) => selectedRarities.includes(v.rarity)) ??
-            false);
-
+        const matchRarity = listVariants(c).some(({ variant }) =>
+          selectedRarities.includes(variant.rarity),
+        );
         if (!matchRarity) return false;
       }
-
       if (normalizedQuery) {
         const haystack = `${c.name} ${c.number}`.toLowerCase();
         if (!haystack.includes(normalizedQuery)) return false;
       }
-
       return true;
     });
   }, [cards, selectedRarities, normalizedQuery]);
@@ -97,7 +103,6 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
-
           {query && (
             <button
               type="button"
@@ -121,7 +126,6 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
         >
           Toutes
         </button>
-
         {availableRarities.map((r) => (
           <button
             key={r}
@@ -145,7 +149,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
       ) : (
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map((c) => (
-            <CardTile key={c.id} card={c} />
+            <CardTile key={c.id} card={c} variantKey={displayVariantKey(c)} />
           ))}
         </div>
       )}
