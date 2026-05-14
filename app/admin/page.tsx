@@ -113,8 +113,7 @@ export default async function AdminPage({
           </h1>
           <p className="text-sm text-gray-400 mt-1">
             {stockedCards} cartes en stock sur {totalCards} cartes
-            enregistrees, {totalStock} exemplaires au total. Modifie le stock
-            et le prix par variante - les valeurs ecrasent celles du catalogue.
+            enregistrees, {totalStock} exemplaires au total.
           </p>
         </div>
 
