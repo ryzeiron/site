@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "download:dp-images": "node scripts/download-dp-images.mjs",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
