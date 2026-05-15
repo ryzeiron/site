@@ -13,8 +13,13 @@ type CardImageProps = {
 function buildFallbacks(src: string) {
   const fallbacks: string[] = [];
 
-  if (src.includes("https://assets.tcgdex.net/fr/")) {
-    fallbacks.push(src.replace("/fr/", "/en/"));
+  if (src.startsWith("https://assets.pokemon.com/static-assets/")) {
+    fallbacks.push(
+      src.replace(
+        "https://assets.pokemon.com/static-assets/",
+        "https://www.pokemon.com/static-assets/",
+      ),
+    );
   }
 
   if (src.includes("/high.webp")) {
