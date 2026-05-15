@@ -36,8 +36,8 @@ function cardNumber(localId: number | string, total: number): string {
   return localId;
 }
 
-function tcgdexImage(setId: string, localId: number | string): string {
-  return `https://assets.tcgdex.net/fr/dp/${setId}/${String(localId)}/high.webp`;
+function pokemonFrImage(setCode: string, localId: number | string): string {
+  return `https://assets.pokemon.com/static-assets/content-assets/cms2-fr-fr/img/cards/web/${setCode}/${setCode}_FR_${String(localId)}.png`;
 }
 
 function cardSlug(localId: number | string): string {
@@ -47,7 +47,7 @@ function cardSlug(localId: number | string): string {
 function makeCards(
   serieId: string,
   prefix: string,
-  tcgdexSetId: string,
+  pokemonSetCode: string,
   total: number,
   entries: Entry[],
 ): Card[] {
@@ -64,7 +64,7 @@ function makeCards(
       language: "FR",
       price: 1,
       stock: 0,
-      image: tcgdexImage(tcgdexSetId, localId),
+      image: pokemonFrImage(pokemonSetCode, localId),
       ...(altVariant ? { altVariant } : {}),
     };
   });
@@ -940,11 +940,11 @@ SH3|Voltorbe|secret
 `);
 
 export const DIAMANT_ET_PERLE_CARDS: Card[] = [
-  ...makeCards("DP01", "dp01", "dp1", 130, DIAMANT_ET_PERLE_BASE),
-  ...makeCards("DP01.5", "dp01-5", "dp2", 123, TRESORS_MYSTERIEUX),
-  ...makeCards("DP02", "dp02", "dp3", 132, MERVEILLES_SECRETES),
-  ...makeCards("DP03", "dp03", "dp4", 106, DUELS_AU_SOMMET),
-  ...makeCards("DP04", "dp04", "dp5", 100, AUBE_MAJESTUEUSE),
-  ...makeCards("DP05", "dp05", "dp6", 146, EVEIL_DES_LEGENDES),
-  ...makeCards("DP06", "dp06", "dp7", 100, TEMPETE),
+  ...makeCards("DP01", "dp01", "DP1", 130, DIAMANT_ET_PERLE_BASE),
+  ...makeCards("DP01.5", "dp01-5", "DP2", 123, TRESORS_MYSTERIEUX),
+  ...makeCards("DP02", "dp02", "DP3", 132, MERVEILLES_SECRETES),
+  ...makeCards("DP03", "dp03", "DP4", 106, DUELS_AU_SOMMET),
+  ...makeCards("DP04", "dp04", "DP5", 100, AUBE_MAJESTUEUSE),
+  ...makeCards("DP05", "dp05", "DP6", 146, EVEIL_DES_LEGENDES),
+  ...makeCards("DP06", "dp06", "DP7", 100, TEMPETE),
 ];
