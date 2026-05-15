@@ -12,12 +12,135 @@ import {
   isRarity,
   listVariants,
   type Card,
+  type Serie,
 } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
 type Search = { serie?: string; q?: string; rarity?: string };
+
+// Change l'ordre ici pour ranger les series dans le menu admin.
+const ADMIN_SERIE_ORDER: readonly string[] = [
+  "me-promo",
+  "me01",
+  "me02",
+  "me02.5",
+  "me03",
+  "me04",
+  "me05",
+  "promo",
+  "ev01",
+  "ev02",
+  "ev03",
+  "ev03.5",
+  "ev04",
+  "ev04.5",
+  "ev05",
+  "ev06",
+  "ev06.5",
+  "ev07",
+  "ev08",
+  "ev08.5",
+  "ev09",
+  "ev10",
+  "ev10.5",
+  "foudre-noire",
+  "promo-eb",
+  "eb01",
+  "eb02",
+  "eb03",
+  "eb03.5",
+  "eb04",
+  "eb04.5",
+  "eb05",
+  "eb06",
+  "eb07",
+  "eb07.5",
+  "eb08",
+  "eb09",
+  "eb10",
+  "eb10.5",
+  "eb11",
+  "eb12",
+  "crown-zenith",
+  "PRSM",
+  "sl01",
+  "sl02",
+  "sl03",
+  "sl03.5",
+  "sl04",
+  "sl05",
+  "sl06",
+  "sl07",
+  "sl07.5",
+  "sl08",
+  "sl09",
+  "sl10",
+  "sl11",
+  "sl11.5",
+  "sl12",
+  "prxy",
+  "xy00",
+  "xy01",
+  "xy02",
+  "xy03",
+  "xy04",
+  "xy05",
+  "xy05.5",
+  "xy06",
+  "xy07",
+  "xy08",
+  "xy09",
+  "xy09.5",
+  "xy10",
+  "xy11",
+  "xy12",
+  "prbw",
+  "nb01",
+  "nb02",
+  "nb03",
+  "nb04",
+  "nb05",
+  "nb06",
+  "nb07",
+  "nb07.5",
+  "nb08",
+  "nb09",
+  "nb10",
+  "adl",
+  "prhgss",
+  "HGSS01",
+  "HGSS02",
+  "HGSS03",
+  "HGSS04",
+  "PT01",
+  "PT02",
+  "PT03",
+  "PT04",
+  "DP01",
+  "DP01.5",
+  "DP02",
+  "DP03",
+  "DP04",
+  "DP05",
+  "DP06",
+  "EX01",
+  "EX02",
+  "EX03",
+  "EX04",
+  "EX05",
+  "EX06",
+  "EX07",
+  "EX08",
+  "EX09",
+  "EX010",
+  "EX011",
+  "EX012",
+  "EX013",
+  "EX014",
+  "EX015",
+];
 
 function normalizeSearch(value: string) {
   return value
@@ -47,6 +170,19 @@ function searchableText(card: Card) {
   );
 }
 
+function compareAdminSeries(a: Serie, b: Serie) {
+  const orderA = ADMIN_SERIE_ORDER.indexOf(a.id);
+  const orderB = ADMIN_SERIE_ORDER.indexOf(b.id);
+
+  if (orderA !== orderB) {
+    if (orderA === -1) return 1;
+    if (orderB === -1) return -1;
+    return orderA - orderB;
+  }
+
+  return a.code.localeCompare(b.code, "fr", { numeric: true });
+}
+
 export default async function AdminPage({
   searchParams,
 }: {
@@ -63,11 +199,9 @@ export default async function AdminPage({
 
   const serie = serieId ? getSerie(serieId) : undefined;
   const allCardsWithStock = await applyStockOverrides(CARDS);
-
   const stockedCards = allCardsWithStock.filter((card) =>
     listVariants(card).some(({ variant }) => variant.stock > 0),
   ).length;
-
   const totalStock = allCardsWithStock.reduce(
     (total, card) =>
       total +
@@ -77,7 +211,6 @@ export default async function AdminPage({
       ),
     0,
   );
-
   const cards = serie
     ? allCardsWithStock.filter((card) => card.serieId === serie.id)
     : serieId
@@ -85,7 +218,6 @@ export default async function AdminPage({
       : hasSearch
         ? allCardsWithStock
         : [];
-
   let filteredCards = cards;
 
   if (terms.length > 0) {
@@ -101,7 +233,7 @@ export default async function AdminPage({
     );
   }
 
-  const sortedSeries = [...SERIES].sort((a, b) => a.code.localeCompare(b.code));
+  const sortedSeries = [...SERIES].sort(compareAdminSeries);
   const totalCards = CARDS.length;
 
   return (
@@ -113,7 +245,8 @@ export default async function AdminPage({
           </h1>
           <p className="text-sm text-gray-400 mt-1">
             {stockedCards} cartes en stock sur {totalCards} cartes
-            enregistrees, {totalStock} exemplaires au total.
+            enregistrees, {totalStock} exemplaires au total. Modifie le stock
+            et le prix par variante - les valeurs ecrasent celles du catalogue.
           </p>
         </div>
 
