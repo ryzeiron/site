@@ -36,18 +36,18 @@ function cardNumber(localId: number | string, total: number): string {
   return localId;
 }
 
-function pokemonFrImage(setCode: string, localId: number | string): string {
-  return `https://assets.pokemon.com/static-assets/content-assets/cms2-fr-fr/img/cards/web/${setCode}/${setCode}_FR_${String(localId)}.png`;
-}
-
 function cardSlug(localId: number | string): string {
   return typeof localId === "number" ? String(localId).padStart(3, "0") : localId.toLowerCase();
+}
+
+function localImage(prefix: string, localId: number | string): string {
+  return `/cartes/${prefix}/${cardSlug(localId)}.png`;
 }
 
 function makeCards(
   serieId: string,
   prefix: string,
-  pokemonSetCode: string,
+  _pokemonSetCode: string,
   total: number,
   entries: Entry[],
 ): Card[] {
@@ -64,11 +64,12 @@ function makeCards(
       language: "FR",
       price: 1,
       stock: 0,
-      image: pokemonFrImage(pokemonSetCode, localId),
+      image: localImage(prefix, localId),
       ...(altVariant ? { altVariant } : {}),
     };
   });
 }
+
 
 // DP01 - Diamant & Perle
 const DIAMANT_ET_PERLE_BASE = parseEntries(`
