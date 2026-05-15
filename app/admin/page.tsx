@@ -20,126 +20,165 @@ export const dynamic = "force-dynamic";
 
 type Search = { serie?: string; q?: string; rarity?: string };
 
-// Change l'ordre ici pour ranger les series dans le menu admin.
-const ADMIN_SERIE_ORDER: readonly string[] = [
-  "me-promo",
-  "me01",
-  "me02",
-  "me02.5",
-  "me03",
-  "me04",
-  "me05",
-  "promo",
-  "ev01",
-  "ev02",
-  "ev03",
-  "ev03.5",
-  "ev04",
-  "ev04.5",
-  "ev05",
-  "ev06",
-  "ev06.5",
-  "ev07",
-  "ev08",
-  "ev08.5",
-  "ev09",
-  "ev10",
-  "ev10.5",
-  "foudre-noire",
-  "promo-eb",
-  "eb01",
-  "eb02",
-  "eb03",
-  "eb03.5",
-  "eb04",
-  "eb04.5",
-  "eb05",
-  "eb06",
-  "eb07",
-  "eb07.5",
-  "eb08",
-  "eb09",
-  "eb10",
-  "eb10.5",
-  "eb11",
-  "eb12",
-  "crown-zenith",
-  "PRSM",
-  "sl01",
-  "sl02",
-  "sl03",
-  "sl03.5",
-  "sl04",
-  "sl05",
-  "sl06",
-  "sl07",
-  "sl07.5",
-  "sl08",
-  "sl09",
-  "sl10",
-  "sl11",
-  "sl11.5",
-  "sl12",
-  "prxy",
-  "xy00",
-  "xy01",
-  "xy02",
-  "xy03",
-  "xy04",
-  "xy05",
-  "xy05.5",
-  "xy06",
-  "xy07",
-  "xy08",
-  "xy09",
-  "xy09.5",
-  "xy10",
-  "xy11",
-  "xy12",
-  "prbw",
-  "nb01",
-  "nb02",
-  "nb03",
-  "nb04",
-  "nb05",
-  "nb06",
-  "nb07",
-  "nb07.5",
-  "nb08",
-  "nb09",
-  "nb10",
-  "adl",
-  "prhgss",
-  "HGSS01",
-  "HGSS02",
-  "HGSS03",
-  "HGSS04",
-  "PT01",
-  "PT02",
-  "PT03",
-  "PT04",
-  "DP01",
-  "DP01.5",
-  "DP02",
-  "DP03",
-  "DP04",
-  "DP05",
-  "DP06",
-  "EX01",
-  "EX02",
-  "EX03",
-  "EX04",
-  "EX05",
-  "EX06",
-  "EX07",
-  "EX08",
-  "EX09",
-  "EX010",
-  "EX011",
-  "EX012",
-  "EX013",
-  "EX014",
-  "EX015",
+type AdminSerieGroup = {
+  label: string;
+  seriesIds: readonly string[];
+};
+
+// Change l'ordre ici pour ranger les groupes et les series dans le menu admin.
+const ADMIN_SERIE_GROUPS: readonly AdminSerieGroup[] = [
+  {
+    label: "ME",
+    seriesIds: [
+      "me-promo",
+      "me01",
+      "me02",
+      "me02.5",
+      "me03",
+      "me04",
+      "me05",
+    ],
+  },
+  {
+    label: "EV",
+    seriesIds: [
+      "promo",
+      "ev01",
+      "ev02",
+      "ev03",
+      "ev03.5",
+      "ev04",
+      "ev04.5",
+      "ev05",
+      "ev06",
+      "ev06.5",
+      "ev07",
+      "ev08",
+      "ev08.5",
+      "ev09",
+      "ev10",
+      "ev10.5",
+      "foudre-noire",
+    ],
+  },
+  {
+    label: "EB",
+    seriesIds: [
+      "promo-eb",
+      "eb01",
+      "eb02",
+      "eb03",
+      "eb03.5",
+      "eb04",
+      "eb04.5",
+      "eb05",
+      "eb06",
+      "eb07",
+      "eb07.5",
+      "eb08",
+      "eb09",
+      "eb10",
+      "eb10.5",
+      "eb11",
+      "eb12",
+      "crown-zenith",
+    ],
+  },
+  {
+    label: "SL",
+    seriesIds: [
+      "PRSM",
+      "sl01",
+      "sl02",
+      "sl03",
+      "sl03.5",
+      "sl04",
+      "sl05",
+      "sl06",
+      "sl07",
+      "sl07.5",
+      "sl08",
+      "sl09",
+      "sl10",
+      "sl11",
+      "sl11.5",
+      "sl12",
+    ],
+  },
+  {
+    label: "XY",
+    seriesIds: [
+      "prxy",
+      "xy00",
+      "xy01",
+      "xy02",
+      "xy03",
+      "xy04",
+      "xy05",
+      "xy05.5",
+      "xy06",
+      "xy07",
+      "xy08",
+      "xy09",
+      "xy09.5",
+      "xy10",
+      "xy11",
+      "xy12",
+    ],
+  },
+  {
+    label: "NB",
+    seriesIds: [
+      "prbw",
+      "nb01",
+      "nb02",
+      "nb03",
+      "nb04",
+      "nb05",
+      "nb06",
+      "nb07",
+      "nb07.5",
+      "nb08",
+      "nb09",
+      "nb10",
+    ],
+  },
+  {
+    label: "ADL",
+    seriesIds: ["adl"],
+  },
+  {
+    label: "HGSS",
+    seriesIds: ["prhgss", "HGSS01", "HGSS02", "HGSS03", "HGSS04"],
+  },
+  {
+    label: "PT",
+    seriesIds: ["PT01", "PT02", "PT03", "PT04"],
+  },
+  {
+    label: "DP",
+    seriesIds: ["DP01", "DP01.5", "DP02", "DP03", "DP04", "DP05", "DP06"],
+  },
+  {
+    label: "EX",
+    seriesIds: [
+      "EX01",
+      "EX02",
+      "EX03",
+      "EX04",
+      "EX05",
+      "EX06",
+      "EX07",
+      "EX08",
+      "EX09",
+      "EX010",
+      "EX011",
+      "EX012",
+      "EX013",
+      "EX014",
+      "EX015",
+    ],
+  },
 ];
 
 function normalizeSearch(value: string) {
@@ -170,17 +209,22 @@ function searchableText(card: Card) {
   );
 }
 
-function compareAdminSeries(a: Serie, b: Serie) {
-  const orderA = ADMIN_SERIE_ORDER.indexOf(a.id);
-  const orderB = ADMIN_SERIE_ORDER.indexOf(b.id);
+function getAdminSerieGroups() {
+  const groupedSerieIds = new Set(
+    ADMIN_SERIE_GROUPS.flatMap((group) => group.seriesIds),
+  );
+  const groups = ADMIN_SERIE_GROUPS.map((group) => ({
+    label: group.label,
+    series: group.seriesIds
+      .map((id) => SERIES.find((serie) => serie.id === id))
+      .filter((serie): serie is Serie => Boolean(serie)),
+  })).filter((group) => group.series.length > 0);
+  const otherSeries = SERIES.filter((serie) => !groupedSerieIds.has(serie.id))
+    .sort((a, b) => a.code.localeCompare(b.code, "fr", { numeric: true }));
 
-  if (orderA !== orderB) {
-    if (orderA === -1) return 1;
-    if (orderB === -1) return -1;
-    return orderA - orderB;
-  }
+  if (otherSeries.length === 0) return groups;
 
-  return a.code.localeCompare(b.code, "fr", { numeric: true });
+  return [...groups, { label: "Autres", series: otherSeries }];
 }
 
 export default async function AdminPage({
@@ -233,7 +277,7 @@ export default async function AdminPage({
     );
   }
 
-  const sortedSeries = [...SERIES].sort(compareAdminSeries);
+  const serieGroups = getAdminSerieGroups();
   const totalCards = CARDS.length;
 
   return (
@@ -260,10 +304,14 @@ export default async function AdminPage({
           className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         >
           <option value="">-- Toutes les series --</option>
-          {sortedSeries.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.code} - {s.name}
-            </option>
+          {serieGroups.map((group) => (
+            <optgroup key={group.label} label={group.label}>
+              {group.series.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.code} - {s.name}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
 
