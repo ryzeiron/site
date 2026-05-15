@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CardImage from "@/components/CardImage";
 import FavoriteHeartButton from "@/components/FavoriteHeartButton";
 import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
@@ -38,13 +39,14 @@ export default function CardTile({
       <Link href={`/carte/${card.id}`} className="block">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center text-gray-300 font-semibold overflow-hidden">
           {card.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <CardImage
               src={card.image}
               alt={card.name}
               className={`w-full h-full object-contain ${
                 outOfStock ? "opacity-40 grayscale" : ""
               }`}
+              fallbackText={card.name}
+              fallbackClassName="px-2 text-center"
             />
           ) : (
             <span className="px-2 text-center">{card.name}</span>
