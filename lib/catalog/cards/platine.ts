@@ -409,18 +409,10 @@ export const PLATINE_CARDS = ([
 { id: "pt03-145", serieId: "PT03", name: "Carchacrok LV.X", number: "145/147", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/145.webp", },
 { id: "pt03-146", serieId: "PT03", name: "Rayquaza LV.X", number: "146/147", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/146.webp", },
 { id: "pt03-147", serieId: "PT03", name: "Etouraptor LV.X", number: "147/147", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/147.webp", },
-{ id: "pt03-sh7", serieId: "PT03", name: "Milobellus", number: "SH7", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/sh7.webp", },
-{ id: "pt03-sh8", serieId: "PT03", name: "Relicanth", number: "SH8", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/sh8.webp", },
-{ id: "pt03-sh9", serieId: "PT03", name: "Yanma", number: "SH9", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/sh9.webp", },
-{ id: "pt03-ar1", serieId: "PT03", name: "Arceus", number: "AR1", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/ar1.webp", },
-{ id: "pt03-ar2", serieId: "PT03", name: "Arceus", number: "AR2", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/ar2.webp", },
-{ id: "pt03-ar3", serieId: "PT03", name: "Arceus", number: "AR3", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/ar3.webp", },
-{ id: "pt03-ar4", serieId: "PT03", name: "Arceus", number: "AR4", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/ar4.webp", },
-{ id: "pt03-ar5", serieId: "PT03", name: "Arceus", number: "AR5", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/ar5.webp", },
-{ id: "pt03-ar6", serieId: "PT03", name: "Arceus", number: "AR6", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/ar6.webp", },
-{ id: "pt03-ar7", serieId: "PT03", name: "Arceus", number: "AR7", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/ar7.webp", },
-{ id: "pt03-ar8", serieId: "PT03", name: "Arceus", number: "AR8", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/ar8.webp", },
-{ id: "pt03-ar9", serieId: "PT03", name: "Arceus", number: "AR9", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/ar9.webp", },
+{ id: "pt03-sh7", serieId: "PT03", name: "Milobellus", number: "SH7", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/160.webp", },
+{ id: "pt03-sh8", serieId: "PT03", name: "Relicanth", number: "SH8", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/161.webp", },
+{ id: "pt03-sh9", serieId: "PT03", name: "Yanma", number: "SH9", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT03/162.webp", },
+
 
 // PT04 - Arceus
 { id: "pt04-ar1", serieId: "PT04", name: "Arceus", number: "AR1", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/PT04/ar1.webp", },
