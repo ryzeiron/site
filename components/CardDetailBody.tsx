@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import CardImage from "@/components/CardImage";
 import FavoriteCardButton from "@/components/FavoriteCardButton";
 import { useCart } from "@/lib/cart";
 import { listVariants, resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
@@ -52,27 +53,7 @@ function VariantBlock({
               : "bg-brand-500 hover:bg-brand-600 text-white"
         }`}
       >
-        {outOfStock ? (
-          "Rupture de stock"
-        ) : added ? (
-          <>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-4 h-4"
-            >
-              <path d="M5 12l5 5L20 7" />
-            </svg>
-            Ajouté
-          </>
-        ) : (
-          "Ajouter au panier"
-        )}
+        {outOfStock ? "Rupture de stock" : added ? "Ajouté" : "Ajouter au panier"}
       </button>
 
       <FavoriteCardButton
@@ -105,66 +86,17 @@ export default function CardDetailBody({ card }: { card: Card }) {
     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="relative aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 border border-white/10 rounded-xl flex items-center justify-center text-gray-300 text-2xl font-bold overflow-hidden">
         {currentImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <CardImage
             src={currentImage}
             alt={`${card.name}${imageIndex === 1 ? " (dos)" : ""}`}
             className={`w-full h-full object-contain ${
               allOutOfStock ? "opacity-40 grayscale" : ""
             }`}
+            fallbackText={card.name}
+            fallbackClassName="px-4 text-center"
           />
         ) : (
           <span className="px-4 text-center">{card.name}</span>
-        )}
-
-        {hasMultipleImages && (
-          <>
-            <button
-              type="button"
-              onClick={() =>
-                setImageIndex((i) => (i - 1 + images.length) % images.length)
-              }
-              aria-label="Image précédente"
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-5 h-5"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setImageIndex((i) => (i + 1) % images.length)}
-              aria-label="Image suivante"
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-5 h-5"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 text-white text-xs px-3 py-1">
-              {imageIndex === 0 ? "Devant" : "Dos"}
-            </div>
-          </>
         )}
 
         {allOutOfStock && (
