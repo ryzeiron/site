@@ -116,7 +116,8 @@ function cardEntry({ id, serieId, name, number, rarity, image, withReverse }) {
       const number = `${String(localId).padStart(3, "0")}/${String(totalInSet).padStart(3, "0")}`;
       const id = `${serie}-${String(localId).padStart(3, "0")}`;
       const rarity = c.rarity ?? "Commune";
-      const image = `/cartes/${serie}/${localId}.webp`;
+      // tcgdex renvoie une URL de base (sans extension) qu'on suffixe avec qualite + format
+      const image = c.image ? `${c.image}/high.webp` : `/cartes/${serie}/${localId}.webp`;
       const name = c.name ?? "Carte inconnue";
 
       seenRarities.set(rarity, (seenRarities.get(rarity) ?? 0) + 1);
