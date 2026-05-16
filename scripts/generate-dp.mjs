@@ -4,10 +4,10 @@
 // Usage : node scripts/generate-dp.mjs
 //
 // Comportement :
-//   - Pour chaque carte qui n'est PAS Secrete/Ultra Rare : genere 2 entrees
-//     (1 Commune + 1 Reverse).
-//   - Pour les cartes Secrete / Ultra Rare / autres : 1 seule entree avec la
-//     rarete originale traduite en FR.
+//   - Pour chaque carte qui n'est PAS Secrete/Ultra Rare/LV.X/Shiny :
+//     genere 2 entrees (1 Commune + 1 Reverse).
+//   - Pour les cartes Secrete / Ultra Rare / LV.X / Shiny : 1 seule entree
+//     avec la rarete originale.
 
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -28,20 +28,37 @@ const SETS = [
   { tcg: "dp7", serie: "dp07" },
 ];
 
-// Raretes tcgdex (FR) qui ne doivent PAS avoir de version Commune/Reverse
-// (= les cartes secretes / ultra rares gardent leur rarete d'origine)
-const NO_DOUBLE_VARIANTS = new Set([
-  "Secrete Rare",
-  "Secret Rare",
-  "Ultra Rare",
-  "Rare Holo LV.X",
-  "LV.X",
-  "Rare Holo Star",
-  "Shiny Rare",
-  "Shiny Holo Rare",
-  "Rainbow Rare",
-  "Gold Star",
-]);
+// Raretes pour lesquelles on ne genere PAS la double variante (Commune+Reverse).
+// Match insensible a la casse et au separateur. Tout le reste -> 2 entrees.
+const SINGLE_ENTRY_RARITIES = [
+  "ultra rare",
+  "secret rare",
+  "secrete rare",
+  "lv.x",
+  "lvx",
+  "rare holo lv.x",
+  "shiny",
+  "shiny rare",
+  "shiny holo rare",
+  "shining",
+  "gold star",
+  "rare holo star",
+  "rainbow rare",
+];
+
+function normalize(s) {
+  return String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isSingleEntry(rarity) {
+  const r = normalize(rarity);
+  return SINGLE_ENTRY_RARITIES.some((x) => r === normalize(x));
+}
 
 async function fetchSet(setId) {
   const url = `https://api.tcgdex.net/v2/fr/sets/${setId}`;
@@ -52,26 +69,7 @@ async function fetchSet(setId) {
   return res.json();
 }
 
-function normalizeRarity(raw) {
-  if (!raw) return null;
-  const s = String(raw).trim();
-  // tcgdex renvoie souvent en FR mais parfois en EN, on normalise
-  const map = {
-    Common: "Commune",
-    Uncommon: "Peu Commune",
-    Rare: "Rare",
-    "Rare Holo": "Rare Holo",
-    "Holo Rare": "Rare Holo",
-    "Ultra Rare": "Ultra Rare",
-    "Secret Rare": "Secrete Rare",
-    "LV.X": "LV.X",
-    "Rare Holo LV.X": "LV.X",
-  };
-  return map[s] ?? s;
-}
-
 function jsonLine(card) {
-  // garde le meme format/ordre que les autres fichiers du catalogue
   return `  { id: ${JSON.stringify(card.id)}, serieId: ${JSON.stringify(card.serieId)}, name: ${JSON.stringify(card.name)}, number: ${JSON.stringify(card.number)}, rarity: ${JSON.stringify(card.rarity)}, condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: ${JSON.stringify(card.image)}, },`;
 }
 
@@ -79,18 +77,24 @@ function jsonLine(card) {
   const lines = [];
   lines.push(`import type { Card } from "../../catalog";`);
   lines.push(``);
-  lines.push(`// Diamant et Perle - genere automatiquement par scripts/generate-dp.mjs`);
+  lines.push(`// Diamant et Perle - genere par scripts/generate-dp.mjs`);
   lines.push(`export const DIAMANT_ET_PERLE_CARDS = ([`);
 
   let total = 0;
+  const seenRarities = new Map();
 
   for (const { tcg, serie } of SETS) {
-    console.log(`Fetch set ${tcg}...`);
-    const setData = await fetchSet(tcg);
+    console.log(`\n=== Fetch set ${tcg} (-> ${serie}) ===`);
+    let setData;
+    try {
+      setData = await fetchSet(tcg);
+    } catch (e) {
+      console.error(`  ERREUR fetch ${tcg} : ${e.message} - set ignore`);
+      continue;
+    }
     const cards = setData.cards ?? [];
     console.log(`  ${cards.length} cartes recues.`);
 
-    // tri par localId numerique (ou alphanumerique en fallback)
     cards.sort((a, b) => {
       const na = parseInt(a.localId, 10);
       const nb = parseInt(b.localId, 10);
@@ -104,16 +108,16 @@ function jsonLine(card) {
       const localId = c.localId;
       const number = `${String(localId).padStart(3, "0")}/${String(totalInSet).padStart(3, "0")}`;
       const baseId = `${serie}-${String(localId).padStart(3, "0")}`;
-      const rarity = normalizeRarity(c.rarity) ?? "Commune";
+      const rarity = c.rarity ?? "Commune";
       const image = `/cartes/${serie}/${localId}.webp`;
       const name = c.name;
 
-      if (NO_DOUBLE_VARIANTS.has(rarity)) {
-        // une seule entree, rarete d'origine
+      seenRarities.set(rarity, (seenRarities.get(rarity) ?? 0) + 1);
+
+      if (isSingleEntry(rarity)) {
         lines.push(jsonLine({ id: baseId, serieId: serie, name, number, rarity, image }));
         total += 1;
       } else {
-        // 2 entrees : Commune + Reverse
         lines.push(jsonLine({ id: `${baseId}-c`, serieId: serie, name, number, rarity: "Commune", image }));
         lines.push(jsonLine({ id: `${baseId}-r`, serieId: serie, name, number, rarity: "Reverse", image }));
         total += 2;
@@ -126,5 +130,11 @@ function jsonLine(card) {
 
   mkdirSync(dirname(OUT_FILE), { recursive: true });
   writeFileSync(OUT_FILE, lines.join("\n"), "utf8");
-  console.log(`OK : ${total} entrees ecrites dans ${OUT_FILE}`);
+
+  console.log(`\n=== TERMINE ===`);
+  console.log(`${total} entrees ecrites dans ${OUT_FILE}`);
+  console.log(`\nRaretes rencontrees (verifie si certaines auraient du etre en single entry) :`);
+  for (const [r, n] of [...seenRarities.entries()].sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${n.toString().padStart(4)}  ${r}`);
+  }
 })();
