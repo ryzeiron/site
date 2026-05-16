@@ -340,14 +340,15 @@ export const SERIES: Serie[] = [
   { id: "PT04", blocId: "platine", code: "PT04", name: "Arceus", releaseYear: 2010, image: "/series/PT/AR.webp",   },
 
   // Diamant Et Perle
-  { id: "PRDP", blocId: "diamant-et-perle", code: "PRDP", name: "Promo Diamant Et Perle", releaseYear: 2007 },
-  { id: "DP01", blocId: "diamant-et-perle", code: "DP01", name: "Diamant Et Perle", releaseYear: 2007 },
-  { id: "DP02", blocId: "diamant-et-perle", code: "DP02", name: "Tresors Mysterieux", releaseYear: 2008 },
-  { id: "DP03", blocId: "diamant-et-perle", code: "DP03", name: "Merveilles Secretes", releaseYear: 2008 },
-  { id: "DP04", blocId: "diamant-et-perle", code: "DP04", name: "Duels Au Sommet", releaseYear: 2008 },
-  { id: "DP05", blocId: "diamant-et-perle", code: "DP05", name: "Aube Majestueuse", releaseYear: 2008 },
-  { id: "DP06", blocId: "diamant-et-perle", code: "DP06", name: "Eveil Des Legendes", releaseYear: 2009 },
-  { id: "DP07", blocId: "diamant-et-perle", code: "DP07", name: "Tempete", releaseYear: 2009 },
+    // Diamant et Perle
+  { id: "promo-dp", blocId: "diamant-et-perle", code: "Promo", name: "Promos Diamant et Perle", releaseYear: 2007, image: "/series/DP/DPP.webp", },
+  { id: "dp01", blocId: "diamant-et-perle", code: "DP01", name: "Diamant et Perle", releaseYear: 2007, image: "/series/DP/DP1.webp", },
+  { id: "dp02", blocId: "diamant-et-perle", code: "DP02", name: "Tresors Mysterieux", releaseYear: 2007, image: "/series/DP/DP2.webp", },
+  { id: "dp03", blocId: "diamant-et-perle", code: "DP03", name: "Merveilles Secretes", releaseYear: 2007, image: "/series/DP/DP3.webp", },
+  { id: "dp04", blocId: "diamant-et-perle", code: "DP04", name: "Duels au Sommet", releaseYear: 2008, image: "/series/DP/DP4.webp", },
+  { id: "dp05", blocId: "diamant-et-perle", code: "DP05", name: "Aube Majestueuse", releaseYear: 2008, image: "/series/DP/DP5.webp", },
+  { id: "dp06", blocId: "diamant-et-perle", code: "DP06", name: "Eveil des Legendes", releaseYear: 2008, image: "/series/DP/DP6.webp", },
+  { id: "dp07", blocId: "diamant-et-perle", code: "DP07", name: "Tempete", releaseYear: 2008, image: "/series/DP/DP7.webp", },
 
   // EX
   { id: "EX01", blocId: "ex", code: "EX01", name: "Rubis Et Saphir", releaseYear: 2003 },
