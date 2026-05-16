@@ -3,11 +3,11 @@
 //
 // Usage : node scripts/generate-dp.mjs
 //
-// Comportement :
-//   - Pour chaque carte qui n'est PAS Secrete/Ultra Rare/LV.X/Shiny :
-//     genere 2 entrees (1 Commune + 1 Reverse).
-//   - Pour les cartes Secrete / Ultra Rare / LV.X / Shiny : 1 seule entree
-//     avec la rarete originale.
+// Comportement : 1 entree par carte avec
+//   - rarity "Commune" (base)
+//   - altVariant: { rarity: "Reverse", price, stock } pour la variante reverse
+// Pour les cartes Secrete / Ultra Rare / LV.X / Shiny : pas d'altVariant,
+// juste la rarete originale.
 
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -16,7 +16,6 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_FILE = resolve(__dirname, "../lib/catalog/cards/diamant-et-perle.ts");
 
-// id tcgdex -> serieId catalog
 const SETS = [
   { tcg: "dpp", serie: "promo-dp" },
   { tcg: "dp1", serie: "dp01" },
@@ -28,9 +27,7 @@ const SETS = [
   { tcg: "dp7", serie: "dp07" },
 ];
 
-// Raretes pour lesquelles on ne genere PAS la double variante (Commune+Reverse).
-// Match insensible a la casse et au separateur. Tout le reste -> 2 entrees.
-const SINGLE_ENTRY_RARITIES = [
+const NO_REVERSE_RARITIES = [
   "ultra rare",
   "secret rare",
   "secrete rare",
@@ -55,9 +52,9 @@ function normalize(s) {
     .trim();
 }
 
-function isSingleEntry(rarity) {
+function hasReverse(rarity) {
   const r = normalize(rarity);
-  return SINGLE_ENTRY_RARITIES.some((x) => r === normalize(x));
+  return !NO_REVERSE_RARITIES.some((x) => r === normalize(x));
 }
 
 async function fetchSet(setId) {
@@ -69,8 +66,16 @@ async function fetchSet(setId) {
   return res.json();
 }
 
-function jsonLine(card) {
-  return `  { id: ${JSON.stringify(card.id)}, serieId: ${JSON.stringify(card.serieId)}, name: ${JSON.stringify(card.name)}, number: ${JSON.stringify(card.number)}, rarity: ${JSON.stringify(card.rarity)}, condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: ${JSON.stringify(card.image)}, },`;
+function cardEntry({ id, serieId, name, number, rarity, image, withReverse }) {
+  // 1 entree par carte. Rarity = "Commune" par defaut pour les cartes normales,
+  // ou la rarete originale pour les cartes sans reverse.
+  const baseRarity = withReverse ? "Commune" : (rarity ?? "Commune");
+  let line = `  { id: ${JSON.stringify(id)}, serieId: ${JSON.stringify(serieId)}, name: ${JSON.stringify(name)}, number: ${JSON.stringify(number)}, rarity: ${JSON.stringify(baseRarity)}, condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: ${JSON.stringify(image)}`;
+  if (withReverse) {
+    line += `, altVariant: { rarity: "Reverse", price: 0.5, stock: 0 }`;
+  }
+  line += `, },`;
+  return line;
 }
 
 (async () => {
@@ -81,6 +86,8 @@ function jsonLine(card) {
   lines.push(`export const DIAMANT_ET_PERLE_CARDS = ([`);
 
   let total = 0;
+  let withReverseCount = 0;
+  let singleCount = 0;
   const seenRarities = new Map();
 
   for (const { tcg, serie } of SETS) {
@@ -107,21 +114,18 @@ function jsonLine(card) {
     for (const c of cards) {
       const localId = c.localId;
       const number = `${String(localId).padStart(3, "0")}/${String(totalInSet).padStart(3, "0")}`;
-      const baseId = `${serie}-${String(localId).padStart(3, "0")}`;
+      const id = `${serie}-${String(localId).padStart(3, "0")}`;
       const rarity = c.rarity ?? "Commune";
       const image = `/cartes/${serie}/${localId}.webp`;
-      const name = c.name;
+      const name = c.name ?? "Carte inconnue";
 
       seenRarities.set(rarity, (seenRarities.get(rarity) ?? 0) + 1);
 
-      if (isSingleEntry(rarity)) {
-        lines.push(jsonLine({ id: baseId, serieId: serie, name, number, rarity, image }));
-        total += 1;
-      } else {
-        lines.push(jsonLine({ id: `${baseId}-c`, serieId: serie, name, number, rarity: "Commune", image }));
-        lines.push(jsonLine({ id: `${baseId}-r`, serieId: serie, name, number, rarity: "Reverse", image }));
-        total += 2;
-      }
+      const withReverse = hasReverse(rarity);
+      lines.push(cardEntry({ id, serieId: serie, name, number, rarity, image, withReverse }));
+      total += 1;
+      if (withReverse) withReverseCount += 1;
+      else singleCount += 1;
     }
   }
 
@@ -132,8 +136,10 @@ function jsonLine(card) {
   writeFileSync(OUT_FILE, lines.join("\n"), "utf8");
 
   console.log(`\n=== TERMINE ===`);
-  console.log(`${total} entrees ecrites dans ${OUT_FILE}`);
-  console.log(`\nRaretes rencontrees (verifie si certaines auraient du etre en single entry) :`);
+  console.log(`${total} cartes ecrites dans ${OUT_FILE}`);
+  console.log(`  - avec Reverse (Commune + altVariant Reverse) : ${withReverseCount}`);
+  console.log(`  - sans Reverse (rarete originale seule)       : ${singleCount}`);
+  console.log(`\nRaretes rencontrees (verifie si certaines auraient du etre sans reverse) :`);
   for (const [r, n] of [...seenRarities.entries()].sort((a, b) => b[1] - a[1])) {
     console.log(`  ${n.toString().padStart(4)}  ${r}`);
   }
