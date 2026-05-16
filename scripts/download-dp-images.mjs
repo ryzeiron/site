@@ -37,6 +37,15 @@ async function fetchSet(setId) {
   return res.json();
 }
 
+async function fetchCard(cardId) {
+  const url = `https://api.tcgdex.net/v2/fr/cards/${cardId}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Fetch card ${cardId} failed: ${res.status} ${res.statusText}`);
+  }
+  return res.json();
+}
+
 async function downloadImage(srcUrl, destPath) {
   if (existsSync(destPath)) return "skipped";
   const res = await fetch(srcUrl);
@@ -86,13 +95,7 @@ async function runPool(items, worker, concurrency) {
       continue;
     }
     const allCards = setData.cards ?? [];
-    const cards = allCards.filter((c) => c.image);
-    console.log(`  Reponse API : ${allCards.length} cartes au total, dont ${cards.length} avec image.`);
-    if (allCards.length === 0) {
-      console.log(`  DEBUG cles de setData : ${Object.keys(setData).join(", ")}`);
-    } else if (cards.length === 0) {
-      console.log(`  DEBUG premiere carte : ${JSON.stringify(allCards[0]).slice(0, 300)}`);
-    }
+    console.log(`  ${allCards.length} cartes dans le set.`);
 
     const serieDir = resolve(PUBLIC_CARTES, serie);
     mkdirSync(serieDir, { recursive: true });
@@ -102,11 +105,21 @@ async function runPool(items, worker, concurrency) {
     let setFail = 0;
 
     await runPool(
-      cards,
+      allCards,
       async (c) => {
         const dest = resolve(serieDir, `${c.localId}.webp`);
-        const srcUrl = `${c.image}/high.webp`;
+        if (existsSync(dest)) {
+          setSkip++;
+          return;
+        }
         try {
+          const full = await fetchCard(c.id);
+          if (!full.image) {
+            setFail++;
+            console.error(`\n  IMG FAIL ${c.localId} (${c.name}) : champ image absent`);
+            return;
+          }
+          const srcUrl = `${full.image}/high.webp`;
           const state = await downloadImage(srcUrl, dest);
           if (state === "downloaded") setOk++;
           else setSkip++;
