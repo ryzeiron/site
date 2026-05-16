@@ -340,6 +340,7 @@ export const SERIES: Serie[] = [
   { id: "PT04", blocId: "platine", code: "PT04", name: "Arceus", releaseYear: 2010, image: "/series/PT/AR.webp",   },
 
   // Diamant Et Perle
+  { id: "PRDP", blocId: "diamant-et-perle", code: "PRDP", name: "Promo Diamant Et Perle", releaseYear: 2007 },
   { id: "DP01", blocId: "diamant-et-perle", code: "DP01", name: "Diamant Et Perle", releaseYear: 2007 },
   { id: "DP02", blocId: "diamant-et-perle", code: "DP02", name: "Tresors Mysterieux", releaseYear: 2008 },
   { id: "DP03", blocId: "diamant-et-perle", code: "DP03", name: "Merveilles Secretes", releaseYear: 2008 },
