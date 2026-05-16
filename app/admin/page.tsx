@@ -157,7 +157,7 @@ const ADMIN_SERIE_GROUPS: readonly AdminSerieGroup[] = [
   },
   {
     label: "DP",
-    seriesIds: ["PRDP", "DP01", "DP02", "DP03", "DP04", "DP05", "DP06", "DP07"],
+    seriesIds: ["promo-dp", "dp01", "dp02", "dp03", "dp04", "dp05", "dp06", "dp07"],
   },
   {
     label: "EX",
