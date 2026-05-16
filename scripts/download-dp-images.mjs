@@ -38,10 +38,10 @@ async function fetchSet(setId) {
   return res.json();
 }
 
-// Construit l'URL d'asset tcgdex selon le pattern stable :
-// https://assets.tcgdex.net/<lang>/<serie>/<set>/<localId>/high.webp
+// Construit l'URL d'asset tcgdex. Les images n'existent qu'en EN sur le CDN
+// (pas en FR), donc on bascule sur en pour le chemin image.
 function buildAssetUrl({ tcgSerie, tcg, localId }) {
-  return `https://assets.tcgdex.net/fr/${tcgSerie}/${tcg}/${localId}/high.webp`;
+  return `https://assets.tcgdex.net/en/${tcgSerie}/${tcg}/${localId}/high.webp`;
 }
 
 async function downloadImage(srcUrl, destPath) {
