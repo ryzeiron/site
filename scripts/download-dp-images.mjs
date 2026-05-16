@@ -15,15 +15,16 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const PUBLIC_CARTES = resolve(ROOT, "public/cartes");
 
+// Pour chaque set, tcgSerie est le segment d'asset (dp = bloc Diamant & Perle).
 const SETS = [
-  { tcg: "dpp", serie: "promo-dp" },
-  { tcg: "dp1", serie: "dp01" },
-  { tcg: "dp2", serie: "dp02" },
-  { tcg: "dp3", serie: "dp03" },
-  { tcg: "dp4", serie: "dp04" },
-  { tcg: "dp5", serie: "dp05" },
-  { tcg: "dp6", serie: "dp06" },
-  { tcg: "dp7", serie: "dp07" },
+  { tcg: "dpp", tcgSerie: "dp", serie: "promo-dp" },
+  { tcg: "dp1", tcgSerie: "dp", serie: "dp01" },
+  { tcg: "dp2", tcgSerie: "dp", serie: "dp02" },
+  { tcg: "dp3", tcgSerie: "dp", serie: "dp03" },
+  { tcg: "dp4", tcgSerie: "dp", serie: "dp04" },
+  { tcg: "dp5", tcgSerie: "dp", serie: "dp05" },
+  { tcg: "dp6", tcgSerie: "dp", serie: "dp06" },
+  { tcg: "dp7", tcgSerie: "dp", serie: "dp07" },
 ];
 
 const CONCURRENCY = 8;
@@ -37,13 +38,10 @@ async function fetchSet(setId) {
   return res.json();
 }
 
-async function fetchCard(cardId) {
-  const url = `https://api.tcgdex.net/v2/fr/cards/${cardId}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Fetch card ${cardId} failed: ${res.status} ${res.statusText}`);
-  }
-  return res.json();
+// Construit l'URL d'asset tcgdex selon le pattern stable :
+// https://assets.tcgdex.net/<lang>/<serie>/<set>/<localId>/high.webp
+function buildAssetUrl({ tcgSerie, tcg, localId }) {
+  return `https://assets.tcgdex.net/fr/${tcgSerie}/${tcg}/${localId}/high.webp`;
 }
 
 async function downloadImage(srcUrl, destPath) {
@@ -85,7 +83,7 @@ async function runPool(items, worker, concurrency) {
   let totalSkip = 0;
   let totalFail = 0;
 
-  for (const { tcg, serie } of SETS) {
+  for (const { tcg, tcgSerie, serie } of SETS) {
     console.log(`\n=== Set ${tcg} (-> public/cartes/${serie}/) ===`);
     let setData;
     try {
@@ -112,20 +110,14 @@ async function runPool(items, worker, concurrency) {
           setSkip++;
           return;
         }
+        const srcUrl = buildAssetUrl({ tcgSerie, tcg, localId: c.localId });
         try {
-          const full = await fetchCard(c.id);
-          if (!full.image) {
-            setFail++;
-            console.error(`\n  IMG FAIL ${c.localId} (${c.name}) : champ image absent`);
-            return;
-          }
-          const srcUrl = `${full.image}/high.webp`;
           const state = await downloadImage(srcUrl, dest);
           if (state === "downloaded") setOk++;
           else setSkip++;
         } catch (e) {
           setFail++;
-          console.error(`\n  IMG FAIL ${c.localId} (${c.name}) : ${e.message}`);
+          console.error(`\n  IMG FAIL ${c.localId} (${c.name}) : ${e.message} [${srcUrl}]`);
         }
       },
       CONCURRENCY,
