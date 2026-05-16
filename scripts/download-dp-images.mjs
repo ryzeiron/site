@@ -1,190 +1,126 @@
-import fs from "node:fs";
-import https from "node:https";
-import path from "node:path";
+// Telecharge UNIQUEMENT les images des cartes Diamant et Perle depuis tcgdex.net
+// dans public/cartes/<serie>/<localId>.webp
+//
+// Usage : node scripts/download-dp-images.mjs
+//
+// Ne touche PAS au fichier lib/catalog/cards/diamant-et-perle.ts.
+// Re-execute = saute les images deja telechargees (idempotent).
+
+import { writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { Buffer } from "node:buffer";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, "..");
-const catalogPath = path.join(rootDir, "lib", "catalog", "cards", "diamant-et-perle.ts");
-const publicCartesDir = path.join(rootDir, "public", "cartes");
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(__dirname, "..");
+const PUBLIC_CARTES = resolve(ROOT, "public/cartes");
 
-const force = process.argv.includes("--force");
-const limitArg = process.argv.find((arg) => arg.startsWith("--limit="));
-const limit = limitArg ? Number(limitArg.split("=")[1]) : Number.POSITIVE_INFINITY;
+const SETS = [
+  { tcg: "dpp", serie: "promo-dp" },
+  { tcg: "dp1", serie: "dp01" },
+  { tcg: "dp2", serie: "dp02" },
+  { tcg: "dp3", serie: "dp03" },
+  { tcg: "dp4", serie: "dp04" },
+  { tcg: "dp5", serie: "dp05" },
+  { tcg: "dp6", serie: "dp06" },
+  { tcg: "dp7", serie: "dp07" },
+];
 
-function cardSlug(localId) {
-  return /^\d+$/.test(localId) ? localId.padStart(3, "0") : localId.toLowerCase();
-}
+const CONCURRENCY = 8;
 
-function parseEntries(raw) {
-  return raw
-    .trim()
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => line.split("|")[0].trim());
-}
-
-function readCatalog() {
-  const source = fs.readFileSync(catalogPath, "utf8");
-  const entryBlocks = new Map();
-  const blockRegex = /const\s+([A-Z0-9_]+)\s*=\s*parseEntries\(`([\s\S]*?)`\);/g;
-  const callRegex = /\.\.\.makeCards\("([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*\d+,\s*([A-Z0-9_]+)\)/g;
-
-  for (const match of source.matchAll(blockRegex)) {
-    entryBlocks.set(match[1], parseEntries(match[2]));
+async function fetchSet(setId) {
+  const url = `https://api.tcgdex.net/v2/fr/sets/${setId}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Fetch ${setId} failed: ${res.status} ${res.statusText}`);
   }
+  return res.json();
+}
 
-  const cards = [];
+async function downloadImage(srcUrl, destPath) {
+  if (existsSync(destPath)) return "skipped";
+  const res = await fetch(srcUrl);
+  if (!res.ok) {
+    throw new Error(`${res.status} ${res.statusText}`);
+  }
+  const buf = Buffer.from(await res.arrayBuffer());
+  mkdirSync(dirname(destPath), { recursive: true });
+  writeFileSync(destPath, buf);
+  return "downloaded";
+}
 
-  for (const match of source.matchAll(callRegex)) {
-    const [, serieId, prefix, setCode, blockName] = match;
-    const localIds = entryBlocks.get(blockName);
-
-    if (!localIds) {
-      throw new Error(`Liste introuvable dans le catalogue: ${blockName}`);
-    }
-
-    for (const localId of localIds) {
-      cards.push({ serieId, prefix, setCode, localId });
+async function runPool(items, worker, concurrency) {
+  let i = 0;
+  let done = 0;
+  const total = items.length;
+  async function next() {
+    while (i < items.length) {
+      const idx = i++;
+      try {
+        await worker(items[idx]);
+      } catch (e) {
+        console.error(`  [${idx}] ${e.message}`);
+      }
+      done++;
+      if (done % 25 === 0 || done === total) {
+        process.stdout.write(`\r  progression : ${done}/${total}    `);
+      }
     }
   }
-
-  return cards;
+  await Promise.all(Array.from({ length: concurrency }, () => next()));
+  process.stdout.write("\n");
 }
 
-function sourceUrls({ setCode, localId }) {
-  const fileName = `${setCode}_FR_${localId}.png`;
-  const assetPath = `static-assets/content-assets/cms2-fr-fr/img/cards/web/${setCode}/${fileName}`;
+(async () => {
+  let totalOk = 0;
+  let totalSkip = 0;
+  let totalFail = 0;
 
-  return [
-    `https://assets.pokemon.com/${assetPath}`,
-    `https://www.pokemon.com/${assetPath}`,
-  ];
-}
+  for (const { tcg, serie } of SETS) {
+    console.log(`\n=== Set ${tcg} (-> public/cartes/${serie}/) ===`);
+    let setData;
+    try {
+      setData = await fetchSet(tcg);
+    } catch (e) {
+      console.error(`  ERREUR fetch ${tcg} : ${e.message} - set ignore`);
+      continue;
+    }
+    const cards = (setData.cards ?? []).filter((c) => c.image);
+    console.log(`  ${cards.length} images a recuperer.`);
 
-function request(url, redirects = 0) {
-  return new Promise((resolve, reject) => {
-    const req = https.get(
-      url,
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-      },
-      (res) => {
-        if (
-          res.statusCode &&
-          res.statusCode >= 300 &&
-          res.statusCode < 400 &&
-          res.headers.location &&
-          redirects < 5
-        ) {
-          res.resume();
-          resolve(request(new URL(res.headers.location, url).toString(), redirects + 1));
-          return;
+    const serieDir = resolve(PUBLIC_CARTES, serie);
+    mkdirSync(serieDir, { recursive: true });
+
+    let setOk = 0;
+    let setSkip = 0;
+    let setFail = 0;
+
+    await runPool(
+      cards,
+      async (c) => {
+        const dest = resolve(serieDir, `${c.localId}.webp`);
+        const srcUrl = `${c.image}/high.webp`;
+        try {
+          const state = await downloadImage(srcUrl, dest);
+          if (state === "downloaded") setOk++;
+          else setSkip++;
+        } catch (e) {
+          setFail++;
+          console.error(`\n  IMG FAIL ${c.localId} (${c.name}) : ${e.message}`);
         }
-
-        if (res.statusCode !== 200) {
-          res.resume();
-          reject(new Error(`HTTP ${res.statusCode}`));
-          return;
-        }
-
-        const chunks = [];
-        res.on("data", (chunk) => chunks.push(chunk));
-        res.on("end", () => resolve(Buffer.concat(chunks)));
       },
+      CONCURRENCY,
     );
 
-    req.setTimeout(30000, () => {
-      req.destroy(new Error("Timeout"));
-    });
-    req.on("error", reject);
-  });
-}
-
-async function downloadCard(card) {
-  const outputDir = path.join(publicCartesDir, card.prefix);
-  const outputPath = path.join(outputDir, `${cardSlug(card.localId)}.png`);
-
-  if (!force && fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
-    return { status: "skipped", card, outputPath };
+    console.log(`  -> ${setOk} telechargees, ${setSkip} skip, ${setFail} echec`);
+    totalOk += setOk;
+    totalSkip += setSkip;
+    totalFail += setFail;
   }
 
-  fs.mkdirSync(outputDir, { recursive: true });
-
-  const errors = [];
-
-  for (const url of sourceUrls(card)) {
-    try {
-      const data = await request(url);
-
-      if (data.length === 0) {
-        throw new Error("Fichier vide");
-      }
-
-      const tmpPath = `${outputPath}.tmp`;
-      fs.writeFileSync(tmpPath, data);
-      fs.renameSync(tmpPath, outputPath);
-
-      return { status: "downloaded", card, outputPath, url };
-    } catch (error) {
-      errors.push(`${url} -> ${error.message}`);
-    }
+  console.log(`\n=== TERMINE ===`);
+  console.log(`Total : ${totalOk} telechargees, ${totalSkip} skip, ${totalFail} echec`);
+  if (totalFail > 0) {
+    console.log(`\nRelance le script pour retenter les images en echec.`);
   }
-
-  return { status: "missing", card, outputPath, errors };
-}
-
-async function main() {
-  const cards = readCatalog().slice(0, limit);
-  const missing = [];
-  let downloaded = 0;
-  let skipped = 0;
-
-  console.log(`Images a verifier: ${cards.length}`);
-
-  for (let index = 0; index < cards.length; index += 1) {
-    const result = await downloadCard(cards[index]);
-
-    if (result.status === "downloaded") {
-      downloaded += 1;
-      console.log(
-        `[OK] ${result.card.serieId} ${result.card.localId} -> ${path.relative(rootDir, result.outputPath)}`,
-      );
-    } else if (result.status === "skipped") {
-      skipped += 1;
-    } else {
-      missing.push(result);
-      console.log(`[MANQUANTE] ${result.card.serieId} ${result.card.localId}`);
-    }
-  }
-
-  if (missing.length > 0) {
-    const reportPath = path.join(publicCartesDir, "diamant-et-perle-images-manquantes.txt");
-    const report = missing
-      .map((item) => {
-        return [
-          `${item.card.serieId} ${item.card.localId}`,
-          `destination: ${path.relative(rootDir, item.outputPath)}`,
-          ...item.errors.map((error) => `  ${error}`),
-        ].join("\n");
-      })
-      .join("\n\n");
-
-    fs.mkdirSync(publicCartesDir, { recursive: true });
-    fs.writeFileSync(reportPath, `${report}\n`, "utf8");
-  }
-
-  console.log("");
-  console.log(`Telechargees: ${downloaded}`);
-  console.log(`Deja presentes: ${skipped}`);
-  console.log(`Manquantes: ${missing.length}`);
-}
-
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+})();
