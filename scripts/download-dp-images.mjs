@@ -85,8 +85,14 @@ async function runPool(items, worker, concurrency) {
       console.error(`  ERREUR fetch ${tcg} : ${e.message} - set ignore`);
       continue;
     }
-    const cards = (setData.cards ?? []).filter((c) => c.image);
-    console.log(`  ${cards.length} images a recuperer.`);
+    const allCards = setData.cards ?? [];
+    const cards = allCards.filter((c) => c.image);
+    console.log(`  Reponse API : ${allCards.length} cartes au total, dont ${cards.length} avec image.`);
+    if (allCards.length === 0) {
+      console.log(`  DEBUG cles de setData : ${Object.keys(setData).join(", ")}`);
+    } else if (cards.length === 0) {
+      console.log(`  DEBUG premiere carte : ${JSON.stringify(allCards[0]).slice(0, 300)}`);
+    }
 
     const serieDir = resolve(PUBLIC_CARTES, serie);
     mkdirSync(serieDir, { recursive: true });
