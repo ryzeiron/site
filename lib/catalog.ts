@@ -341,12 +341,12 @@ export const SERIES: Serie[] = [
 
   // Diamant Et Perle
   { id: "DP01", blocId: "diamant-et-perle", code: "DP01", name: "Diamant Et Perle", releaseYear: 2007 },
-  { id: "DP01.5", blocId: "diamant-et-perle", code: "DP01.5", name: "Tresors Mysterieux", releaseYear: 2008 },
-  { id: "DP02", blocId: "diamant-et-perle", code: "DP02", name: "Merveilles Secretes", releaseYear: 2008 },
-  { id: "DP03", blocId: "diamant-et-perle", code: "DP03", name: "Duels Au Sommet", releaseYear: 2008 },
-  { id: "DP04", blocId: "diamant-et-perle", code: "DP04", name: "Aube Majestueuse", releaseYear: 2008 },
-  { id: "DP05", blocId: "diamant-et-perle", code: "DP05", name: "Eveil Des Legendes", releaseYear: 2009 },
-  { id: "DP06", blocId: "diamant-et-perle", code: "DP06", name: "Tempete", releaseYear: 2009 },
+  { id: "DP02", blocId: "diamant-et-perle", code: "DP02", name: "Tresors Mysterieux", releaseYear: 2008 },
+  { id: "DP03", blocId: "diamant-et-perle", code: "DP03", name: "Merveilles Secretes", releaseYear: 2008 },
+  { id: "DP04", blocId: "diamant-et-perle", code: "DP04", name: "Duels Au Sommet", releaseYear: 2008 },
+  { id: "DP05", blocId: "diamant-et-perle", code: "DP05", name: "Aube Majestueuse", releaseYear: 2008 },
+  { id: "DP06", blocId: "diamant-et-perle", code: "DP06", name: "Eveil Des Legendes", releaseYear: 2009 },
+  { id: "DP07", blocId: "diamant-et-perle", code: "DP07", name: "Tempete", releaseYear: 2009 },
 
   // EX
   { id: "EX01", blocId: "ex", code: "EX01", name: "Rubis Et Saphir", releaseYear: 2003 },
