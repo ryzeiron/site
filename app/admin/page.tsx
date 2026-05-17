@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import AdminSerieBulkActions from "@/components/AdminSerieBulkActions";
 import AdminStockRow from "@/components/AdminStockRow";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
@@ -12,6 +13,7 @@ import {
   isRarity,
   listVariants,
   type Card,
+  type Rarity,
   type Serie,
 } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
@@ -157,7 +159,7 @@ const ADMIN_SERIE_GROUPS: readonly AdminSerieGroup[] = [
   },
   {
     label: "DP",
-    seriesIds: ["promo-dp", "dp01", "dp02", "dp03", "dp04", "dp05", "dp06", "dp07"],
+    seriesIds: ["PRDP", "DP01", "DP02", "DP03", "DP04", "DP05", "DP06", "DP07"],
   },
   {
     label: "EX",
@@ -238,7 +240,8 @@ export default async function AdminPage({
   const serieId = params.serie ?? "";
   const query = (params.q ?? "").trim();
   const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
-  const rarity = params.rarity && isRarity(params.rarity) ? params.rarity : "";
+  const rarity: Rarity | "" =
+    params.rarity && isRarity(params.rarity) ? params.rarity : "";
   const hasSearch = terms.length > 0 || Boolean(rarity);
 
   const serie = serieId ? getSerie(serieId) : undefined;
@@ -387,6 +390,14 @@ export default async function AdminPage({
           Avis
         </Link>
       </form>
+
+      {serie && (
+        <AdminSerieBulkActions
+          serieId={serie.id}
+          serieLabel={`${serie.code} - ${serie.name}`}
+          defaultRarity={rarity || "Commune"}
+        />
+      )}
 
       {!serie && !hasSearch ? (
         <p className="text-gray-400">
