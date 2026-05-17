@@ -360,12 +360,12 @@ export const SERIES: Serie[] = [
   { id: "EX07", blocId: "ex", code: "EX07", name: "Team Magma vs Team Aqua", releaseYear: 2005 },
   { id: "EX08", blocId: "ex", code: "EX08", name: "Emeraude", releaseYear: 2005 },
   { id: "EX09", blocId: "ex", code: "EX09", name: "Forces Cachees", releaseYear: 2006 },
-  { id: "EX010", blocId: "ex", code: "EX010", name: "Especes Delta", releaseYear: 2006 },
-  { id: "EX011", blocId: "ex", code: "EX011", name: "Createur De Legendes", releaseYear: 2006 },
-  { id: "EX012", blocId: "ex", code: "EX012", name: "Fantomes Holon", releaseYear: 2006 },
-  { id: "EX013", blocId: "ex", code: "EX013", name: "Gardiens De Cristal", releaseYear: 2007 },
-  { id: "EX014", blocId: "ex", code: "EX014", name: "Iles Des Dragon", releaseYear: 2007 },
-  { id: "EX015", blocId: "ex", code: "EX015", name: "Gardiens Du Pouvoir", releaseYear: 2007 },
+  { id: "EX010", blocId: "ex", code: "EX10", name: "Especes Delta", releaseYear: 2006 },
+  { id: "EX011", blocId: "ex", code: "EX11", name: "Createur De Legendes", releaseYear: 2006 },
+  { id: "EX012", blocId: "ex", code: "EX12", name: "Fantomes Holon", releaseYear: 2006 },
+  { id: "EX013", blocId: "ex", code: "EX13", name: "Gardiens De Cristal", releaseYear: 2007 },
+  { id: "EX014", blocId: "ex", code: "EX14", name: "Iles Des Dragon", releaseYear: 2007 },
+  { id: "EX015", blocId: "ex", code: "EX15", name: "Gardiens Du Pouvoir", releaseYear: 2007 },
 
 ];
 
@@ -398,7 +398,10 @@ export function getCard(id: string): Card | undefined {
 
 export function seriesForBloc(blocId: string): Serie[] {
   return SERIES.filter((s) => s.blocId === blocId).sort((a, b) =>
-    a.code.localeCompare(b.code),
+    a.code.localeCompare(b.code, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    }),
   );
 }
 
