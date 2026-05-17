@@ -18,7 +18,7 @@ type Body = {
   price?: number;
 };
 
-const PROTECTED_MAIN_RARITIES = new Set<Rarity>(["Ultra Rare", "Secrete"]);
+const PROTECTED_MAIN_RARITIES = new Set(["Ultra Rare", "Ultra rare", "Secrete"]);
 const PROTECTED_TARGET_RARITIES = new Set<Rarity>(["Commune", "Reverse"]);
 
 function slugifyRarity(rarity: Rarity) {

@@ -1,137 +1,157 @@
-// Telecharge UNIQUEMENT les images des cartes Diamant et Perle depuis tcgdex.net
-// dans public/cartes/<serie>/<localId>.webp
+// Telecharge les images FR des cartes Diamant et Perle.
+// Dexocard fournit les scans FR en webp pour les anciennes series DP.
 //
 // Usage : node scripts/download-dp-images.mjs
-//
-// Ne touche PAS au fichier lib/catalog/cards/diamant-et-perle.ts.
-// Re-execute = saute les images deja telechargees (idempotent).
+// Reforcer : node scripts/download-dp-images.mjs --force
 
-import { writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Buffer } from "node:buffer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
-const PUBLIC_CARTES = resolve(ROOT, "public/cartes");
+const CATALOG_FILE = resolve(ROOT, "lib/catalog/cards/diamant-et-perle.ts");
 
-// Pour chaque set, tcgSerie est le segment d'asset (dp = bloc Diamant & Perle).
-const SETS = [
-  { tcg: "dpp", tcgSerie: "dp", serie: "promo-dp" },
-  { tcg: "dp1", tcgSerie: "dp", serie: "dp01" },
-  { tcg: "dp2", tcgSerie: "dp", serie: "dp02" },
-  { tcg: "dp3", tcgSerie: "dp", serie: "dp03" },
-  { tcg: "dp4", tcgSerie: "dp", serie: "dp04" },
-  { tcg: "dp5", tcgSerie: "dp", serie: "dp05" },
-  { tcg: "dp6", tcgSerie: "dp", serie: "dp06" },
-  { tcg: "dp7", tcgSerie: "dp", serie: "dp07" },
-];
+const FORCE = process.argv.includes("--force");
+const CONCURRENCY = 4;
 
-const CONCURRENCY = 8;
+const SETS = {
+  "promo-dp": "dpp",
+  dp01: "dp1",
+  dp02: "dp2",
+  dp03: "dp3",
+  dp04: "dp4",
+  dp05: "dp5",
+  dp06: "dp6",
+  dp07: "dp7",
+};
 
-async function fetchSet(setId) {
-  const url = `https://api.tcgdex.net/v2/fr/sets/${setId}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Fetch ${setId} failed: ${res.status} ${res.statusText}`);
+const imageUrlCache = new Map();
+
+function readCardsFromCatalog() {
+  const source = readFileSync(CATALOG_FILE, "utf8");
+  const regex =
+    /\{\s*id:\s*"([^"]+)"[\s\S]*?serieId:\s*"([^"]+)"[\s\S]*?name:\s*"([^"]+)"[\s\S]*?number:\s*"([^"]+)"[\s\S]*?image:\s*"([^"]+)"/g;
+
+  const cards = [];
+
+  for (const match of source.matchAll(regex)) {
+    const [, id, serieId, name, number, image] = match;
+    const tcgdexSet = SETS[serieId];
+
+    if (!tcgdexSet) continue;
+
+    const fileName = image.split("/").pop() ?? "";
+    const localId = fileName.replace(/\.(webp|png)$/i, "");
+
+    cards.push({ id, serieId, tcgdexSet, name, number, image, localId });
   }
-  return res.json();
+
+  return cards;
 }
 
-// Construit l'URL d'asset tcgdex. Les images n'existent qu'en EN sur le CDN
-// (pas en FR), donc on bascule sur en pour le chemin image.
-function buildAssetUrl({ tcgSerie, tcg, localId }) {
-  return `https://assets.tcgdex.net/en/${tcgSerie}/${tcg}/${localId}/high.webp`;
+async function imageExists(url) {
+  if (imageUrlCache.has(url)) return imageUrlCache.get(url);
+
+  const res = await fetch(url, { method: "HEAD" });
+  const exists =
+    res.ok && (res.headers.get("content-type") ?? "").startsWith("image/");
+
+  imageUrlCache.set(url, exists);
+  return exists;
 }
 
-async function downloadImage(srcUrl, destPath) {
-  if (existsSync(destPath)) return "skipped";
-  const res = await fetch(srcUrl);
+async function findImageUrl(card) {
+  const urls = [
+    `https://www.dexocard.com/card/${card.tcgdexSet}-${card.localId}/w500.webp`,
+    `https://www.dexocard.com/card/${card.tcgdexSet}-${card.localId}/w400.webp`,
+  ];
+
+  for (const url of urls) {
+    if (await imageExists(url)) return url;
+  }
+
+  throw new Error("Image FR introuvable");
+}
+
+async function downloadImage(url, destPath) {
+  if (!FORCE && existsSync(destPath)) return "skipped";
+
+  const res = await fetch(url);
+
   if (!res.ok) {
     throw new Error(`${res.status} ${res.statusText}`);
   }
-  const buf = Buffer.from(await res.arrayBuffer());
+
+  const buffer = Buffer.from(await res.arrayBuffer());
+
+  if (buffer.length === 0) {
+    throw new Error("Fichier vide");
+  }
+
   mkdirSync(dirname(destPath), { recursive: true });
-  writeFileSync(destPath, buf);
+  writeFileSync(destPath, buffer);
+
   return "downloaded";
 }
 
 async function runPool(items, worker, concurrency) {
-  let i = 0;
-  let done = 0;
-  const total = items.length;
+  let index = 0;
+
   async function next() {
-    while (i < items.length) {
-      const idx = i++;
-      try {
-        await worker(items[idx]);
-      } catch (e) {
-        console.error(`  [${idx}] ${e.message}`);
-      }
-      done++;
-      if (done % 25 === 0 || done === total) {
-        process.stdout.write(`\r  progression : ${done}/${total}    `);
-      }
+    while (index < items.length) {
+      const item = items[index];
+      index++;
+      await worker(item);
     }
   }
+
   await Promise.all(Array.from({ length: concurrency }, () => next()));
-  process.stdout.write("\n");
 }
 
-(async () => {
-  let totalOk = 0;
-  let totalSkip = 0;
-  let totalFail = 0;
+async function main() {
+  const cards = readCardsFromCatalog();
 
-  for (const { tcg, tcgSerie, serie } of SETS) {
-    console.log(`\n=== Set ${tcg} (-> public/cartes/${serie}/) ===`);
-    let setData;
-    try {
-      setData = await fetchSet(tcg);
-    } catch (e) {
-      console.error(`  ERREUR fetch ${tcg} : ${e.message} - set ignore`);
-      continue;
-    }
-    const allCards = setData.cards ?? [];
-    console.log(`  ${allCards.length} cartes dans le set.`);
+  console.log(`${cards.length} images a verifier`);
 
-    const serieDir = resolve(PUBLIC_CARTES, serie);
-    mkdirSync(serieDir, { recursive: true });
+  let downloaded = 0;
+  let skipped = 0;
+  let failed = 0;
 
-    let setOk = 0;
-    let setSkip = 0;
-    let setFail = 0;
+  await runPool(
+    cards,
+    async (card) => {
+      const dest = resolve(ROOT, "public", card.image.replace(/^\//, ""));
 
-    await runPool(
-      allCards,
-      async (c) => {
-        const dest = resolve(serieDir, `${c.localId}.webp`);
-        if (existsSync(dest)) {
-          setSkip++;
-          return;
+      try {
+        const imageUrl = await findImageUrl(card);
+        const result = await downloadImage(imageUrl, dest);
+
+        if (result === "downloaded") {
+          downloaded++;
+          console.log(`[OK] ${card.serieId} ${card.localId} - ${card.name}`);
+        } else {
+          skipped++;
         }
-        const srcUrl = buildAssetUrl({ tcgSerie, tcg, localId: c.localId });
-        try {
-          const state = await downloadImage(srcUrl, dest);
-          if (state === "downloaded") setOk++;
-          else setSkip++;
-        } catch (e) {
-          setFail++;
-          console.error(`\n  IMG FAIL ${c.localId} (${c.name}) : ${e.message} [${srcUrl}]`);
-        }
-      },
-      CONCURRENCY,
-    );
+      } catch (error) {
+        failed++;
+        console.log(
+          `[ERREUR] ${card.serieId} ${card.localId} - ${card.name}: ${error.message}`,
+        );
+      }
+    },
+    CONCURRENCY,
+  );
 
-    console.log(`  -> ${setOk} telechargees, ${setSkip} skip, ${setFail} echec`);
-    totalOk += setOk;
-    totalSkip += setSkip;
-    totalFail += setFail;
-  }
+  console.log("");
+  console.log("=== TOTAL ===");
+  console.log(`Telechargees: ${downloaded}`);
+  console.log(`Deja presentes: ${skipped}`);
+  console.log(`Erreurs: ${failed}`);
+}
 
-  console.log(`\n=== TERMINE ===`);
-  console.log(`Total : ${totalOk} telechargees, ${totalSkip} skip, ${totalFail} echec`);
-  if (totalFail > 0) {
-    console.log(`\nRelance le script pour retenter les images en echec.`);
-  }
-})();
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

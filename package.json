@@ -9,6 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "download:dp-images": "node scripts/download-dp-images.mjs",
+    "download:nb-images": "node scripts/download-nb-images.mjs",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
