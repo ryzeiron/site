@@ -5,6 +5,7 @@ import {
   getSerie,
   isRarity,
   listVariants,
+  type Card,
   type Rarity,
 } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
@@ -19,6 +20,31 @@ type Body = {
 
 const PROTECTED_MAIN_RARITIES = new Set<Rarity>(["Ultra Rare", "Secrete"]);
 const PROTECTED_TARGET_RARITIES = new Set<Rarity>(["Commune", "Reverse"]);
+
+function slugifyRarity(rarity: Rarity) {
+  return (
+    rarity
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 24) || "variante"
+  );
+}
+
+function pickVariantKey(card: Card, rarity: Rarity) {
+  const base = slugifyRarity(rarity);
+  const usedKeys = new Set(listVariants(card).map(({ key }) => key));
+  let candidate = base;
+  let i = 2;
+
+  while (usedKeys.has(candidate) || candidate === "base" || candidate === "alt") {
+    candidate = `${base}-${i++}`;
+  }
+
+  return candidate;
+}
 
 export async function POST(request: Request) {
   if (!(await isAdmin())) {
@@ -54,14 +80,27 @@ export async function POST(request: Request) {
     serieCards.map((card) => [card.id, card.rarity]),
   );
   const cardsWithOverrides = await applyStockOverrides(serieCards);
+
   let skippedProtected = 0;
 
-  const updates = cardsWithOverrides.flatMap((card) => {
-    const matchingVariants = listVariants(card).filter(
-      ({ variant }) => variant.rarity === targetRarity,
-    );
+  const existingUpdates: {
+    cardId: string;
+    variant: string;
+    stock: number;
+    priceCents: number;
+    rarity: null;
+  }[] = [];
 
-    if (matchingVariants.length === 0) return [];
+  const createdUpdates: {
+    cardId: string;
+    variant: string;
+    stock: number;
+    priceCents: number;
+    rarity: Rarity;
+  }[] = [];
+
+  for (const card of cardsWithOverrides) {
+    const variants = listVariants(card);
 
     const catalogRarity = catalogRarityById.get(card.id) ?? card.rarity;
     const isProtectedMainRarity =
@@ -73,35 +112,76 @@ export async function POST(request: Request) {
       isProtectedMainRarity
     ) {
       skippedProtected += 1;
-      return [];
+      continue;
     }
 
-    return matchingVariants.map(({ key, variant }) => ({
-      cardId: card.id,
-      variant: key,
-      stock: variant.stock,
-      priceCents,
-      rarity: null,
-    }));
-  });
+    const matchingVariants = variants.filter(
+      ({ variant }) => variant.rarity === targetRarity,
+    );
 
-  if (updates.length === 0) {
-    return NextResponse.json({ ok: true, updated: 0, skippedProtected });
+    if (matchingVariants.length > 0) {
+      for (const { key, variant } of matchingVariants) {
+        existingUpdates.push({
+          cardId: card.id,
+          variant: key,
+          stock: variant.stock,
+          priceCents,
+          rarity: null,
+        });
+      }
+      continue;
+    }
+
+    createdUpdates.push({
+      cardId: card.id,
+      variant: pickVariantKey(card, targetRarity),
+      stock: 0,
+      priceCents,
+      rarity: targetRarity,
+    });
+  }
+
+  const updated = existingUpdates.length + createdUpdates.length;
+
+  if (updated === 0) {
+    return NextResponse.json({
+      ok: true,
+      updated: 0,
+      created: 0,
+      existing: 0,
+      skippedProtected,
+    });
   }
 
   try {
     const db = getDb();
 
-    await db
-      .insert(stockOverrides)
-      .values(updates)
-      .onConflictDoUpdate({
-        target: [stockOverrides.cardId, stockOverrides.variant],
-        set: {
-          priceCents,
-          updatedAt: new Date(),
-        },
-      });
+    if (existingUpdates.length > 0) {
+      await db
+        .insert(stockOverrides)
+        .values(existingUpdates)
+        .onConflictDoUpdate({
+          target: [stockOverrides.cardId, stockOverrides.variant],
+          set: {
+            priceCents,
+            updatedAt: new Date(),
+          },
+        });
+    }
+
+    if (createdUpdates.length > 0) {
+      await db
+        .insert(stockOverrides)
+        .values(createdUpdates)
+        .onConflictDoUpdate({
+          target: [stockOverrides.cardId, stockOverrides.variant],
+          set: {
+            priceCents,
+            rarity: targetRarity,
+            updatedAt: new Date(),
+          },
+        });
+    }
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur base de donnees.";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -109,7 +189,9 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ok: true,
-    updated: updates.length,
+    updated,
+    created: createdUpdates.length,
+    existing: existingUpdates.length,
     skippedProtected,
     rarity: targetRarity,
     price: priceCents / 100,
