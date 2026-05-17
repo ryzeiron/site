@@ -4,7 +4,8 @@ import { useState } from "react";
 import CardImage from "@/components/CardImage";
 import FavoriteCardButton from "@/components/FavoriteCardButton";
 import { useCart } from "@/lib/cart";
-import { listVariants, resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
+import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
+import { orderDisplayVariants } from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
 
 function VariantBlock({
@@ -66,7 +67,7 @@ function VariantBlock({
 }
 
 export default function CardDetailBody({ card }: { card: Card }) {
-  const variants = listVariants(card);
+  const variants = orderDisplayVariants(card);
   const allOutOfStock = variants.every((v) => v.variant.stock <= 0);
   const gridCols =
     variants.length === 1
