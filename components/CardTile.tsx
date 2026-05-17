@@ -2,6 +2,10 @@ import Link from "next/link";
 import CardImage from "@/components/CardImage";
 import FavoriteHeartButton from "@/components/FavoriteHeartButton";
 import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
+import {
+  getPreferredDisplayVariant,
+  rarityDisplayLabel,
+} from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
 
 export default function CardTile({
@@ -11,29 +15,26 @@ export default function CardTile({
   card: Card;
   variantKey?: VariantKey;
 }) {
-  const displayVariant = variantKey ? resolveVariant(card, variantKey) : null;
+  const preferredDisplay = variantKey
+    ? { key: variantKey, variant: resolveVariant(card, variantKey) }
+    : getPreferredDisplayVariant(card);
+  const displayVariant = preferredDisplay.variant;
   const baseOut = card.stock <= 0;
   const altOut = !card.altVariant || card.altVariant.stock <= 0;
   const extrasOut =
     !card.extraVariants || card.extraVariants.every((v) => v.stock <= 0);
-  const outOfStock = displayVariant
+  const outOfStock = variantKey
     ? displayVariant.stock <= 0
     : baseOut && altOut && extrasOut;
-  const rarityLabel = displayVariant
-    ? displayVariant.rarity
-    : `${card.rarity}${card.altVariant ? ` / ${card.altVariant.rarity}` : ""}${
-        card.extraVariants
-          ? card.extraVariants.map((v) => ` / ${v.rarity}`).join("")
-          : ""
-      }`;
-  const price = displayVariant ? displayVariant.price : card.price;
+  const rarityLabel = rarityDisplayLabel(card, variantKey);
+  const price = displayVariant.price;
 
   return (
     <div className="card-hover relative rounded-lg border border-white/10 bg-zinc-900/70 text-gray-200 backdrop-blur-sm overflow-hidden">
       <FavoriteHeartButton
         cardId={card.id}
-        variant={variantKey}
-        outOfStock={outOfStock}
+        variant={preferredDisplay.key}
+        outOfStock={displayVariant.stock <= 0}
       />
 
       <Link href={`/carte/${card.id}`} className="block">
