@@ -31,7 +31,7 @@ export default function AdminSerieBulkActions({
     const formattedPrice = price.toFixed(2).replace(".", ",");
     const protectsHighRarities = rarity === "Commune" || rarity === "Reverse";
     const ok = window.confirm(
-      `Mettre toutes les variantes ${rarity} de ${serieLabel} a ${formattedPrice} EUR ?` +
+      `Ajouter ou mettre a jour la variante ${rarity} sur ${serieLabel} a ${formattedPrice} EUR ?` +
         (protectsHighRarities
           ? "\n\nLes cartes Ultra Rare et Secrete seront ignorees."
           : ""),
@@ -57,13 +57,17 @@ export default function AdminSerieBulkActions({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Erreur");
 
-      const updated = Number(data.updated ?? 0);
+      const created = Number(data.created ?? 0);
+      const existing = Number(data.existing ?? data.updated ?? 0);
       const skippedProtected = Number(data.skippedProtected ?? 0);
-      setMessage(
-        skippedProtected > 0
-          ? `${updated} prix modifies. ${skippedProtected} cartes protegees ignorees.`
-          : `${updated} prix modifies.`,
-      );
+      const parts = [
+        `${created} variantes ajoutees`,
+        `${existing} prix mis a jour`,
+      ];
+      if (skippedProtected > 0) {
+        parts.push(`${skippedProtected} cartes protegees ignorees`);
+      }
+      setMessage(`${parts.join(". ")}.`);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
@@ -127,7 +131,7 @@ export default function AdminSerieBulkActions({
               : "cursor-not-allowed bg-white/10 text-gray-400"
           }`}
         >
-          {saving ? "Application..." : "Appliquer a toute la serie"}
+          {saving ? "Application..." : "Ajouter a toute la serie"}
         </button>
       </div>
     </div>
