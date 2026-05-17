@@ -1,5 +1,6 @@
 // Telecharge les images FR des cartes Diamant et Perle.
-// Dexocard fournit les scans FR en webp pour les anciennes series DP.
+// Dexocard fournit les scans FR en webp pour les premieres series DP.
+// JCC Pokemon.tf complete les scans FR des series DP03 a DP07 en png.
 //
 // Usage : node scripts/download-dp-images.mjs
 // Reforcer : node scripts/download-dp-images.mjs --force
@@ -25,6 +26,14 @@ const SETS = {
   dp05: "dp5",
   dp06: "dp6",
   dp07: "dp7",
+};
+
+const JCC_POKEMON_TF_SCAN_SETS = {
+  dp03: "15",
+  dp04: "14",
+  dp05: "13",
+  dp06: "12",
+  dp07: "11",
 };
 
 const imageUrlCache = new Map();
@@ -63,6 +72,12 @@ async function imageExists(url) {
 }
 
 async function findImageUrl(card) {
+  const jccSetId = JCC_POKEMON_TF_SCAN_SETS[card.serieId];
+
+  if (jccSetId) {
+    return `https://www.jcc.pokemon.tf/Images/Scan/${jccSetId}/${card.localId}.png`;
+  }
+
   const urls = [
     `https://www.dexocard.com/card/${card.tcgdexSet}-${card.localId}/w500.webp`,
     `https://www.dexocard.com/card/${card.tcgdexSet}-${card.localId}/w400.webp`,

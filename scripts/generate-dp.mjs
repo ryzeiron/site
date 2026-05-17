@@ -1,5 +1,5 @@
 // Fetch toutes les cartes du bloc Diamant et Perle depuis tcgdex.net (FR),
-// telecharge les images dans public/cartes/<serie>/<localId>.webp,
+// telecharge les images dans public/cartes/<serie>/<localId>.(webp|png),
 // et genere lib/catalog/cards/diamant-et-perle.ts
 //
 // Usage : node scripts/generate-dp.mjs
@@ -30,6 +30,14 @@ const SETS = [
   { tcg: "dp6", serie: "dp06" },
   { tcg: "dp7", serie: "dp07" },
 ];
+
+const JCC_POKEMON_TF_SCAN_SETS = {
+  dp03: "15",
+  dp04: "14",
+  dp05: "13",
+  dp06: "12",
+  dp07: "11",
+};
 
 const NO_REVERSE_RARITIES = [
   "ultra rare",
@@ -116,6 +124,24 @@ function cardEntry({ id, serieId, name, number, rarity, image, withReverse }) {
   return line;
 }
 
+function imageInfo(serie, localId, tcgdexImage) {
+  const jccSetId = JCC_POKEMON_TF_SCAN_SETS[serie];
+
+  if (jccSetId) {
+    return {
+      image: `/cartes/${serie}/${localId}.png`,
+      srcUrl: `https://www.jcc.pokemon.tf/Images/Scan/${jccSetId}/${localId}.png`,
+    };
+  }
+
+  if (!tcgdexImage) return null;
+
+  return {
+    image: `/cartes/${serie}/${localId}.webp`,
+    srcUrl: `${tcgdexImage}/high.webp`,
+  };
+}
+
 (async () => {
   const lines = [];
   lines.push(`import type { Card } from "../../catalog";`);
@@ -156,12 +182,14 @@ function cardEntry({ id, serieId, name, number, rarity, image, withReverse }) {
 
     console.log(`  Telechargement des images dans public/cartes/${serie}/ ...`);
     await runPool(
-      cards.filter((c) => c.image),
+      cards,
       async (c) => {
-        const dest = resolve(serieDir, `${c.localId}.webp`);
-        const srcUrl = `${c.image}/high.webp`;
+        const info = imageInfo(serie, c.localId, c.image);
+        if (!info) return;
+
+        const dest = resolve(ROOT, "public", info.image.replace(/^\//, ""));
         try {
-          const state = await downloadImage(srcUrl, dest);
+          const state = await downloadImage(info.srcUrl, dest);
           if (state === "downloaded") imgOk++;
           else imgSkip++;
         } catch (e) {
@@ -177,7 +205,7 @@ function cardEntry({ id, serieId, name, number, rarity, image, withReverse }) {
       const number = `${String(localId).padStart(3, "0")}/${String(totalInSet).padStart(3, "0")}`;
       const id = `${serie}-${String(localId).padStart(3, "0")}`;
       const rarity = c.rarity ?? "Commune";
-      const image = `/cartes/${serie}/${localId}.webp`;
+      const image = imageInfo(serie, localId, c.image)?.image ?? `/cartes/${serie}/${localId}.webp`;
       const name = c.name ?? "Carte inconnue";
 
       seenRarities.set(rarity, (seenRarities.get(rarity) ?? 0) + 1);
