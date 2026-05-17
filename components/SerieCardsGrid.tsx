@@ -8,6 +8,7 @@ import {
   type Rarity,
   type VariantKey,
 } from "@/lib/catalog";
+import { orderDisplayVariants } from "@/lib/display-variants";
 
 const RARITY_ORDER: Rarity[] = [
   "Commune",
@@ -45,7 +46,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   function displayVariantKey(card: Card): VariantKey | undefined {
     if (selectedRarities.length === 0) return undefined;
 
-    return listVariants(card).find(({ variant }) =>
+    return orderDisplayVariants(card).find(({ variant }) =>
       selectedRarities.includes(variant.rarity),
     )?.key;
   }
