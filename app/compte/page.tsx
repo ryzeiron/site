@@ -124,7 +124,7 @@ export default async function ComptePage() {
         </div>
       </section>
 
-      <section>
+      <section id="commandes">
         <h2 className="mb-3 text-xl font-bold text-white">
           Mes commandes ({userOrders.length})
         </h2>
