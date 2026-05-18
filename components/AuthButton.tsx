@@ -79,16 +79,16 @@ export default function AuthButton() {
               </div>
 
               <div className="p-2">
-                <MenuLink href="/compte" onClick={() => setOpen(false)} icon={<AccountIcon menu />}>
+                <MenuLink href="/compte?section=infos" onClick={() => setOpen(false)} icon={<AccountIcon menu />}>
                   Mon compte
                 </MenuLink>
-                <MenuLink href="/compte#commandes" onClick={() => setOpen(false)} icon={<OrdersIcon />}>
+                <MenuLink href="/compte?section=commandes" onClick={() => setOpen(false)} icon={<OrdersIcon />}>
                   Mes commandes
                 </MenuLink>
-                <MenuLink href="/favoris" onClick={() => setOpen(false)} icon={<HeartIcon />}>
+                <MenuLink href="/compte?section=favoris" onClick={() => setOpen(false)} icon={<HeartIcon />}>
                   Mes favoris
                 </MenuLink>
-                <MenuLink href="/avis" onClick={() => setOpen(false)} icon={<StarIcon />}>
+                <MenuLink href="/compte?section=avis" onClick={() => setOpen(false)} icon={<StarIcon />}>
                   Laisser un avis
                 </MenuLink>
               </div>
