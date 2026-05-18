@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import AuthButton from "./AuthButton";
 import CartButton from "./CartButton";
 import NavMenu from "./NavMenu";
 
@@ -26,38 +27,11 @@ export default function Header() {
           </Link>
 
           <div className="flex items-center gap-2 justify-self-end">
-            <Link
-              href="/compte"
-              aria-label="Mon compte"
-              title="Mon compte"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-violet-600/80 text-white backdrop-blur-sm transition hover:bg-violet-700 sm:w-auto sm:px-4 sm:text-sm sm:font-medium"
-            >
-              <AccountIcon />
-              <span className="hidden sm:inline">Mon compte</span>
-            </Link>
-
+            <AuthButton />
             <CartButton />
           </div>
         </div>
       </div>
     </header>
-  );
-}
-
-function AccountIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-5 w-5 sm:hidden"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M20 21a8 8 0 0 0-16 0" />
-      <circle cx="12" cy="8" r="4" />
-    </svg>
   );
 }

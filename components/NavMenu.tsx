@@ -7,8 +7,6 @@ const LINKS = [
   { href: "/", label: "Accueil" },
   { href: "/recherche", label: "Recherche" },
   { href: "/blocs", label: "Blocs" },
-  { href: "/favoris", label: "Mes favoris" },
-  { href: "/compte", label: "Mon compte" },
   { href: "/contact", label: "Contact" },
 ];
 
