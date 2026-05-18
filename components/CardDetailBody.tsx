@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import CardImage from "@/components/CardImage";
+import ConditionBadge from "@/components/ConditionBadge";
 import FavoriteCardButton from "@/components/FavoriteCardButton";
 import { useCart } from "@/lib/cart";
 import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
@@ -23,19 +24,18 @@ function VariantBlock({
   return (
     <div className="rounded-lg border border-white/10 bg-zinc-900/60 p-4 text-gray-200">
       <div className="flex items-center justify-between gap-2">
-        <span className="rounded-full bg-amber-500/20 text-amber-300 px-2 py-1 text-xs">
-          {v.rarity}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-amber-500/20 px-2 py-1 text-xs text-amber-300">
+            {v.rarity}
+          </span>
+          <ConditionBadge condition={v.condition ?? card.condition} />
+        </div>
         <span className="text-xl font-extrabold text-brand-500">
           {formatPrice(v.price)}
         </span>
       </div>
 
-      <div className="text-xs text-gray-400 mt-2">
-        Etat : {v.condition ?? card.condition}
-      </div>
-
-      <div className="text-xs text-gray-400 mt-1">
+      <div className="mt-2 text-xs text-gray-400">
         {outOfStock
           ? "Rupture"
           : `${v.stock} exemplaire${v.stock > 1 ? "s" : ""} en stock`}

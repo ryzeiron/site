@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CardImage from "@/components/CardImage";
+import ConditionBadge from "@/components/ConditionBadge";
 import FavoriteHeartButton from "@/components/FavoriteHeartButton";
 import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
 import {
@@ -62,18 +63,20 @@ export default function CardTile({
         </div>
 
         <div className="p-3">
-          <div className="text-xs text-gray-500 truncate">
-            {card.number} - {rarityLabel}
+          <div className="text-xs text-gray-500 truncate">{card.number}</div>
+
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-1 text-xs font-medium text-amber-300">
+              {rarityLabel}
+            </span>
+            <ConditionBadge condition={displayVariant.condition ?? card.condition} />
           </div>
 
-          <div className="font-semibold truncate text-white">{card.name}</div>
+          <div className="mt-2 truncate font-semibold text-white">{card.name}</div>
 
-          <div className="flex items-center justify-between mt-2">
+          <div className="mt-2 flex items-center justify-between">
             <span className="font-bold text-brand-500">
               {formatPrice(price)}
-            </span>
-            <span className="text-xs text-gray-500">
-              {displayVariant.condition ?? card.condition}
             </span>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import ConditionBadge from "@/components/ConditionBadge";
 import MondialRelayPicker, {
   type SelectedRelay,
 } from "@/components/MondialRelayPicker";
@@ -252,8 +253,12 @@ export default function CartPage() {
                 >
                   {card.name}
                 </Link>
-                <div className="text-xs text-gray-400">
-                  {card.number} - {v.rarity} - {v.condition ?? card.condition}
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
+                  <span>{card.number}</span>
+                  <span className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-1 font-medium text-amber-300">
+                    {v.rarity}
+                  </span>
+                  <ConditionBadge condition={v.condition ?? card.condition} />
                 </div>
                 <div className="text-sm mt-1 text-gray-200">
                   {formatPrice(v.price)}
