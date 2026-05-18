@@ -28,6 +28,16 @@ export const stockOverrides = pgTable(
   (t) => [primaryKey({ columns: [t.cardId, t.variant] })],
 );
 
+export const hiddenVariants = pgTable(
+  "hidden_variants",
+  {
+    cardId: text("card_id").notNull(),
+    variant: text("variant").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.cardId, t.variant] })],
+);
+
 export const processedEvents = pgTable("processed_events", {
   eventId: text("event_id").primaryKey(),
   processedAt: timestamp("processed_at", { withTimezone: true }).notNull().defaultNow(),

@@ -32,10 +32,8 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   const availableRarities = useMemo(() => {
     const present = new Set<Rarity>();
     for (const c of cards) {
-      present.add(c.rarity);
-      if (c.altVariant) present.add(c.altVariant.rarity);
-      if (c.extraVariants) {
-        for (const v of c.extraVariants) present.add(v.rarity);
+      for (const { variant } of listVariants(c)) {
+        present.add(variant.rarity);
       }
     }
     return RARITY_ORDER.filter((r) => present.has(r));
@@ -53,6 +51,8 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
 
   const filtered = useMemo(() => {
     return cards.filter((c) => {
+      if (listVariants(c).length === 0) return false;
+
       if (selectedRarities.length > 0) {
         const matchRarity = listVariants(c).some(({ variant }) =>
           selectedRarities.includes(variant.rarity),

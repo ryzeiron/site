@@ -6,6 +6,8 @@ import {
   CONDITIONS,
   RARITIES,
   RESERVED_VARIANT_KEYS,
+  isVariantHidden,
+  listVariants,
   type Card,
   type Rarity,
   type VariantKey,
@@ -17,42 +19,18 @@ type VariantSpec = {
   rarity: Rarity;
   stock: number;
   price: number;
+  hidden: boolean;
 };
 
 function buildVariants(card: Card): VariantSpec[] {
-  const out: VariantSpec[] = [
-    {
-      key: "base",
-      label: "Base",
-      rarity: card.rarity,
-      stock: card.stock,
-      price: card.price,
-    },
-  ];
-
-  if (card.altVariant) {
-    out.push({
-      key: "alt",
-      label: "Alt",
-      rarity: card.altVariant.rarity,
-      stock: card.altVariant.stock,
-      price: card.altVariant.price,
-    });
-  }
-
-  if (card.extraVariants) {
-    for (const v of card.extraVariants) {
-      out.push({
-        key: v.key,
-        label: v.rarity,
-        rarity: v.rarity,
-        stock: v.stock,
-        price: v.price,
-      });
-    }
-  }
-
-  return out;
+  return listVariants(card, { includeHidden: true }).map(({ key, variant }) => ({
+    key,
+    label: key === "base" ? "Base" : key === "alt" ? "Alt" : variant.rarity,
+    rarity: variant.rarity,
+    stock: variant.stock,
+    price: variant.price,
+    hidden: isVariantHidden(card, key),
+  }));
 }
 
 function slugifyRarity(rarity: string): string {
@@ -122,6 +100,7 @@ export default function AdminStockRow({ card }: { card: Card }) {
             rarity={v.rarity}
             initialStock={v.stock}
             initialPrice={v.price}
+            hidden={v.hidden}
             isNew={false}
           />
         ))}
@@ -462,6 +441,7 @@ function VariantCell({
   rarity,
   initialStock,
   initialPrice,
+  hidden,
   isNew,
 }: {
   card: Card;
@@ -470,6 +450,7 @@ function VariantCell({
   rarity: Rarity;
   initialStock: number;
   initialPrice: number;
+  hidden: boolean;
   isNew: boolean;
 }) {
   const router = useRouter();
@@ -534,7 +515,13 @@ function VariantCell({
   }
 
   return (
-    <div className="flex min-w-[240px] flex-col gap-2 rounded-lg border border-white/10 bg-zinc-900/60 p-3">
+    <div
+      className={`flex min-w-[240px] flex-col gap-2 rounded-lg border p-3 ${
+        hidden
+          ? "border-amber-400/40 bg-amber-950/20"
+          : "border-white/10 bg-zinc-900/60"
+      }`}
+    >
       <div className="flex items-center gap-2 text-xs">
         <span className="rounded bg-violet-500/20 px-2 py-0.5 font-semibold uppercase tracking-wider text-violet-300">
           {label}
@@ -542,6 +529,11 @@ function VariantCell({
         <span className="font-mono text-[10px] text-gray-500">
           {variantKey}
         </span>
+        {hidden && (
+          <span className="rounded bg-amber-500/20 px-2 py-0.5 font-semibold uppercase tracking-wider text-amber-300">
+            Masquee
+          </span>
+        )}
       </div>
 
       <div className="flex items-center gap-2 text-sm">
@@ -615,7 +607,12 @@ function VariantCell({
         )}
 
         {!isNew && (
-          <DeleteButton card={card} variant={variantKey} label={label} />
+          <VisibilityButton
+            card={card}
+            variant={variantKey}
+            label={label}
+            hidden={hidden}
+          />
         )}
 
         {error && <span className="text-xs text-red-400">{error}</span>}
@@ -624,25 +621,27 @@ function VariantCell({
   );
 }
 
-function DeleteButton({
+function VisibilityButton({
   card,
   variant,
   label,
+  hidden,
 }: {
   card: Card;
   variant: VariantKey;
   label: string;
+  hidden: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function del() {
+  async function toggleVisibility() {
     const ok = window.confirm(
-      `Supprimer la variante ${label} de ${card.name} ?\n\n` +
-        `Cela retire les valeurs personnalisées stockées dans la base.\n` +
-        `Si la variante n'existait pas dans le catalogue, elle disparaît du site.\n` +
-        `Sinon, elle revient aux valeurs du catalogue.`,
+      `${hidden ? "Restaurer" : "Masquer"} la variante ${label} de ${card.name} ?\n\n` +
+        (hidden
+          ? `Elle sera de nouveau visible sur le site.`
+          : `Elle sera cachee du site sans modifier son stock ni son prix.`),
     );
 
     if (!ok) return;
@@ -651,8 +650,8 @@ function DeleteButton({
     setError(null);
 
     try {
-      const res = await fetch("/api/admin/stock", {
-        method: "DELETE",
+      const res = await fetch("/api/admin/variant-visibility", {
+        method: hidden ? "DELETE" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cardId: card.id, variant }),
       });
@@ -672,11 +671,15 @@ function DeleteButton({
     <>
       <button
         type="button"
-        onClick={del}
+        onClick={toggleVisibility}
         disabled={busy}
-        className="rounded bg-red-600/80 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
+        className={`rounded px-3 py-1 text-xs font-medium text-white disabled:opacity-60 ${
+          hidden
+            ? "bg-emerald-600/80 hover:bg-emerald-600"
+            : "bg-red-600/80 hover:bg-red-600"
+        }`}
       >
-        {busy ? "..." : "Supprimer"}
+        {busy ? "..." : hidden ? "Restaurer" : "Masquer"}
       </button>
 
       {error && <span className="text-xs text-red-400">{error}</span>}

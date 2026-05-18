@@ -1,5 +1,6 @@
 import {
   listVariants,
+  resolveVariant,
   type Card,
   type Rarity,
   type VariantKey,
@@ -16,6 +17,10 @@ function shouldKeepMainRarityFirst(card: Card) {
 
 export function getPreferredDisplayVariant(card: Card): ListedVariant {
   const variants = listVariants(card);
+
+  if (variants.length === 0) {
+    return { key: "base", variant: resolveVariant(card, "base") };
+  }
 
   if (!shouldKeepMainRarityFirst(card)) {
     const preferred = variants.find(

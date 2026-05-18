@@ -68,7 +68,8 @@ function VariantBlock({
 
 export default function CardDetailBody({ card }: { card: Card }) {
   const variants = orderDisplayVariants(card);
-  const allOutOfStock = variants.every((v) => v.variant.stock <= 0);
+  const allOutOfStock =
+    variants.length === 0 || variants.every((v) => v.variant.stock <= 0);
   const gridCols =
     variants.length === 1
       ? ""
@@ -126,11 +127,17 @@ export default function CardDetailBody({ card }: { card: Card }) {
           <p className="mt-4 text-gray-300">{card.description}</p>
         )}
 
-        <div className={`mt-6 grid gap-4 ${gridCols}`}>
-          {variants.map(({ key }) => (
-            <VariantBlock key={key} card={card} variant={key} />
-          ))}
-        </div>
+        {variants.length === 0 ? (
+          <p className="mt-6 rounded-lg border border-white/10 bg-zinc-900/60 p-4 text-sm text-gray-300">
+            Aucune variante disponible pour le moment.
+          </p>
+        ) : (
+          <div className={`mt-6 grid gap-4 ${gridCols}`}>
+            {variants.map(({ key }) => (
+              <VariantBlock key={key} card={card} variant={key} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

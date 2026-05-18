@@ -1,7 +1,7 @@
 import "server-only";
 import { inArray } from "drizzle-orm";
 import { getDb } from "./db/client";
-import { cardOverrides, stockOverrides } from "./db/schema";
+import { cardOverrides, hiddenVariants, stockOverrides } from "./db/schema";
 import {
   isCondition,
   isRarity,
@@ -38,10 +38,14 @@ export async function applyStockOverrides<T extends Card>(
     description: string | null;
     weightGrams: number | null;
   }[] = [];
+  let hiddenRows: {
+    cardId: string;
+    variant: string;
+  }[] = [];
 
   try {
     const db = getDb();
-    [rows, metaRows] = await Promise.all([
+    [rows, metaRows, hiddenRows] = await Promise.all([
       db
         .select({
           cardId: stockOverrides.cardId,
@@ -64,15 +68,32 @@ export async function applyStockOverrides<T extends Card>(
         })
         .from(cardOverrides)
         .where(inArray(cardOverrides.cardId, ids)),
+      db
+        .select({
+          cardId: hiddenVariants.cardId,
+          variant: hiddenVariants.variant,
+        })
+        .from(hiddenVariants)
+        .where(inArray(hiddenVariants.cardId, ids))
+        .catch(() => [] as typeof hiddenRows),
     ]);
   } catch {
     return cards;
   }
 
-  if (rows.length === 0 && metaRows.length === 0) return cards;
+  if (rows.length === 0 && metaRows.length === 0 && hiddenRows.length === 0) {
+    return cards;
+  }
 
   const metaByCard = new Map<string, (typeof metaRows)[number]>();
   for (const m of metaRows) metaByCard.set(m.cardId, m);
+
+  const hiddenByCard = new Map<string, string[]>();
+  for (const row of hiddenRows) {
+    const variants = hiddenByCard.get(row.cardId) ?? [];
+    variants.push(row.variant);
+    hiddenByCard.set(row.cardId, variants);
+  }
 
   const byCard = new Map<string, Map<string, OverrideData>>();
   for (const r of rows) {
@@ -92,9 +113,14 @@ export async function applyStockOverrides<T extends Card>(
   return cards.map((c) => {
     const overrides = byCard.get(c.id);
     const meta = metaByCard.get(c.id);
-    if (!overrides && !meta) return c;
+    const hidden = hiddenByCard.get(c.id);
+    if (!overrides && !meta && !hidden) return c;
 
     const next: T = { ...c };
+
+    if (hidden) {
+      next.hiddenVariants = hidden;
+    }
 
     if (meta) {
       if (meta.name) next.name = meta.name;

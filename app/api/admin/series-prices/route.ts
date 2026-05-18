@@ -35,7 +35,9 @@ function slugifyRarity(rarity: Rarity) {
 
 function pickVariantKey(card: Card, rarity: Rarity) {
   const base = slugifyRarity(rarity);
-  const usedKeys = new Set(listVariants(card).map(({ key }) => key));
+  const usedKeys = new Set(
+    listVariants(card, { includeHidden: true }).map(({ key }) => key),
+  );
   let candidate = base;
   let i = 2;
 
@@ -100,7 +102,7 @@ export async function POST(request: Request) {
   }[] = [];
 
   for (const card of cardsWithOverrides) {
-    const variants = listVariants(card);
+    const variants = listVariants(card, { includeHidden: true });
 
     const catalogRarity = catalogRarityById.get(card.id) ?? card.rarity;
     const isProtectedMainRarity =

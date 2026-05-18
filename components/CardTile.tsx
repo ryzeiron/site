@@ -4,6 +4,7 @@ import FavoriteHeartButton from "@/components/FavoriteHeartButton";
 import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
 import {
   getPreferredDisplayVariant,
+  orderDisplayVariants,
   rarityDisplayLabel,
 } from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
@@ -19,13 +20,11 @@ export default function CardTile({
     ? { key: variantKey, variant: resolveVariant(card, variantKey) }
     : getPreferredDisplayVariant(card);
   const displayVariant = preferredDisplay.variant;
-  const baseOut = card.stock <= 0;
-  const altOut = !card.altVariant || card.altVariant.stock <= 0;
-  const extrasOut =
-    !card.extraVariants || card.extraVariants.every((v) => v.stock <= 0);
+  const visibleVariants = orderDisplayVariants(card);
   const outOfStock = variantKey
     ? displayVariant.stock <= 0
-    : baseOut && altOut && extrasOut;
+    : visibleVariants.length === 0 ||
+      visibleVariants.every(({ variant }) => variant.stock <= 0);
   const rarityLabel = rarityDisplayLabel(card, variantKey);
   const price = displayVariant.price;
 

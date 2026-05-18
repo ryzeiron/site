@@ -108,26 +108,51 @@ export type Card = {
   weightGrams?: number; // poids unitaire en grammes (pour calcul livraison)
   altVariant?: CardVariant; // deuxieme version "alt" (legacy + raccourci)
   extraVariants?: NamedVariant[]; // variantes supplementaires identifiees par cle
+  hiddenVariants?: VariantKey[]; // variantes masquees depuis l'admin
 };
 
 export function resolveVariant(card: Card, key: VariantKey = "base"): CardVariant {
-  if (key === "alt" && card.altVariant) return card.altVariant;
-  if (key !== "base" && key !== "alt" && card.extraVariants) {
+  let variant: CardVariant;
+  if (key === "alt" && card.altVariant) {
+    variant = card.altVariant;
+  } else if (key !== "base" && key !== "alt" && card.extraVariants) {
     const v = card.extraVariants.find((x) => x.key === key);
-    if (v) return { rarity: v.rarity, price: v.price, stock: v.stock };
+    variant = v
+      ? { rarity: v.rarity, price: v.price, stock: v.stock }
+      : { rarity: card.rarity, price: card.price, stock: card.stock };
+  } else {
+    variant = { rarity: card.rarity, price: card.price, stock: card.stock };
   }
-  return { rarity: card.rarity, price: card.price, stock: card.stock };
+
+  if (isVariantHidden(card, key)) return { ...variant, stock: 0 };
+  return variant;
 }
 
-export function listVariants(card: Card): { key: VariantKey; variant: CardVariant }[] {
-  const out: { key: VariantKey; variant: CardVariant }[] = [
-    { key: "base", variant: { rarity: card.rarity, price: card.price, stock: card.stock } },
-  ];
-  if (card.altVariant) {
+export function isVariantHidden(card: Card, key: VariantKey): boolean {
+  return card.hiddenVariants?.includes(key) ?? false;
+}
+
+export function listVariants(
+  card: Card,
+  options: { includeHidden?: boolean } = {},
+): { key: VariantKey; variant: CardVariant }[] {
+  const includeHidden = options.includeHidden ?? false;
+  const out: { key: VariantKey; variant: CardVariant }[] = [];
+
+  if (includeHidden || !isVariantHidden(card, "base")) {
+    out.push({
+      key: "base",
+      variant: { rarity: card.rarity, price: card.price, stock: card.stock },
+    });
+  }
+
+  if (card.altVariant && (includeHidden || !isVariantHidden(card, "alt"))) {
     out.push({ key: "alt", variant: card.altVariant });
   }
+
   if (card.extraVariants) {
     for (const v of card.extraVariants) {
+      if (!includeHidden && isVariantHidden(card, v.key)) continue;
       out.push({
         key: v.key,
         variant: { rarity: v.rarity, price: v.price, stock: v.stock },
