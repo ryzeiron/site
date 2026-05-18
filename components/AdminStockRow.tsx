@@ -10,6 +10,7 @@ import {
   isVariantHidden,
   listVariants,
   type Card,
+  type Condition,
   type Rarity,
   type VariantKey,
 } from "@/lib/catalog";
@@ -18,6 +19,7 @@ type VariantSpec = {
   key: VariantKey;
   label: string;
   rarity: Rarity;
+  condition: Condition;
   stock: number;
   price: number;
   hidden: boolean;
@@ -36,6 +38,7 @@ function buildVariants(card: Card): VariantSpec[] {
     key,
     label: key === "base" ? "Base" : key === "alt" ? "Alt" : variant.rarity,
     rarity: variant.rarity,
+    condition: variant.condition ?? card.condition,
     stock: variant.stock,
     price: variant.price,
     hidden: isVariantHidden(card, key),
@@ -108,6 +111,7 @@ export default function AdminStockRow({ card }: { card: Card }) {
             variantKey={v.key}
             label={v.label}
             rarity={v.rarity}
+            initialCondition={v.condition}
             initialStock={v.stock}
             initialPrice={v.price}
             hidden={v.hidden}
@@ -135,7 +139,6 @@ export default function AdminStockRow({ card }: { card: Card }) {
 function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
   const router = useRouter();
   const [name, setName] = useState(card.name);
-  const [condition, setCondition] = useState(card.condition);
   const [image, setImage] = useState(card.image ?? "");
   const [imageBack, setImageBack] = useState(card.imageBack ?? "");
   const [description, setDescription] = useState(card.description ?? "");
@@ -145,7 +148,6 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
 
   const changed =
     name !== card.name ||
-    condition !== card.condition ||
     image !== (card.image ?? "") ||
     imageBack !== (card.imageBack ?? "") ||
     description !== (card.description ?? "");
@@ -165,7 +167,6 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
         body: JSON.stringify({
           cardId: card.id,
           name,
-          condition,
           image,
           imageBack,
           description,
@@ -227,21 +228,6 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
           onChange={(e) => setName(e.target.value)}
           className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
         />
-      </div>
-
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-24 shrink-0 text-gray-400">État</label>
-        <select
-          value={condition}
-          onChange={(e) => setCondition(e.target.value as typeof condition)}
-          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
-        >
-          {CONDITIONS.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </select>
       </div>
 
       <div className="flex items-center gap-2 text-sm">
@@ -323,6 +309,7 @@ function NewVariantForm({
 }) {
   const router = useRouter();
   const [rarityValue, setRarityValue] = useState<string>("");
+  const [conditionValue, setConditionValue] = useState<Condition>(card.condition);
   const [stockValue, setStockValue] = useState<string>("0");
   const [priceValue, setPriceValue] = useState<string>(String(card.price));
   const [saving, setSaving] = useState(false);
@@ -356,6 +343,7 @@ function NewVariantForm({
           stock,
           price,
           rarity: rarityValue,
+          condition: conditionValue,
         }),
       });
 
@@ -388,6 +376,21 @@ function NewVariantForm({
           {RARITIES.map((r) => (
             <option key={r} value={r}>
               {r}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex items-center gap-2 text-sm">
+        <label className="w-12 text-gray-400">Etat</label>
+        <select
+          value={conditionValue}
+          onChange={(e) => setConditionValue(e.target.value as Condition)}
+          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
+        >
+          {CONDITIONS.map((value) => (
+            <option key={value} value={value}>
+              {value}
             </option>
           ))}
         </select>
@@ -450,6 +453,7 @@ function VariantCell({
   variantKey,
   label,
   rarity,
+  initialCondition,
   initialStock,
   initialPrice,
   hidden,
@@ -460,6 +464,7 @@ function VariantCell({
   variantKey: VariantKey;
   label: string;
   rarity: Rarity;
+  initialCondition: Condition;
   initialStock: number;
   initialPrice: number;
   hidden: boolean;
@@ -468,6 +473,8 @@ function VariantCell({
 }) {
   const router = useRouter();
   const [rarityValue, setRarityValue] = useState<string>(rarity);
+  const [conditionValue, setConditionValue] =
+    useState<Condition>(initialCondition);
   const [stockValue, setStockValue] = useState<string>(String(initialStock));
   const [priceValue, setPriceValue] = useState<string>(String(initialPrice));
   const [saving, setSaving] = useState(false);
@@ -476,10 +483,11 @@ function VariantCell({
 
   useEffect(() => {
     setRarityValue(rarity);
+    setConditionValue(initialCondition);
     setStockValue(String(initialStock));
     setPriceValue(String(initialPrice));
     setError(null);
-  }, [rarity, initialStock, initialPrice]);
+  }, [rarity, initialCondition, initialStock, initialPrice]);
 
   const currentStock = Number.parseInt(stockValue, 10);
   const currentPrice = Number.parseFloat(priceValue.replace(",", "."));
@@ -489,7 +497,9 @@ function VariantCell({
   const stockChanged = currentStock !== initialStock;
   const priceChanged = Math.abs(currentPrice - initialPrice) > 0.0001;
   const rarityChanged = rarityValue !== rarity;
-  const hasChanges = stockChanged || priceChanged || rarityChanged;
+  const conditionChanged = conditionValue !== initialCondition;
+  const hasChanges =
+    stockChanged || priceChanged || rarityChanged || conditionChanged;
   const canSave = hasChanges && stockValid && priceValid;
 
   async function save() {
@@ -507,6 +517,7 @@ function VariantCell({
       if (stockChanged) body.stock = currentStock;
       if (priceChanged) body.price = currentPrice;
       if (rarityChanged) body.rarity = rarityValue;
+      if (conditionChanged) body.condition = conditionValue;
 
       const res = await fetch("/api/admin/stock", {
         method: "POST",
@@ -565,6 +576,21 @@ function VariantCell({
       </div>
 
       <div className="flex items-center gap-2 text-sm">
+        <label className="w-12 text-gray-400">Etat</label>
+        <select
+          value={conditionValue}
+          onChange={(e) => setConditionValue(e.target.value as Condition)}
+          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
+        >
+          {CONDITIONS.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex items-center gap-2 text-sm">
         <label className="w-12 text-gray-400">Stock</label>
         <input
           type="number"
@@ -609,6 +635,7 @@ function VariantCell({
             type="button"
             onClick={() => {
               setRarityValue(rarity);
+              setConditionValue(initialCondition);
               setStockValue(String(initialStock));
               setPriceValue(String(initialPrice));
               setError(null);

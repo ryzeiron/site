@@ -73,6 +73,7 @@ export type Serie = {
 
 export type CardVariant = {
   rarity: Rarity;
+  condition?: Condition;
   price: number;
   stock: number;
 };
@@ -80,6 +81,7 @@ export type CardVariant = {
 export type NamedVariant = {
   key: string; // identifiant unique par carte (ex: "pokeball", "masterball", "cosmos")
   rarity: Rarity;
+  condition?: Condition;
   price: number;
   stock: number;
 };
@@ -121,11 +123,21 @@ export function resolveVariant(card: Card, key: VariantKey = "base"): CardVarian
       ? { rarity: v.rarity, price: v.price, stock: v.stock }
       : { rarity: card.rarity, price: card.price, stock: card.stock };
   } else {
-    variant = { rarity: card.rarity, price: card.price, stock: card.stock };
+    variant = {
+      rarity: card.rarity,
+      condition: card.condition,
+      price: card.price,
+      stock: card.stock,
+    };
   }
 
-  if (isVariantHidden(card, key)) return { ...variant, stock: 0 };
-  return variant;
+  const withCondition = {
+    ...variant,
+    condition: variant.condition ?? card.condition,
+  };
+
+  if (isVariantHidden(card, key)) return { ...withCondition, stock: 0 };
+  return withCondition;
 }
 
 export function isVariantHidden(card: Card, key: VariantKey): boolean {
@@ -142,12 +154,23 @@ export function listVariants(
   if (includeHidden || !isVariantHidden(card, "base")) {
     out.push({
       key: "base",
-      variant: { rarity: card.rarity, price: card.price, stock: card.stock },
+      variant: {
+        rarity: card.rarity,
+        condition: card.condition,
+        price: card.price,
+        stock: card.stock,
+      },
     });
   }
 
   if (card.altVariant && (includeHidden || !isVariantHidden(card, "alt"))) {
-    out.push({ key: "alt", variant: card.altVariant });
+    out.push({
+      key: "alt",
+      variant: {
+        ...card.altVariant,
+        condition: card.altVariant.condition ?? card.condition,
+      },
+    });
   }
 
   if (card.extraVariants) {
@@ -155,7 +178,12 @@ export function listVariants(
       if (!includeHidden && isVariantHidden(card, v.key)) continue;
       out.push({
         key: v.key,
-        variant: { rarity: v.rarity, price: v.price, stock: v.stock },
+        variant: {
+          rarity: v.rarity,
+          condition: v.condition ?? card.condition,
+          price: v.price,
+          stock: v.stock,
+        },
       });
     }
   }

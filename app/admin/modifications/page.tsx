@@ -58,16 +58,45 @@ function cardSummary(cardId: string) {
   };
 }
 
+async function getStockModificationRows(db: ReturnType<typeof getDb>) {
+  try {
+    return await db
+      .select({
+        cardId: stockOverrides.cardId,
+        variant: stockOverrides.variant,
+        stock: stockOverrides.stock,
+        priceCents: stockOverrides.priceCents,
+        rarity: stockOverrides.rarity,
+        condition: stockOverrides.condition,
+        updatedAt: stockOverrides.updatedAt,
+      })
+      .from(stockOverrides)
+      .orderBy(desc(stockOverrides.updatedAt))
+      .limit(50);
+  } catch {
+    const rows = await db
+      .select({
+        cardId: stockOverrides.cardId,
+        variant: stockOverrides.variant,
+        stock: stockOverrides.stock,
+        priceCents: stockOverrides.priceCents,
+        rarity: stockOverrides.rarity,
+        updatedAt: stockOverrides.updatedAt,
+      })
+      .from(stockOverrides)
+      .orderBy(desc(stockOverrides.updatedAt))
+      .limit(50);
+
+    return rows.map((row) => ({ ...row, condition: null }));
+  }
+}
+
 export default async function AdminModificationsPage() {
   if (!(await isAdmin())) redirect("/admin/login");
 
   const db = getDb();
   const [stockRows, cardRows] = await Promise.all([
-    db
-      .select()
-      .from(stockOverrides)
-      .orderBy(desc(stockOverrides.updatedAt))
-      .limit(50),
+    getStockModificationRows(db),
     db
       .select()
       .from(cardOverrides)
@@ -88,6 +117,10 @@ export default async function AdminModificationsPage() {
 
     if (row.rarity) {
       details.push(`Rarete ${row.rarity}`);
+    }
+
+    if (row.condition) {
+      details.push(`Etat ${row.condition}`);
     }
 
     return {

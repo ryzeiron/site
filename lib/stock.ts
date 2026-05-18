@@ -5,6 +5,7 @@ import { cardOverrides, hiddenVariants, stockOverrides } from "./db/schema";
 import {
   isCondition,
   isRarity,
+  type Condition,
   type Card,
   type NamedVariant,
   type Rarity,
@@ -14,6 +15,7 @@ type OverrideData = {
   stock: number;
   priceCents: number | null;
   rarity: Rarity | null;
+  condition: Condition | null;
 };
 
 export async function applyStockOverrides<T extends Card>(
@@ -28,6 +30,7 @@ export async function applyStockOverrides<T extends Card>(
     stock: number;
     priceCents: number | null;
     rarity: string | null;
+    condition: string | null;
   }[] = [];
   let metaRows: {
     cardId: string;
@@ -46,16 +49,37 @@ export async function applyStockOverrides<T extends Card>(
   try {
     const db = getDb();
     [rows, metaRows, hiddenRows] = await Promise.all([
-      db
-        .select({
-          cardId: stockOverrides.cardId,
-          variant: stockOverrides.variant,
-          stock: stockOverrides.stock,
-          priceCents: stockOverrides.priceCents,
-          rarity: stockOverrides.rarity,
-        })
-        .from(stockOverrides)
-        .where(inArray(stockOverrides.cardId, ids)),
+      (async () => {
+        try {
+          return await db
+            .select({
+              cardId: stockOverrides.cardId,
+              variant: stockOverrides.variant,
+              stock: stockOverrides.stock,
+              priceCents: stockOverrides.priceCents,
+              rarity: stockOverrides.rarity,
+              condition: stockOverrides.condition,
+            })
+            .from(stockOverrides)
+            .where(inArray(stockOverrides.cardId, ids));
+        } catch {
+          const fallbackRows = await db
+            .select({
+              cardId: stockOverrides.cardId,
+              variant: stockOverrides.variant,
+              stock: stockOverrides.stock,
+              priceCents: stockOverrides.priceCents,
+              rarity: stockOverrides.rarity,
+            })
+            .from(stockOverrides)
+            .where(inArray(stockOverrides.cardId, ids));
+
+          return fallbackRows.map((row) => ({
+            ...row,
+            condition: null,
+          }));
+        }
+      })(),
       db
         .select({
           cardId: cardOverrides.cardId,
@@ -107,6 +131,7 @@ export async function applyStockOverrides<T extends Card>(
       stock: r.stock,
       priceCents: r.priceCents,
       rarity: r.rarity && isRarity(r.rarity) ? r.rarity : null,
+      condition: r.condition && isCondition(r.condition) ? r.condition : null,
     });
   }
 
@@ -146,6 +171,9 @@ export async function applyStockOverrides<T extends Card>(
       if (baseOverride.rarity !== null) {
         next.rarity = baseOverride.rarity;
       }
+      if (baseOverride.condition !== null) {
+        next.condition = baseOverride.condition;
+      }
     }
 
     const altOverride = overrides.get("alt");
@@ -159,10 +187,12 @@ export async function applyStockOverrides<T extends Card>(
               ? altOverride.priceCents / 100
               : next.altVariant.price,
           rarity: altOverride.rarity ?? next.altVariant.rarity,
+          condition: altOverride.condition ?? next.altVariant.condition,
         };
       } else if (altOverride.rarity !== null) {
         next.altVariant = {
           rarity: altOverride.rarity,
+          condition: altOverride.condition ?? next.condition,
           stock: altOverride.stock,
           price:
             altOverride.priceCents !== null
@@ -185,11 +215,13 @@ export async function applyStockOverrides<T extends Card>(
           stock: ov.stock,
           price: ov.priceCents !== null ? ov.priceCents / 100 : existing.price,
           rarity: ov.rarity ?? existing.rarity,
+          condition: ov.condition ?? existing.condition,
         };
       } else if (ov.rarity !== null) {
         const created: NamedVariant = {
           key,
           rarity: ov.rarity,
+          condition: ov.condition ?? next.condition,
           stock: ov.stock,
           price: ov.priceCents !== null ? ov.priceCents / 100 : next.price,
         };

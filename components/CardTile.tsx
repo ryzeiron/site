@@ -72,7 +72,9 @@ export default function CardTile({
             <span className="font-bold text-brand-500">
               {formatPrice(price)}
             </span>
-            <span className="text-xs text-gray-500">{card.condition}</span>
+            <span className="text-xs text-gray-500">
+              {displayVariant.condition ?? card.condition}
+            </span>
           </div>
         </div>
       </Link>

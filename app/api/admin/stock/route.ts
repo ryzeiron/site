@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin/auth";
 import {
   getCard,
+  isCondition,
   isRarity,
   isValidVariantKey,
   resolveVariant,
+  type Condition,
   type Rarity,
 } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
@@ -18,6 +20,7 @@ type Body = {
   stock?: number;
   price?: number;
   rarity?: string;
+  condition?: string;
 };
 
 function validateVariantKey(variant: string | undefined): string | null {
@@ -39,7 +42,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
   }
 
-  const { cardId, variant, stock, price, rarity } = body;
+  const { cardId, variant, stock, price, rarity, condition } = body;
   const variantKey = validateVariantKey(variant);
   if (!cardId || !variantKey) {
     return NextResponse.json(
@@ -56,8 +59,9 @@ export async function POST(request: Request) {
   const hasStock = typeof stock === "number";
   const hasPrice = typeof price === "number";
   const hasRarity = typeof rarity === "string" && rarity.length > 0;
+  const hasCondition = typeof condition === "string" && condition.length > 0;
 
-  if (!hasStock && !hasPrice && !hasRarity) {
+  if (!hasStock && !hasPrice && !hasRarity && !hasCondition) {
     return NextResponse.json(
       { error: "Aucune modification a enregistrer." },
       { status: 400 },
@@ -84,6 +88,17 @@ export async function POST(request: Request) {
       );
     }
     rarityValue = rarity;
+  }
+
+  let conditionValue: Condition | undefined;
+  if (hasCondition) {
+    if (!isCondition(condition)) {
+      return NextResponse.json(
+        { error: "Etat inconnu." },
+        { status: 400 },
+      );
+    }
+    conditionValue = condition;
   }
 
   const priceCentsValue = hasPrice ? Math.round(price * 100) : undefined;
@@ -124,23 +139,28 @@ export async function POST(request: Request) {
 
   let currentStock = 0;
   let currentPrice = card.price;
+  let currentCondition = card.condition;
 
   if (variantKey === "base") {
     currentStock = card.stock;
     currentPrice = card.price;
+    currentCondition = card.condition;
   } else if (variantKey === "alt" && card.altVariant) {
     currentStock = card.altVariant.stock;
     currentPrice = card.altVariant.price;
+    currentCondition = card.altVariant.condition ?? card.condition;
   } else if (variantKey !== "alt" && variantKey !== "base") {
     const v = card.extraVariants?.find((x) => x.key === variantKey);
     if (v) {
       currentStock = v.stock;
       currentPrice = v.price;
+      currentCondition = v.condition ?? card.condition;
     }
   } else {
     const r = resolveVariant(card, variantKey);
     currentStock = r.stock;
     currentPrice = r.price;
+    currentCondition = r.condition ?? card.condition;
   }
 
   const insertStock = hasStock ? stock : currentStock;
@@ -150,29 +170,46 @@ export async function POST(request: Request) {
       ? Math.round(currentPrice * 100)
       : null;
   const insertRarity = rarityValue ?? null;
+  const insertCondition = conditionValue ?? (creatingNew ? currentCondition : null);
 
   let restockNotifications: { sent: number; failed: number } | null = null;
 
   try {
     const db = getDb();
-    await db
-      .insert(stockOverrides)
-      .values({
-        cardId,
-        variant: variantKey,
-        stock: insertStock,
-        priceCents: insertPriceCents,
-        rarity: insertRarity,
-      })
-      .onConflictDoUpdate({
-        target: [stockOverrides.cardId, stockOverrides.variant],
-        set: {
-          ...(hasStock ? { stock } : {}),
-          ...(hasPrice ? { priceCents: priceCentsValue } : {}),
-          ...(hasRarity ? { rarity: rarityValue } : {}),
-          updatedAt: new Date(),
-        },
-      });
+    const saveOverride = (includeCondition: boolean) =>
+      db
+        .insert(stockOverrides)
+        .values({
+          cardId,
+          variant: variantKey,
+          stock: insertStock,
+          priceCents: insertPriceCents,
+          rarity: insertRarity,
+          ...(includeCondition ? { condition: insertCondition } : {}),
+        })
+        .onConflictDoUpdate({
+          target: [stockOverrides.cardId, stockOverrides.variant],
+          set: {
+            ...(hasStock ? { stock } : {}),
+            ...(hasPrice ? { priceCents: priceCentsValue } : {}),
+            ...(hasRarity ? { rarity: rarityValue } : {}),
+            ...(includeCondition && hasCondition
+              ? { condition: conditionValue }
+              : {}),
+            updatedAt: new Date(),
+          },
+        });
+
+    try {
+      await saveOverride(true);
+    } catch {
+      if (hasCondition) {
+        throw new Error(
+          "La colonne SQL condition manque dans stock_overrides. Ajoute le SQL avant de modifier l'etat d'une variante.",
+        );
+      }
+      await saveOverride(false);
+    }
 
     if (hasStock && currentStock <= 0 && stock > 0) {
       restockNotifications = await notifyRestockSubscribers({
@@ -190,6 +227,7 @@ export async function POST(request: Request) {
     stock: insertStock,
     price: priceCentsValue !== undefined ? priceCentsValue / 100 : undefined,
     rarity: rarityValue,
+    condition: conditionValue,
     restockNotifications,
   });
 }

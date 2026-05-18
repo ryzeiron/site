@@ -32,6 +32,10 @@ function VariantBlock({
       </div>
 
       <div className="text-xs text-gray-400 mt-2">
+        Etat : {v.condition ?? card.condition}
+      </div>
+
+      <div className="text-xs text-gray-400 mt-1">
         {outOfStock
           ? "Rupture"
           : `${v.stock} exemplaire${v.stock > 1 ? "s" : ""} en stock`}
@@ -115,9 +119,6 @@ export default function CardDetailBody({ card }: { card: Card }) {
         <h1 className="text-3xl font-bold mt-1 text-white">{card.name}</h1>
 
         <div className="mt-2 flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-1">
-            État : {card.condition}
-          </span>
           <span className="rounded-full bg-sky-500/20 text-sky-300 px-2 py-1">
             {card.language}
           </span>
