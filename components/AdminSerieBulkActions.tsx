@@ -18,6 +18,7 @@ export default function AdminSerieBulkActions({
 }: Props) {
   const router = useRouter();
   const [rarity, setRarity] = useState<Rarity>(defaultRarity);
+  const [sourceRarity, setSourceRarity] = useState<Rarity | "all">("all");
   const [replacementRarity, setReplacementRarity] =
     useState<Rarity>(defaultRarity);
   const [priceValue, setPriceValue] = useState("0.50");
@@ -28,6 +29,8 @@ export default function AdminSerieBulkActions({
 
   const price = Number.parseFloat(priceValue.replace(",", "."));
   const canSavePrice = Number.isFinite(price) && price >= 0;
+  const canReplaceRarity =
+    sourceRarity === "all" || sourceRarity !== replacementRarity;
   const busy = savingPrice || savingRarity;
 
   async function applyPrice() {
@@ -82,10 +85,14 @@ export default function AdminSerieBulkActions({
   }
 
   async function replaceRarities() {
-    if (busy) return;
+    if (!canReplaceRarity || busy) return;
 
+    const sourceLabel =
+      sourceRarity === "all"
+        ? "toutes les raretés"
+        : `les raretés ${formatRarityLabel(sourceRarity)}`;
     const ok = window.confirm(
-      `Remplacer toutes les raretés de ${serieLabel} par ${formatRarityLabel(replacementRarity)} ?\n\n` +
+      `Remplacer ${sourceLabel} de ${serieLabel} par ${formatRarityLabel(replacementRarity)} ?\n\n` +
         "Le prix, le stock, l'état, les images et les variantes ne seront pas modifiés.",
     );
 
@@ -101,6 +108,7 @@ export default function AdminSerieBulkActions({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           serieId,
+          fromRarity: sourceRarity === "all" ? undefined : sourceRarity,
           rarity: replacementRarity,
         }),
       });
@@ -188,12 +196,34 @@ export default function AdminSerieBulkActions({
 
         <div className="rounded-lg border border-violet-300/20 bg-violet-950/20 p-3">
           <div className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">
-            Remplacer les raretés
+            Changer X par Y
           </div>
 
           <div className="flex flex-wrap items-end gap-3">
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-xs text-gray-400">Nouvelle rareté</span>
+              <span className="text-xs text-gray-400">Changer</span>
+              <select
+                value={sourceRarity}
+                onChange={(e) =>
+                  setSourceRarity(
+                    e.target.value === "all"
+                      ? "all"
+                      : (e.target.value as Rarity),
+                  )
+                }
+                className="rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
+              >
+                <option value="all">Toutes les raretés</option>
+                {RARITIES.map((value) => (
+                  <option key={value} value={value}>
+                    {formatRarityLabel(value)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-xs text-gray-400">En</span>
               <select
                 value={replacementRarity}
                 onChange={(e) => setReplacementRarity(e.target.value as Rarity)}
@@ -210,20 +240,20 @@ export default function AdminSerieBulkActions({
             <button
               type="button"
               onClick={replaceRarities}
-              disabled={busy}
+              disabled={!canReplaceRarity || busy}
               className={`rounded px-4 py-2 text-sm font-medium transition ${
-                !busy
+                canReplaceRarity && !busy
                   ? "bg-violet-600 text-white hover:bg-violet-700"
                   : "cursor-not-allowed bg-white/10 text-gray-400"
               }`}
             >
-              {savingRarity ? "Remplacement..." : "Remplacer toute la colonne"}
+              {savingRarity ? "Remplacement..." : "Appliquer"}
             </button>
           </div>
 
           <p className="mt-2 text-xs leading-5 text-gray-400">
-            Cette action change seulement la rareté des cartes et variantes de
-            cette série. Le prix et le stock restent identiques.
+            Cette action change seulement la rareté des cartes et variantes
+            concernées. Le prix et le stock restent identiques.
           </p>
         </div>
       </div>
