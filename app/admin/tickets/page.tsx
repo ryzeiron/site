@@ -43,7 +43,7 @@ export default async function AdminTicketsPage() {
         <div>
           <h1 className="text-3xl font-bold text-white">Admin - Tickets</h1>
           <p className="text-sm text-gray-400 mt-1">
-            Demandes recues via le formulaire de contact.
+            Demandes reçues via le formulaire de contact.
           </p>
         </div>
         <LogoutButton />

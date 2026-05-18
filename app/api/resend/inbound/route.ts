@@ -89,7 +89,7 @@ export async function POST(request: Request) {
   const receivedEmail = await getReceivedEmail(apiKey, emailId);
   const fallback = event.data ?? {};
   const originalFrom =
-    receivedEmail?.from ?? fallback.from ?? "Expediteur inconnu";
+    receivedEmail?.from ?? fallback.from ?? "Expéditeur inconnu";
   const originalTo = receivedEmail?.to ?? fallback.to ?? [];
   const originalCc = receivedEmail?.cc ?? fallback.cc ?? [];
   const subject = receivedEmail?.subject ?? fallback.subject ?? "Sans objet";
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     textContent ||
     stripHtml(htmlContent) ||
     extractReadableRawEmail(rawContent) ||
-    `Le contenu du mail n'a pas pu etre recupere automatiquement. ID Resend : ${emailId}`;
+    `Le contenu du mail n'a pas pu être récupéré automatiquement. ID Resend : ${emailId}`;
 
   const attachments = receivedEmail?.attachments ?? fallback.attachments ?? [];
   const rawUrl = receivedEmail?.raw?.download_url;
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
       <h1 style="font-size:20px;margin:0 0 16px">Nouveau mail reçu sur PokeDel</h1>
       <p><strong>De :</strong> ${escapeHtml(originalFrom)}</p>
-      <p><strong>À :</strong> ${escapeHtml(originalTo.join(", ") || "-")}</p>
+      <p><strong>ì :</strong> ${escapeHtml(originalTo.join(", ") || "-")}</p>
       ${
         originalCc.length > 0
           ? `<p><strong>CC :</strong> ${escapeHtml(originalCc.join(", "))}</p>`
@@ -153,7 +153,7 @@ export async function POST(request: Request) {
   `;
 
   const text = [
-    "Nouveau mail recu sur PokeDel",
+    "Nouveau mail reçu sur PokeDel",
     "",
     `De : ${originalFrom}`,
     `A : ${originalTo.join(", ") || "-"}`,
@@ -168,7 +168,7 @@ export async function POST(request: Request) {
     "",
     rawUrl ? `Email original : ${rawUrl}` : "",
     "",
-    "Pour repondre au client, reponds directement a cet email.",
+    "Pour répondre au client, réponds directement à cet email.",
   ]
     .filter(Boolean)
     .join("\n");

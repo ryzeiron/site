@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const email = String(body.email ?? "").trim().toLowerCase();
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
   if (existing.length > 0) {
     return NextResponse.json(
-      { error: "Un compte existe deja avec cet email." },
+      { error: "Un compte existe déjà avec cet email." },
       { status: 409 },
     );
   }

@@ -214,7 +214,7 @@ export default function CartPage() {
           if (!card) return null;
 
           const v = resolveVariant(card, item.variant);
-          // Stock dispo de mon point de vue = stock DB + ce que j'ai deja reserve
+          // Stock disponible de mon point de vue = stock DB + ce que j'ai déjà réservé
           const myAvailable = v.stock + item.quantity;
           const outOfStock = myAvailable <= 0;
 
@@ -509,7 +509,7 @@ export default function CartPage() {
                 href="/cgv"
                 className="text-brand-300 underline hover:text-brand-200"
               >
-                conditions generales de vente
+                conditions générales de vente
               </Link>{" "}
               (CGV) et je comprends que cette acceptation est obligatoire pour
               passer au paiement.
@@ -530,8 +530,8 @@ export default function CartPage() {
 
         <p className="text-xs text-gray-400 mt-1">
           {appliedPromo?.type === "free_shipping"
-            ? "Frais de livraison offerts a l'etape de paiement."
-            : "Les frais de livraison sont calcules a l'etape de paiement."}
+            ? "Frais de livraison offerts à l'étape de paiement."
+            : "Les frais de livraison sont calculés à l'étape de paiement."}
         </p>
 
         {error && (

@@ -103,7 +103,7 @@ export default function AuthButton() {
                 className="flex w-full items-center gap-3 border-t border-white/10 px-4 py-3 text-left text-sm font-medium text-red-200 transition hover:bg-red-500/15 disabled:opacity-60"
               >
                 <LogoutIcon />
-                {signingOut ? "Deconnexion..." : "Se deconnecter"}
+                {signingOut ? "Déconnexion..." : "Se déconnecter"}
               </button>
             </>
           ) : (
@@ -130,7 +130,7 @@ export default function AuthButton() {
                   onClick={() => setOpen(false)}
                   icon={<AccountIcon menu />}
                 >
-                  Creer un compte
+                  Créer un compte
                 </MenuLink>
               </div>
             </>

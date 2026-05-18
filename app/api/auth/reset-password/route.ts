@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const token = String(body.token ?? "").trim();
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   const reset = rows[0];
   if (!reset) {
     return NextResponse.json(
-      { error: "Lien invalide ou deja utilise." },
+      { error: "Lien invalide ou déjà utilisé." },
       { status: 400 },
     );
   }

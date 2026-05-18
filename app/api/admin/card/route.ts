@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as Body;
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const { cardId } = body;
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     weightGrams === undefined
   ) {
     return NextResponse.json(
-      { error: "Aucune modification a enregistrer." },
+      { error: "Aucune modification à enregistrer." },
       { status: 400 },
     );
   }
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
         },
       });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
@@ -136,7 +136,7 @@ export async function DELETE(request: Request) {
   try {
     body = (await request.json()) as { cardId?: string };
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   if (!body.cardId) {
@@ -147,7 +147,7 @@ export async function DELETE(request: Request) {
     const db = getDb();
     await db.delete(cardOverrides).where(eq(cardOverrides.cardId, body.cardId));
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 

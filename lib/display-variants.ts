@@ -10,6 +10,10 @@ type ListedVariant = ReturnType<typeof listVariants>[number];
 
 const PROTECTED_DISPLAY_RARITIES = new Set(["Ultra Rare", "Ultra rare", "Secrete"]);
 const PREFERRED_DISPLAY_RARITY: Rarity = "Commune";
+const RARITY_LABELS: Partial<Record<Rarity, string>> = {
+  Secrete: "Secrète",
+  "Ultra Rare": "Ultra rare",
+};
 
 function shouldKeepMainRarityFirst(card: Card) {
   return PROTECTED_DISPLAY_RARITIES.has(card.rarity);
@@ -56,9 +60,9 @@ export function rarityDisplayLabel(
   selectedVariant?: VariantKey,
 ): string {
   if (selectedVariant) {
-    return (
+    return formatRarityLabel(
       listVariants(card).find(({ key }) => key === selectedVariant)?.variant
-        .rarity ?? card.rarity
+        .rarity ?? card.rarity,
     );
   }
 
@@ -71,5 +75,9 @@ export function rarityDisplayLabel(
     labels.push(variant.rarity);
   }
 
-  return labels.join(" / ");
+  return labels.map(formatRarityLabel).join(" / ");
+}
+
+export function formatRarityLabel(rarity: Rarity | string): string {
+  return RARITY_LABELS[rarity as Rarity] ?? rarity;
 }

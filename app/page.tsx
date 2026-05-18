@@ -168,26 +168,26 @@ export default async function HomePage() {
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-300">
-              Nouveautes
+              Nouveautés
             </p>
             <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
-              Dernieres cartes ajoutees
+              Dernières cartes ajoutées
             </h2>
             <p className="mt-2 text-gray-300">
-              Les ajouts recents en stock, directement depuis l'admin.
+              Les ajouts récents en stock, directement depuis l'admin.
             </p>
           </div>
           <Link
             href="/nouveautes"
             className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700"
           >
-            Voir toutes les nouveautes
+            Voir toutes les nouveautés
           </Link>
         </div>
 
         {recentCards.length === 0 ? (
           <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5 text-sm text-gray-300">
-            Aucune nouveaute en stock pour le moment.
+            Aucune nouveauté en stock pour le moment.
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

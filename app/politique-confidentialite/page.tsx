@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Politique de confidentialite",
+  title: "Politique de confidentialité",
 };
 
 export default function PolitiqueConfidentialitePage() {

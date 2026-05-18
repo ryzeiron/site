@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
   const body = await readBody(request);
   if (!body) {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const { cardId } = body;
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         set: { updatedAt: new Date() },
       });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
@@ -87,7 +87,7 @@ export async function DELETE(request: Request) {
 
   const body = await readBody(request);
   if (!body) {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const { cardId } = body;
@@ -106,7 +106,7 @@ export async function DELETE(request: Request) {
         ),
       );
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 

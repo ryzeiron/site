@@ -7,6 +7,7 @@ import { isAdmin } from "@/lib/admin/auth";
 import { getCard, getSerie, resolveVariant, type Card } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { favoriteCards, users } from "@/lib/db/schema";
+import { formatRarityLabel } from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
 import { applyStockOverrides } from "@/lib/stock";
 
@@ -227,12 +228,12 @@ export default async function AdminFavoritesPage({
         </div>
 
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
-          <div className="text-sm text-gray-400">Favoris enregistres</div>
+          <div className="text-sm text-gray-400">Favoris enregistrés</div>
           <div className="mt-1 text-2xl font-bold text-white">{favoriteRows.length}</div>
         </div>
 
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
-          <div className="text-sm text-gray-400">Clients interesses</div>
+          <div className="text-sm text-gray-400">Clients intéressés</div>
           <div className="mt-1 text-2xl font-bold text-white">{interestedClients}</div>
         </div>
       </div>
@@ -242,7 +243,7 @@ export default async function AdminFavoritesPage({
           type="search"
           name="q"
           defaultValue={query}
-          placeholder="Rechercher une serie, une carte ou un client"
+          placeholder="Rechercher une série, une carte ou un client"
           className="min-w-[260px] flex-1 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white outline-none placeholder:text-gray-500 focus:border-violet-400/70"
         />
 
@@ -258,7 +259,7 @@ export default async function AdminFavoritesPage({
       </form>
 
       {filteredGroups.length === 0 ? (
-        <p className="text-gray-400">Aucun favori trouve.</p>
+        <p className="text-gray-400">Aucun favori trouvé.</p>
       ) : (
         <div className="space-y-5">
           {serieGroups.map(([serieId, groupsInSerie]) => {
@@ -273,7 +274,7 @@ export default async function AdminFavoritesPage({
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-3">
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">
-                      {serie?.code ?? "Serie inconnue"}
+                      {serie?.code ?? "Série inconnue"}
                     </div>
                     <h2 className="text-xl font-bold text-white">
                       {serie?.name ?? "Cartes introuvables"}
@@ -340,7 +341,7 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
             {variant && (
               <>
                 <span className="rounded bg-violet-500/15 px-2 py-1 text-violet-200">
-                  {variant.rarity}
+                  {formatRarityLabel(variant.rarity)}
                 </span>
 
                 <span className="rounded bg-white/10 px-2 py-1 text-gray-200">
@@ -377,7 +378,7 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
 
           <details className="group mt-4 rounded border border-white/10 bg-black/20">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm text-gray-200 transition hover:bg-white/5">
-              <span>Voir les clients interesses</span>
+              <span>Voir les clients intéressés</span>
               <span className="text-lg text-violet-300 transition group-open:rotate-180">v</span>
             </summary>
 
@@ -389,7 +390,7 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
                   </div>
                   <div className="text-xs text-gray-400">{client.email}</div>
                   <div className="mt-1 text-xs text-gray-500">
-                    Ajoute le {formatDate(client.createdAt)}
+                    Ajouté le {formatDate(client.createdAt)}
                   </div>
                 </div>
               ))}

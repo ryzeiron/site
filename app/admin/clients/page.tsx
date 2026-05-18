@@ -6,16 +6,17 @@ import { isAdmin } from "@/lib/admin/auth";
 import { getCard, resolveVariant } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { favoriteCards, orders, users } from "@/lib/db/schema";
+import { formatRarityLabel } from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
 import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
 const STATUS_LABELS: Record<string, string> = {
-  paid: "Commande payee",
-  label_to_create: "Bordereau a creer",
-  label_created: "Etiquette creee",
-  shipped: "Colis expedie",
+  paid: "Commande payée",
+  label_to_create: "Bordereau à créer",
+  label_created: "Étiquette créée",
+  shipped: "Colis expédié",
 };
 
 function formatDate(value: Date | string | null | undefined) {
@@ -112,12 +113,12 @@ export default async function AdminClientsPage() {
         </div>
 
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
-          <div className="text-sm text-gray-400">Commandes enregistrees</div>
+          <div className="text-sm text-gray-400">Commandes enregistrées</div>
           <div className="mt-1 text-2xl font-bold text-white">{orderRows.length}</div>
         </div>
 
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
-          <div className="text-sm text-gray-400">Favoris enregistres</div>
+          <div className="text-sm text-gray-400">Favoris enregistrés</div>
           <div className="mt-1 text-2xl font-bold text-white">{favoriteRows.length}</div>
         </div>
       </div>
@@ -147,7 +148,7 @@ export default async function AdminClientsPage() {
                   </div>
 
                   <div className="text-right text-xs text-gray-400">
-                    <div>Compte cree le</div>
+                    <div>Compte créé le</div>
                     <div className="text-gray-200">{formatDate(client.createdAt)}</div>
                   </div>
                 </div>
@@ -159,7 +160,7 @@ export default async function AdminClientsPage() {
                     </h3>
 
                     {clientOrders.length === 0 ? (
-                      <p className="text-sm text-gray-400">Aucune commande liee a ce compte.</p>
+                      <p className="text-sm text-gray-400">Aucune commande liée à ce compte.</p>
                     ) : (
                       <div className="space-y-3">
                         <AdminOrderMiniCard order={clientOrders[0]} />
@@ -192,7 +193,7 @@ export default async function AdminClientsPage() {
                     </h3>
 
                     {clientFavorites.length === 0 ? (
-                      <p className="text-sm text-gray-400">Aucun favori enregistre.</p>
+                      <p className="text-sm text-gray-400">Aucun favori enregistré.</p>
                     ) : (
                       <div className="space-y-3">
                         <AdminFavoriteMiniCard favorite={clientFavorites[0]} favoriteCardMap={favoriteCardMap} />
@@ -251,7 +252,7 @@ function AdminOrderMiniCard({ order }: { order: OrderRow }) {
       <div className="mt-2 grid gap-1 text-xs text-gray-300">
         <div><span className="text-gray-500">Nom :</span> {order.customerName ?? "-"}</div>
         <div><span className="text-gray-500">Email :</span> {order.customerEmail ?? "-"}</div>
-        <div><span className="text-gray-500">Telephone :</span> {order.customerPhone ?? "-"}</div>
+        <div><span className="text-gray-500">Téléphone :</span> {order.customerPhone ?? "-"}</div>
         <div><span className="text-gray-500">Pays :</span> {order.country ?? "-"}</div>
         <div><span className="text-gray-500">Relais :</span> {order.relayName ?? "-"}</div>
 
@@ -290,7 +291,7 @@ function AdminFavoriteMiniCard({
       {variant && (
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
           <span className="rounded bg-violet-500/15 px-2 py-1 text-violet-200">
-            {variant.rarity}
+            {formatRarityLabel(variant.rarity)}
           </span>
 
           <span className="rounded bg-white/10 px-2 py-1 text-gray-200">
@@ -304,7 +305,7 @@ function AdminFavoriteMiniCard({
       )}
 
       <div className="mt-2 text-xs text-gray-500">
-        Ajoute le {formatDate(favorite.createdAt)}
+        Ajouté le {formatDate(favorite.createdAt)}
       </div>
     </Link>
   );

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s - PokeDel",
   },
   description:
-    "PokeDel - vente de cartes Pokemon : blocs, series, cartes rares et singles a l'unite.",
+    "PokeDel - vente de cartes Pokémon : blocs, séries, cartes rares et singles à l'unité.",
 };
 
 export default function RootLayout({

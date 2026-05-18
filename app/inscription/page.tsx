@@ -33,7 +33,7 @@ export default function SignupPage() {
         redirect: false,
       });
       if (signInRes?.error) {
-        throw new Error("Compte cree mais connexion echouee. Reessaie.");
+        throw new Error("Compte créé mais connexion échouée. Réessaie.");
       }
       router.push("/compte");
       router.refresh();
@@ -45,9 +45,9 @@ export default function SignupPage() {
 
   return (
     <div className="max-w-md mx-auto py-12">
-      <h1 className="text-3xl font-bold text-white">Creer un compte</h1>
+      <h1 className="text-3xl font-bold text-white">Créer un compte</h1>
       <p className="mt-2 text-sm text-gray-400">
-        Deja inscrit ?{" "}
+        Déjà inscrit ?{" "}
         <Link href="/connexion" className="text-violet-300 hover:underline">
           Se connecter
         </Link>
@@ -81,7 +81,7 @@ export default function SignupPage() {
 
         <div>
           <label className="block text-sm text-gray-300 mb-1">
-            Mot de passe (8 caracteres min.)
+            Mot de passe (8 caractères min.)
           </label>
           <input
             type="password"
@@ -105,7 +105,7 @@ export default function SignupPage() {
           disabled={loading}
           className="w-full rounded-full bg-brand-500 hover:bg-brand-600 disabled:opacity-60 text-white px-6 py-3 font-medium"
         >
-          {loading ? "Creation..." : "Creer mon compte"}
+          {loading ? "Création..." : "Créer mon compte"}
         </button>
       </form>
     </div>

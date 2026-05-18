@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Conditions generales de vente",
+  title: "Conditions générales de vente",
 };
 
 export default function CgvPage() {

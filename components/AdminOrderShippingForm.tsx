@@ -10,10 +10,10 @@ type OrderStatus =
   | "shipped";
 
 const STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
-  { value: "paid", label: "Commande payee" },
-  { value: "label_created", label: "Etiquette creee" },
-  { value: "shipped", label: "Colis expedie" },
-  { value: "label_to_create", label: "Bordereau a creer" },
+  { value: "paid", label: "Commande payée" },
+  { value: "label_created", label: "Étiquette créée" },
+  { value: "shipped", label: "Colis expédié" },
+  { value: "label_to_create", label: "Bordereau à créer" },
 ];
 
 export default function AdminOrderShippingForm({
@@ -69,7 +69,7 @@ export default function AdminOrderShippingForm({
       setSaved(true);
 
       if (data.emailSent) {
-        setNotice("Email d'expedition envoye au client.");
+        setNotice("Email d'expédition envoyé au client.");
       }
 
       setTimeout(() => setSaved(false), 1600);
@@ -105,7 +105,7 @@ export default function AdminOrderShippingForm({
         </label>
 
         <label className="text-sm">
-          <span className="block text-gray-400 mb-1">Numero de suivi</span>
+          <span className="block text-gray-400 mb-1">Numéro de suivi</span>
 
           <input
             type="text"
@@ -151,7 +151,7 @@ export default function AdminOrderShippingForm({
           disabled={saving || !expeditionNumber.trim()}
           className="mt-3 rounded bg-white/10 border border-white/20 hover:bg-white/20 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Renvoyer le mail d'expedition
+          Renvoyer le mail d'expédition
         </button>
       ) : null}
 

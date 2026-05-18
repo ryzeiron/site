@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as Body;
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   // Honeypot : si rempli, on simule un succes mais on ignore
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ ok: true, id });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const msg = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

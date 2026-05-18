@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { getCard, resolveVariant } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { favoriteCards } from "@/lib/db/schema";
+import { formatRarityLabel } from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
 import { applyStockOverrides } from "@/lib/stock";
 
@@ -92,7 +93,7 @@ export default async function FavorisPage() {
 
                 <div className="mt-2 flex items-center justify-between gap-2 text-sm">
                   <span className="rounded-full bg-violet-500/15 px-2 py-1 text-xs text-violet-200">
-                    {variant.rarity}
+                    {formatRarityLabel(variant.rarity)}
                   </span>
                   <span className="font-bold text-brand-500">
                     {formatPrice(variant.price)}

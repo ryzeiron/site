@@ -35,7 +35,7 @@ export default function BlocTile({ bloc }: { bloc: Bloc }) {
       <div className="p-4 text-gray-200">
         <p className="text-sm text-gray-300">{bloc.tagline}</p>
         <p className="mt-2 text-xs text-gray-500">
-          {seriesCount} serie{seriesCount > 1 ? "s" : ""} disponible
+          {seriesCount} série{seriesCount > 1 ? "s" : ""} disponible
           {seriesCount > 1 ? "s" : ""}
         </p>
       </div>

@@ -10,10 +10,10 @@ import { orders } from "@/lib/db/schema";
 export const dynamic = "force-dynamic";
 
 const STATUS_LABELS: Record<string, string> = {
-  paid: "Commande payee",
-  label_to_create: "Bordereau a creer",
-  label_created: "Etiquette creee",
-  shipped: "Colis expedie",
+  paid: "Commande payée",
+  label_to_create: "Bordereau à créer",
+  label_created: "Étiquette créée",
+  shipped: "Colis expédié",
 };
 
 export default async function AdminOrdersPage() {
@@ -132,7 +132,7 @@ export default async function AdminOrdersPage() {
 
               {order.mondialRelayExpeditionNumber && (
                 <div className="mt-3 text-sm text-emerald-300">
-                  Expedition Mondial Relay :{" "}
+                  Expédition Mondial Relay :{" "}
                   {order.mondialRelayExpeditionNumber}
                 </div>
               )}
@@ -144,11 +144,11 @@ export default async function AdminOrdersPage() {
                   rel="noreferrer"
                   className="mt-3 inline-block rounded bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 text-sm"
                 >
-                  Telecharger le bordereau
+                  Télécharger le bordereau
                 </a>
               ) : (
                 <p className="mt-3 text-sm text-yellow-300">
-                  Bordereau a creer manuellement sur Mondial Relay.
+                  Bordereau à créer manuellement sur Mondial Relay.
                 </p>
               )}
 

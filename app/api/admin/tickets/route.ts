@@ -22,7 +22,7 @@ export async function GET() {
       .orderBy(desc(tickets.createdAt));
     return NextResponse.json({ tickets: rows });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const msg = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
@@ -35,7 +35,7 @@ export async function PATCH(request: Request) {
   try {
     body = (await request.json()) as PatchBody;
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
   if (!body.id) {
     return NextResponse.json({ error: "id requis." }, { status: 400 });
@@ -63,7 +63,7 @@ export async function PATCH(request: Request) {
     await db.update(tickets).set(set).where(eq(tickets.id, body.id));
     return NextResponse.json({ ok: true });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const msg = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
@@ -76,7 +76,7 @@ export async function DELETE(request: Request) {
   try {
     body = (await request.json()) as { id?: string };
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
   if (!body.id) {
     return NextResponse.json({ error: "id requis." }, { status: 400 });
@@ -86,7 +86,7 @@ export async function DELETE(request: Request) {
     await db.delete(tickets).where(eq(tickets.id, body.id));
     return NextResponse.json({ ok: true });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const msg = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

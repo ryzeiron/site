@@ -81,7 +81,7 @@ export default async function ComptePage({
         <div>
           <h1 className="text-3xl font-bold text-white">Mon compte</h1>
           <p className="mt-1 text-sm text-gray-400">
-            Connecte en tant que <strong>{session.user.email}</strong>
+            Connecté en tant que <strong>{session.user.email}</strong>
           </p>
         </div>
 
@@ -95,7 +95,7 @@ export default async function ComptePage({
             type="submit"
             className="rounded-full bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/20"
           >
-            Se deconnecter
+            Se déconnecter
           </button>
         </form>
       </div>
@@ -171,7 +171,7 @@ export default async function ComptePage({
               </div>
 
               <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-sm text-gray-300">
-                Les cartes ajoutees ici te permettent de recevoir un email si
+                Les cartes ajoutées ici te permettent de recevoir un email si
                 une carte en rupture revient en stock.
               </div>
             </section>
@@ -184,7 +184,7 @@ export default async function ComptePage({
                   <div>
                     <h2 className="text-xl font-bold text-white">Mon avis</h2>
                     <p className="mt-1 text-sm text-gray-400">
-                      Les clients ayant deja commande peuvent laisser un avis
+                      Les clients ayant déjà commandé peuvent laisser un avis
                       sur la boutique.
                     </p>
                   </div>
@@ -245,9 +245,9 @@ export default async function ComptePage({
                               }`}
                             >
                               {order.status === "paid"
-                                ? "Payee"
+                                ? "Payée"
                                 : order.status === "shipped"
-                                  ? "Expediee"
+                                  ? "Expédiée"
                                   : order.status}
                             </span>
                           </div>

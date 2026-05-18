@@ -14,6 +14,7 @@ import {
   type Rarity,
   type VariantKey,
 } from "@/lib/catalog";
+import { formatRarityLabel } from "@/lib/display-variants";
 
 type VariantSpec = {
   key: VariantKey;
@@ -36,7 +37,7 @@ function buildVariants(card: Card): VariantSpec[] {
 
   return listVariants(card, { includeHidden: true }).map(({ key, variant }) => ({
     key,
-    label: key === "base" ? "Base" : key === "alt" ? "Alt" : variant.rarity,
+    label: key === "base" ? "Base" : key === "alt" ? "Alt" : formatRarityLabel(variant.rarity),
     rarity: variant.rarity,
     condition: variant.condition ?? card.condition,
     stock: variant.stock,
@@ -375,14 +376,14 @@ function NewVariantForm({
           <option value="">-- Choisir --</option>
           {RARITIES.map((r) => (
             <option key={r} value={r}>
-              {r}
+              {formatRarityLabel(r)}
             </option>
           ))}
         </select>
       </div>
 
       <div className="flex items-center gap-2 text-sm">
-        <label className="w-12 text-gray-400">Etat</label>
+        <label className="w-12 text-gray-400">État</label>
         <select
           value={conditionValue}
           onChange={(e) => setConditionValue(e.target.value as Condition)}
@@ -555,7 +556,7 @@ function VariantCell({
         </span>
         {hidden && (
           <span className="rounded bg-amber-500/20 px-2 py-0.5 font-semibold uppercase tracking-wider text-amber-300">
-            Masquee
+            Masquée
           </span>
         )}
       </div>
@@ -569,14 +570,14 @@ function VariantCell({
         >
           {RARITIES.map((r) => (
             <option key={r} value={r}>
-              {r}
+              {formatRarityLabel(r)}
             </option>
           ))}
         </select>
       </div>
 
       <div className="flex items-center gap-2 text-sm">
-        <label className="w-12 text-gray-400">Etat</label>
+        <label className="w-12 text-gray-400">État</label>
         <select
           value={conditionValue}
           onChange={(e) => setConditionValue(e.target.value as Condition)}
@@ -684,7 +685,7 @@ function VariantActionButtons({
     const ok = window.confirm(
       `${nextHidden ? "Supprimer" : "Restaurer"} la variante ${label} de ${card.name} ?\n\n` +
         (nextHidden
-          ? `Elle sera cachee du site sans modifier son stock ni son prix.`
+          ? `Elle sera cachée du site sans modifier son stock ni son prix.`
           : `Elle sera de nouveau visible sur le site.`),
     );
 
@@ -713,8 +714,8 @@ function VariantActionButtons({
 
   async function deleteCustomVariant() {
     const ok = window.confirm(
-      `Supprimer definitivement la variante ${label} de ${card.name} ?\n\n` +
-        `Cela retire cette variante ajoutee manuellement.`,
+      `Supprimer définitivement la variante ${label} de ${card.name} ?\n\n` +
+        `Cela retire cette variante ajoutée manuellement.`,
     );
 
     if (!ok) return;

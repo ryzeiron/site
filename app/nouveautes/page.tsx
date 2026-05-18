@@ -6,7 +6,7 @@ import { formatRecentDate, getRecentCards } from "@/lib/recent-cards";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Nouveautes",
+  title: "Nouveautés",
 };
 
 export default async function NouveautesPage() {
@@ -16,9 +16,9 @@ export default async function NouveautesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Nouveautes</h1>
+          <h1 className="text-3xl font-bold text-white">Nouveautés</h1>
           <p className="mt-2 max-w-2xl text-sm text-gray-400">
-            Les dernieres cartes et variantes ajoutees au stock.
+            Les dernières cartes et variantes ajoutées au stock.
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export default async function NouveautesPage() {
 
       {entries.length === 0 ? (
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-6 text-gray-300">
-          Aucune nouveaute en stock pour le moment.
+          Aucune nouveauté en stock pour le moment.
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

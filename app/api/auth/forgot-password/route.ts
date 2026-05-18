@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const email = String(body.email ?? "").trim().toLowerCase();
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     .where(eq(users.email, email))
     .limit(1);
 
-  // Toujours repondre OK pour ne pas leak l'existence d'un compte
+  // Toujours répondre OK pour ne pas révéler l'existence d'un compte
   if (userRows.length === 0) {
     return NextResponse.json({ ok: true });
   }
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   const { text, html } = passwordResetEmail({ resetUrl, email: user.email });
   await sendMail({
     to: user.email,
-    subject: "Reinitialisation de ton mot de passe PokeDel",
+    subject: "Réinitialisation de ton mot de passe PokeDel",
     text,
     html,
   });

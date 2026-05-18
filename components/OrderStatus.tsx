@@ -25,20 +25,20 @@ type OrderLookup = {
 
 const STATUS_LABELS: Record<string, { title: string; detail: string }> = {
   paid: {
-    title: "Paiement recu",
-    detail: "Ta commande est enregistree et va etre preparee.",
+    title: "Paiement reçu",
+    detail: "Ta commande est enregistrée et va être préparée.",
   },
   label_to_create: {
-    title: "Preparation de l'expedition",
-    detail: "La commande est payee. Le bordereau Mondial Relay va etre cree.",
+    title: "Préparation de l'expédition",
+    detail: "La commande est payée. Le bordereau Mondial Relay va être créé.",
   },
   label_created: {
-    title: "Expedition prete",
+    title: "Expédition prête",
     detail:
-      "L'etiquette du colis est creee. Le colis va etre depose en point relais.",
+      "L'étiquette du colis est créée. Le colis va être déposé en point relais.",
   },
   shipped: {
-    title: "Colis expedie",
+    title: "Colis expédié",
     detail: "Le colis est en route vers le point relais choisi.",
   },
 };
@@ -107,9 +107,9 @@ function getStatus(
   }
 
   return {
-    title: "Commande en verification",
+    title: "Commande en vérification",
     detail:
-      "Le paiement est en cours de verification. Reviens dans quelques instants.",
+      "Le paiement est en cours de vérification. Reviens dans quelques instants.",
   };
 }
 
@@ -157,7 +157,7 @@ export default async function OrderStatus({
         <h1 className="text-3xl font-bold text-white">Suivi de commande</h1>
 
         <p className="mt-3 text-gray-300">
-          Reference :{" "}
+          Référence :{" "}
           <span className="font-mono text-gray-100">{sessionId}</span>
         </p>
       </div>
@@ -173,7 +173,7 @@ export default async function OrderStatus({
 
         {order?.mondialRelayExpeditionNumber ? (
           <div className="mt-4 rounded border border-emerald-400/30 bg-emerald-950/30 px-3 py-2 text-sm text-emerald-100">
-            Numero de suivi :{" "}
+            Numéro de suivi :{" "}
             <span className="font-mono text-white">
               {order.mondialRelayExpeditionNumber}
             </span>

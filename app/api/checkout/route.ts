@@ -164,7 +164,7 @@ export async function POST(request: Request) {
           ),
           product_data: {
             name: `${card.name} (${card.number}) - ${v.rarity}`,
-            description: `${v.rarity} - Etat: ${v.condition ?? card.condition} - ${card.language}`,
+            description: `${v.rarity} - État : ${v.condition ?? card.condition} - ${card.language}`,
           },
         },
         quantity: item.quantity,

@@ -20,7 +20,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { serie: serieId } = await params;
   const serie = getSerie(serieId);
-  return { title: serie ? `${serie.code} - ${serie.name}` : "Serie" };
+  return { title: serie ? `${serie.code} - ${serie.name}` : "Série" };
 }
 
 export default async function SeriePage({
@@ -66,16 +66,16 @@ export default async function SeriePage({
             Prochainement
           </div>
           <h2 className="text-xl md:text-2xl font-bold text-white">
-            Cette serie n&apos;est pas encore sortie
+            Cette série n&apos;est pas encore sortie
           </h2>
           <p className="mt-2 text-gray-300">
             Les cartes de {serie.name} ({serie.code}) seront disponibles
-            bientot. Reviens nous voir !
+            bientôt. Reviens nous voir !
           </p>
         </div>
       ) : cards.length === 0 ? (
         <p className="mt-8 text-gray-400">
-          Aucune carte disponible dans cette serie pour le moment.
+          Aucune carte disponible dans cette série pour le moment.
         </p>
       ) : (
         <SerieCardsGrid cards={cards} />

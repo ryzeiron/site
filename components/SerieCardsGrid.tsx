@@ -9,7 +9,7 @@ import {
   type Rarity,
   type VariantKey,
 } from "@/lib/catalog";
-import { orderDisplayVariants } from "@/lib/display-variants";
+import { formatRarityLabel, orderDisplayVariants } from "@/lib/display-variants";
 
 const RARITY_ORDER: Rarity[] = [
   "Commune",
@@ -145,7 +145,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher (nom ou numero)"
+            placeholder="Rechercher (nom ou numéro)"
             className="w-full rounded-lg bg-zinc-900 border border-white/10 text-white placeholder-gray-500 pl-9 pr-9 py-2 text-sm focus:outline-none focus:border-violet-400"
           />
           <svg
@@ -189,11 +189,11 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
             onChange={(e) => setSortMode(e.target.value as SortMode)}
             className="min-h-10 rounded-lg border border-white/10 bg-zinc-900 px-3 text-sm text-white"
           >
-            <option value="number">Numero</option>
+            <option value="number">Numéro</option>
             <option value="name">Nom</option>
             <option value="price-asc">Prix croissant</option>
-            <option value="price-desc">Prix decroissant</option>
-            <option value="rarity">Rarete</option>
+            <option value="price-desc">Prix décroissant</option>
+            <option value="rarity">Rareté</option>
           </select>
 
           <span className="text-sm text-gray-400">
@@ -221,7 +221,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
               selectedRarities.includes(r) ? pillActive : pillIdle
             }`}
           >
-            {r}
+            {formatRarityLabel(r)}
           </button>
         ))}
       </div>
@@ -229,7 +229,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
       {filtered.length === 0 ? (
         <p className="mt-8 text-gray-400">
           {normalizedQuery
-            ? `Aucune carte ne correspond a "${query.trim()}".`
+            ? `Aucune carte ne correspond à "${query.trim()}".`
             : "Aucune carte pour ces filtres."}
         </p>
       ) : (

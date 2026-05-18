@@ -4,8 +4,8 @@ import { cleanupExpiredCartReservations } from "@/lib/stock-reservations";
 export const runtime = "nodejs";
 
 /**
- * Cron Vercel : libere les reservations 'cart' anciennes (>30 min).
- * Configure dans vercel.json. Securite : verifie le header CRON_SECRET.
+ * Cron Vercel : libère les réservations 'cart' anciennes (>30 min).
+ * Configure dans vercel.json. Sécurité : vérifie le header CRON_SECRET.
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;

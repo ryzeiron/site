@@ -16,14 +16,14 @@ type Order = {
 };
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  paid: { label: "Paiement valide", color: "bg-emerald-500/20 text-emerald-200" },
+  paid: { label: "Paiement validé", color: "bg-emerald-500/20 text-emerald-200" },
   label_to_create: {
-    label: "Bordereau a creer",
+    label: "Bordereau à créer",
     color: "bg-amber-500/20 text-amber-200",
   },
-  shipped: { label: "Expediee", color: "bg-violet-500/20 text-violet-200" },
-  delivered: { label: "Livree", color: "bg-emerald-500/20 text-emerald-200" },
-  cancelled: { label: "Annulee", color: "bg-red-500/20 text-red-200" },
+  shipped: { label: "Expédiée", color: "bg-violet-500/20 text-violet-200" },
+  delivered: { label: "Livrée", color: "bg-emerald-500/20 text-emerald-200" },
+  cancelled: { label: "Annulée", color: "bg-red-500/20 text-red-200" },
 };
 
 function formatDate(iso: string) {
@@ -72,7 +72,7 @@ export default function OrderTracker() {
       >
         <div>
           <label className="text-xs uppercase text-gray-400">
-            Numero de commande
+            Numéro de commande
           </label>
           <input
             type="text"
@@ -124,7 +124,7 @@ export default function OrderTracker() {
             </span>
           </div>
           <div className="text-xs text-gray-400">
-            Passee le {formatDate(order.createdAt)}
+            Passée le {formatDate(order.createdAt)}
             {order.country ? ` - ${order.country}` : ""}
           </div>
 
@@ -154,7 +154,7 @@ export default function OrderTracker() {
           {order.tracking ? (
             <div className="rounded bg-violet-500/10 border border-violet-500/30 p-3 text-sm">
               <div className="text-xs uppercase tracking-wider text-violet-300 font-semibold mb-1">
-                Numero de suivi Mondial Relay
+                Numéro de suivi Mondial Relay
               </div>
               <div className="text-white font-mono text-sm">
                 {order.tracking}
@@ -170,7 +170,7 @@ export default function OrderTracker() {
             </div>
           ) : (
             <p className="text-sm text-gray-400">
-              Le numero de suivi sera disponible des l&apos;expedition (vous
+              Le numéro de suivi sera disponible dès l&apos;expédition (vous
               recevrez un email).
             </p>
           )}

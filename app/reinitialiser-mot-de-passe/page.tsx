@@ -23,7 +23,7 @@ function ResetForm() {
           href="/mot-de-passe-oublie"
           className="text-red-100 underline"
         >
-          la page mot de passe oublie
+          la page mot de passe oublié
         </Link>
         .
       </div>
@@ -59,7 +59,7 @@ function ResetForm() {
   if (success) {
     return (
       <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100">
-        Mot de passe mis a jour ! Redirection vers la connexion...
+        Mot de passe mis à jour ! Redirection vers la connexion...
       </div>
     );
   }
@@ -68,7 +68,7 @@ function ResetForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm text-gray-300 mb-1">
-          Nouveau mot de passe (8 caracteres min.)
+          Nouveau mot de passe (8 caractères min.)
         </label>
         <input
           type="password"
@@ -107,7 +107,7 @@ function ResetForm() {
         disabled={loading}
         className="w-full rounded-full bg-brand-500 hover:bg-brand-600 disabled:opacity-60 text-white px-6 py-3 font-medium"
       >
-        {loading ? "Mise a jour..." : "Choisir ce mot de passe"}
+        {loading ? "Mise à jour..." : "Choisir ce mot de passe"}
       </button>
     </form>
   );

@@ -47,9 +47,9 @@ export default function ContactForm() {
   if (done) {
     return (
       <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100">
-        <div className="font-semibold">Merci, ton message est bien envoye.</div>
+        <div className="font-semibold">Merci, ton message est bien envoyé.</div>
         <p className="text-sm text-emerald-200/80 mt-1">
-          On te repond par email sous 48h. Tu peux fermer cette page.
+          On te répond par email sous 48h. Tu peux fermer cette page.
         </p>
         <button
           type="button"
@@ -68,7 +68,7 @@ export default function ContactForm() {
       className="rounded-lg border border-white/10 bg-zinc-900/70 backdrop-blur-sm p-6 space-y-3 text-gray-200"
     >
       <h2 className="text-lg font-semibold text-white">Envoyer un message</h2>
-      {/* Honeypot : champ cache anti-bots, ne pas remplir */}
+      {/* Honeypot : champ caché anti-bots, ne pas remplir */}
       <div aria-hidden style={{ position: "absolute", left: "-9999px", height: 0, width: 0, overflow: "hidden" }}>
         <label htmlFor="website-hp">Site web (laisser vide)</label>
         <input
@@ -87,7 +87,7 @@ export default function ContactForm() {
           required
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          placeholder="Recherche d'une carte commune, demande speciale, etc."
+          placeholder="Recherche d'une carte commune, demande spéciale, etc."
           className="mt-1 w-full rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         />
       </div>
@@ -113,7 +113,7 @@ export default function ContactForm() {
         </div>
       </div>
       <div>
-        <label className="text-xs uppercase text-gray-400">Telephone (optionnel)</label>
+        <label className="text-xs uppercase text-gray-400">Téléphone (optionnel)</label>
         <input
           type="tel"
           value={phone}
@@ -128,7 +128,7 @@ export default function ContactForm() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={6}
-          placeholder="Decris ta demande : nom de la carte, serie, langue, etat, etc."
+          placeholder="Décris ta demande : nom de la carte, série, langue, état, etc."
           className="mt-1 w-full rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         />
       </div>

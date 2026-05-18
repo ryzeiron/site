@@ -6,6 +6,7 @@ import { isAdmin } from "@/lib/admin/auth";
 import { getCard, getSerie } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { cardOverrides, stockOverrides } from "@/lib/db/schema";
+import { formatRarityLabel } from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -54,7 +55,7 @@ function cardSummary(cardId: string) {
   return {
     cardName: card?.name ?? "Carte introuvable",
     cardNumber: card?.number ?? cardId,
-    serieLabel: serie ? `${serie.code} - ${serie.name}` : "Serie inconnue",
+    serieLabel: serie ? `${serie.code} - ${serie.name}` : "Série inconnue",
   };
 }
 
@@ -116,11 +117,11 @@ export default async function AdminModificationsPage() {
     }
 
     if (row.rarity) {
-      details.push(`Rarete ${row.rarity}`);
+      details.push(`Rareté ${formatRarityLabel(row.rarity)}`);
     }
 
     if (row.condition) {
-      details.push(`Etat ${row.condition}`);
+      details.push(`État ${row.condition}`);
     }
 
     return {
@@ -138,10 +139,10 @@ export default async function AdminModificationsPage() {
     const details = [];
 
     if (row.name) details.push(`Nom ${row.name}`);
-    if (row.condition) details.push(`Etat ${row.condition}`);
-    if (row.image) details.push("Image devant modifiee");
-    if (row.imageBack) details.push("Image dos modifiee");
-    if (row.description) details.push("Description modifiee");
+    if (row.condition) details.push(`État ${row.condition}`);
+    if (row.image) details.push("Image devant modifiée");
+    if (row.imageBack) details.push("Image dos modifiée");
+    if (row.description) details.push("Description modifiée");
     if (row.weightGrams !== null) details.push(`Poids ${row.weightGrams} g`);
 
     return {
@@ -149,7 +150,7 @@ export default async function AdminModificationsPage() {
       type: "infos",
       cardId: row.cardId,
       updatedAt: row.updatedAt,
-      details: details.length > 0 ? details : ["Infos carte modifiees"],
+      details: details.length > 0 ? details : ["Infos carte modifiées"],
       ...summary,
     };
   });
@@ -169,7 +170,7 @@ export default async function AdminModificationsPage() {
             Admin - Modifications
           </h1>
           <p className="mt-1 text-sm text-gray-400">
-            Les 50 derniers changements de stock, prix, rarete et infos carte.
+            Les 50 derniers changements de stock, prix, rareté et infos carte.
           </p>
         </div>
 

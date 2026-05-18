@@ -6,7 +6,7 @@ import ConditionBadge from "@/components/ConditionBadge";
 import FavoriteCardButton from "@/components/FavoriteCardButton";
 import { useCart } from "@/lib/cart";
 import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
-import { orderDisplayVariants } from "@/lib/display-variants";
+import { formatRarityLabel, orderDisplayVariants } from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
 
 function VariantBlock({
@@ -26,7 +26,7 @@ function VariantBlock({
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-amber-500/20 px-2 py-1 text-xs text-amber-300">
-            {v.rarity}
+            {formatRarityLabel(v.rarity)}
           </span>
           <ConditionBadge condition={v.condition ?? card.condition} />
         </div>

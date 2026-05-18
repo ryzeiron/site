@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as SyncBody;
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const cartId = (body.cartId ?? "").trim();
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "cartId invalide." }, { status: 400 });
   }
 
-  // Cleanup paresseux : 1 chance sur 10 d'aussi liberer les vieilles reservations
+  // Cleanup paresseux : 1 chance sur 10 d'aussi libérer les vieilles réservations
   if (Math.random() < 0.1) {
     void cleanupExpiredCartReservations(30).catch(() => {});
   }
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
   try {
     await syncCartReservation(cartId, reserveItems);
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur reservation.";
+    const message = e instanceof Error ? e.message : "Erreur réservation.";
     return NextResponse.json({ error: message }, { status: 409 });
   }
 
@@ -102,7 +102,7 @@ export async function DELETE(request: Request) {
   try {
     body = (await request.json()) as { cartId?: string };
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
   const cartId = (body.cartId ?? "").trim();
   if (!CART_ID_RE.test(cartId)) {
@@ -111,7 +111,7 @@ export async function DELETE(request: Request) {
   try {
     await releaseCartReservation(cartId);
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur reservation.";
+    const message = e instanceof Error ? e.message : "Erreur réservation.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
   return NextResponse.json({ ok: true });

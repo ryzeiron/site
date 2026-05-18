@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as Body;
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const { serieId, rarity, price } = body;
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   }
 
   if (!rarity || !isRarity(rarity)) {
-    return NextResponse.json({ error: "Rarete inconnue." }, { status: 400 });
+    return NextResponse.json({ error: "Rareté inconnue." }, { status: 400 });
   }
   const targetRarity: Rarity = rarity;
 
@@ -185,7 +185,7 @@ export async function POST(request: Request) {
         });
     }
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 

@@ -108,7 +108,7 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
   }
 
   async function del() {
-    if (!window.confirm("Supprimer definitivement ce ticket ?")) return;
+    if (!window.confirm("Supprimer définitivement ce ticket ?")) return;
     setBusy(true);
     setError(null);
     try {

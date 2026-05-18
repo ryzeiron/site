@@ -13,6 +13,6 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ promo });
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 }

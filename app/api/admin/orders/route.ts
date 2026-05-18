@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as Body;
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const orderId = body.orderId?.trim();
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
 
       if (!expeditionNumber) {
         return NextResponse.json(
-          { error: "Numero de suivi obligatoire pour expedier la commande." },
+          { error: "Numéro de suivi obligatoire pour expédier la commande." },
           { status: 400 },
         );
       }

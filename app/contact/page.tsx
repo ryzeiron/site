@@ -8,8 +8,8 @@ export default function ContactPage() {
     <div className="max-w-2xl">
       <h1 className="text-3xl font-bold text-white">Contact</h1>
       <p className="mt-2 text-gray-300">
-        Une question sur une carte, une commande, une demande specifique ou
-        une recherche de carte commune ? Remplis ce formulaire, on te repond
+        Une question sur une carte, une commande, une demande spécifique ou
+        une recherche de carte commune ? Remplis ce formulaire, on te répond
         sous 48h.
       </p>
 

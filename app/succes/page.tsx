@@ -26,8 +26,8 @@ export default async function SuccessPage({
       </h1>
 
       <p className="mt-3 text-gray-300 max-w-xl mx-auto">
-        Le paiement a bien ete recu. Vous allez recevoir un email de
-        confirmation. Votre commande sera expediee sous 48h.
+        Le paiement a bien été reçu. Vous allez recevoir un email de
+        confirmation. Votre commande sera expédiée sous 48h.
       </p>
 
       <Link

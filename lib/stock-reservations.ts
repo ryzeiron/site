@@ -95,13 +95,13 @@ export async function reserveStockItems(
       await rollback();
       throw e instanceof Error
         ? e
-        : new Error("Erreur lors de la reservation du stock.");
+        : new Error("Erreur lors de la réservation du stock.");
     }
 
     if (inserted.length === 0) {
       await rollback();
       throw new Error(
-        "Stock insuffisant : une carte du panier vient peut-etre d'etre reservee par un autre client.",
+        "Stock insuffisant : une carte du panier vient peut-être d'être réservée par un autre client.",
       );
     }
 
@@ -156,9 +156,9 @@ export async function syncCartReservation(
 
 export async function releaseCartReservation(cartId: string) {
   const sql = getReservationSql();
-  // Libere aussi les reservations 'reserved' avec stripe_session_id='pending'
+  // Libère aussi les réservations 'reserved' avec stripe_session_id='pending'
   // (cas : l'utilisateur a clique sur "passer au paiement" puis est revenu
-  // en arriere sans payer). On ne touche pas aux reservations confirmees
+  // en arrière sans payer). On ne touche pas aux réservations confirmées
   // (status='confirmed') ni aux 'reserved' avec un vrai session_id.
   const released = (await sql`
     DELETE FROM stock_reservations
@@ -181,8 +181,8 @@ export async function releaseCartReservation(cartId: string) {
 }
 
 /**
- * Libere les reservations 'cart' inactives depuis plus de N minutes.
- * Retourne le nombre de lignes liberees.
+ * Libère les réservations 'cart' inactives depuis plus de N minutes.
+ * Retourne le nombre de lignes libérées.
  */
 export async function cleanupExpiredCartReservations(
   olderThanMinutes = 30,
@@ -219,7 +219,7 @@ export async function upgradeCartToReserved(
   stripeSessionId: string,
 ): Promise<number> {
   const sql = getReservationSql();
-  // Idempotent : upgrade 'cart' OU rafraichit une 'reserved'+'pending' existante
+  // Idempotent : upgrade 'cart' OU rafraîchit une 'reserved'+'pending' existante
   // (cas : utilisateur revenu de Stripe sans payer puis re-clique sur paiement).
   const updated = (await sql`
     UPDATE stock_reservations
@@ -275,9 +275,9 @@ export async function releaseStockReservation(reservationId: string) {
 }
 
 /**
- * Lit les reservations actives du panier de l'utilisateur (statut 'cart' ou
+ * Lit les réservations actives du panier de l'utilisateur (statut 'cart' ou
  * 'reserved'+'pending' pour le cas ou il est revenu de Stripe sans payer).
- * Sert au checkout pour ne pas voir comme "stock 0" ce que l'utilisateur a deja
+ * Sert au checkout pour ne pas voir comme "stock 0" ce que l'utilisateur a déjà
  * dans son propre panier.
  */
 export async function getCartReservations(

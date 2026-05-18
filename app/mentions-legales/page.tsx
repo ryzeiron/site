@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Mentions legales" };
+export const metadata: Metadata = { title: "Mentions légales" };
 
 export default function MentionsLegalesPage() {
   return (

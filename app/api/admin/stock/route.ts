@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as Body;
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const { cardId, variant, stock, price, rarity, condition } = body;
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
   if (!hasStock && !hasPrice && !hasRarity && !hasCondition) {
     return NextResponse.json(
-      { error: "Aucune modification a enregistrer." },
+      { error: "Aucune modification à enregistrer." },
       { status: 400 },
     );
   }
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
   if (hasRarity) {
     if (!isRarity(rarity)) {
       return NextResponse.json(
-        { error: "Rarete inconnue." },
+        { error: "Rareté inconnue." },
         { status: 400 },
       );
     }
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
   if (hasCondition) {
     if (!isCondition(condition)) {
       return NextResponse.json(
-        { error: "Etat inconnu." },
+        { error: "État inconnu." },
         { status: 400 },
       );
     }
@@ -132,7 +132,7 @@ export async function POST(request: Request) {
 
   if (creatingNew && !hasRarity) {
     return NextResponse.json(
-      { error: "Rarete obligatoire pour creer une nouvelle variante." },
+      { error: "Rareté obligatoire pour créer une nouvelle variante." },
       { status: 400 },
     );
   }
@@ -205,7 +205,7 @@ export async function POST(request: Request) {
     } catch {
       if (hasCondition) {
         throw new Error(
-          "La colonne SQL condition manque dans stock_overrides. Ajoute le SQL avant de modifier l'etat d'une variante.",
+          "La colonne SQL condition manque dans stock_overrides. Ajoute le SQL avant de modifier l'état d'une variante.",
         );
       }
       await saveOverride(false);
@@ -218,7 +218,7 @@ export async function POST(request: Request) {
       });
     }
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
@@ -241,7 +241,7 @@ export async function DELETE(request: Request) {
   try {
     body = (await request.json()) as Body;
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
   const { cardId, variant } = body;
@@ -261,7 +261,7 @@ export async function DELETE(request: Request) {
         ),
       );
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 

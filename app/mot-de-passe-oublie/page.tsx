@@ -22,7 +22,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="max-w-md mx-auto py-12">
-      <h1 className="text-3xl font-bold text-white">Mot de passe oublie</h1>
+      <h1 className="text-3xl font-bold text-white">Mot de passe oublié</h1>
 
       {submitted ? (
         <div className="mt-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100">
@@ -32,14 +32,14 @@ export default function ForgotPasswordPage() {
           </p>
           <p className="mt-3 text-sm">
             <Link href="/connexion" className="text-emerald-300 hover:underline">
-              Retour a la connexion
+              Retour à la connexion
             </Link>
           </p>
         </div>
       ) : (
         <>
           <p className="mt-2 text-sm text-gray-400">
-            Entre ton email, on t envoie un lien pour reinitialiser ton mot de
+            Entre ton email, on t&apos;envoie un lien pour réinitialiser ton mot de
             passe.
           </p>
 
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
 
             <p className="text-center text-sm text-gray-400">
               <Link href="/connexion" className="hover:text-violet-300">
-                Retour a la connexion
+                Retour à la connexion
               </Link>
             </p>
           </form>

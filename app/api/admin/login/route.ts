@@ -14,6 +14,6 @@ export async function POST(request: Request) {
     await setAdminCookie();
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 }

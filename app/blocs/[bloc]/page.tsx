@@ -55,9 +55,9 @@ export default async function BlocPage({
         </div>
       </div>
 
-      <h2 className="mt-8 text-xl font-bold text-white">Series</h2>
+      <h2 className="mt-8 text-xl font-bold text-white">Séries</h2>
       {series.length === 0 ? (
-        <p className="text-gray-400 mt-2">Aucune serie pour le moment.</p>
+        <p className="text-gray-400 mt-2">Aucune série pour le moment.</p>
       ) : (
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {series.map((s) => (

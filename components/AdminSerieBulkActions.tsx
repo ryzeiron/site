@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RARITIES, type Rarity } from "@/lib/catalog";
+import { formatRarityLabel } from "@/lib/display-variants";
 
 type Props = {
   serieId: string;
@@ -31,9 +32,9 @@ export default function AdminSerieBulkActions({
     const formattedPrice = price.toFixed(2).replace(".", ",");
     const protectsHighRarities = rarity === "Commune" || rarity === "Reverse";
     const ok = window.confirm(
-      `Ajouter ou mettre a jour la variante ${rarity} sur ${serieLabel} a ${formattedPrice} EUR ?` +
+      `Ajouter ou mettre à jour la variante ${formatRarityLabel(rarity)} sur ${serieLabel} à ${formattedPrice} EUR ?` +
         (protectsHighRarities
-          ? "\n\nLes cartes Ultra Rare et Secrete seront ignorees."
+          ? "\n\nLes cartes Ultra rare et Secrète seront ignorées."
           : ""),
     );
 
@@ -61,11 +62,11 @@ export default function AdminSerieBulkActions({
       const existing = Number(data.existing ?? data.updated ?? 0);
       const skippedProtected = Number(data.skippedProtected ?? 0);
       const parts = [
-        `${created} variantes ajoutees`,
-        `${existing} prix mis a jour`,
+        `${created} variantes ajoutées`,
+        `${existing} prix mis à jour`,
       ];
       if (skippedProtected > 0) {
-        parts.push(`${skippedProtected} cartes protegees ignorees`);
+        parts.push(`${skippedProtected} cartes protégées ignorées`);
       }
       setMessage(`${parts.join(". ")}.`);
       router.refresh();
@@ -81,7 +82,7 @@ export default function AdminSerieBulkActions({
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-white">
-            Action sur la serie
+            Action sur la série
           </div>
           <div className="text-xs text-gray-400">{serieLabel}</div>
         </div>
@@ -92,7 +93,7 @@ export default function AdminSerieBulkActions({
 
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-xs text-gray-400">Rarete</span>
+          <span className="text-xs text-gray-400">Rareté</span>
           <select
             value={rarity}
             onChange={(e) => setRarity(e.target.value as Rarity)}
@@ -100,7 +101,7 @@ export default function AdminSerieBulkActions({
           >
             {RARITIES.map((value) => (
               <option key={value} value={value}>
-                {value}
+                {formatRarityLabel(value)}
               </option>
             ))}
           </select>
@@ -131,7 +132,7 @@ export default function AdminSerieBulkActions({
               : "cursor-not-allowed bg-white/10 text-gray-400"
           }`}
         >
-          {saving ? "Application..." : "Ajouter a toute la serie"}
+          {saving ? "Application..." : "Ajouter à toute la série"}
         </button>
       </div>
     </div>

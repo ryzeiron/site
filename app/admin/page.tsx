@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import AdminSerieBulkActions from "@/components/AdminSerieBulkActions";
+import { formatRarityLabel } from "@/lib/display-variants";
 import AdminStockRow from "@/components/AdminStockRow";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
@@ -292,8 +293,8 @@ export default async function AdminPage({
           </h1>
           <p className="text-sm text-gray-400 mt-1">
             {stockedCards} cartes en stock sur {totalCards} cartes
-            enregistrees, {totalStock} exemplaires au total. Modifie le stock
-            et le prix par variante - les valeurs ecrasent celles du catalogue.
+            enregistrées, {totalStock} exemplaires au total. Modifie le stock
+            et le prix par variante - les valeurs écrasent celles du catalogue.
           </p>
         </div>
 
@@ -306,7 +307,7 @@ export default async function AdminPage({
           defaultValue={serieId}
           className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         >
-          <option value="">-- Toutes les series --</option>
+          <option value="">-- Toutes les séries --</option>
           {serieGroups.map((group) => (
             <optgroup key={group.label} label={group.label}>
               {group.series.map((s) => (
@@ -322,7 +323,7 @@ export default async function AdminPage({
           type="text"
           name="q"
           defaultValue={query}
-          placeholder="Rechercher dans les series"
+          placeholder="Rechercher dans les séries"
           className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         />
 
@@ -331,10 +332,10 @@ export default async function AdminPage({
           defaultValue={rarity}
           className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
         >
-          <option value="">-- Toutes les raretes --</option>
+          <option value="">-- Toutes les raretés --</option>
           {RARITIES.map((r) => (
             <option key={r} value={r}>
-              {r}
+              {formatRarityLabel(r)}
             </option>
           ))}
         </select>
@@ -401,10 +402,10 @@ export default async function AdminPage({
 
       {!serie && !hasSearch ? (
         <p className="text-gray-400">
-          Choisis une serie ou lance une recherche dans toutes les series.
+          Choisis une série ou lance une recherche dans toutes les séries.
         </p>
       ) : filteredCards.length === 0 ? (
-        <p className="text-gray-400">Aucune carte trouvee.</p>
+        <p className="text-gray-400">Aucune carte trouvée.</p>
       ) : (
         <div className="space-y-3">
           {filteredCards.map((c) => (
