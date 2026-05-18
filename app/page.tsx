@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { desc, eq, inArray } from "drizzle-orm";
 import BlocTile from "@/components/BlocTile";
+import CardTile from "@/components/CardTile";
 import { BLOCS } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { reviews, users } from "@/lib/db/schema";
+import { formatRecentDate, getRecentCards } from "@/lib/recent-cards";
 
 export const dynamic = "force-dynamic";
 
@@ -70,7 +72,10 @@ function ReviewStars({ rating }: { rating: number }) {
 
 export default async function HomePage() {
   const blocsLoop = [...BLOCS, ...BLOCS];
-  const latestReviews = await getLatestReviews();
+  const [latestReviews, recentCards] = await Promise.all([
+    getLatestReviews(),
+    getRecentCards(8),
+  ]);
 
   return (
     <div className="space-y-12">
@@ -157,6 +162,49 @@ export default async function HomePage() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-zinc-950/75 p-6 text-gray-100 backdrop-blur-sm md:p-10">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
+              Nouveautes
+            </p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+              Dernieres cartes ajoutees
+            </h2>
+            <p className="mt-2 text-gray-300">
+              Les ajouts recents en stock, directement depuis l'admin.
+            </p>
+          </div>
+          <Link
+            href="/nouveautes"
+            className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+          >
+            Voir toutes les nouveautes
+          </Link>
+        </div>
+
+        {recentCards.length === 0 ? (
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5 text-sm text-gray-300">
+            Aucune nouveaute en stock pour le moment.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {recentCards.map(({ card, variant, updatedAt }) => {
+              const date = formatRecentDate(updatedAt);
+
+              return (
+                <div key={`${card.id}-${variant}`} className="relative">
+                  <div className="absolute left-2 top-2 z-10 rounded-full bg-emerald-500 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow">
+                    {date ? `Nouveau ${date}` : "Nouveau"}
+                  </div>
+                  <CardTile card={card} variantKey={variant} />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-zinc-950/75 p-6 text-gray-100 backdrop-blur-sm md:p-10">
