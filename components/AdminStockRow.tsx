@@ -6,6 +6,7 @@ import {
   CONDITIONS,
   RARITIES,
   RESERVED_VARIANT_KEYS,
+  getCard,
   isVariantHidden,
   listVariants,
   type Card,
@@ -20,9 +21,17 @@ type VariantSpec = {
   stock: number;
   price: number;
   hidden: boolean;
+  fromCatalog: boolean;
 };
 
 function buildVariants(card: Card): VariantSpec[] {
+  const catalogCard = getCard(card.id);
+  const catalogKeys = new Set(
+    catalogCard
+      ? listVariants(catalogCard, { includeHidden: true }).map(({ key }) => key)
+      : ["base"],
+  );
+
   return listVariants(card, { includeHidden: true }).map(({ key, variant }) => ({
     key,
     label: key === "base" ? "Base" : key === "alt" ? "Alt" : variant.rarity,
@@ -30,6 +39,7 @@ function buildVariants(card: Card): VariantSpec[] {
     stock: variant.stock,
     price: variant.price,
     hidden: isVariantHidden(card, key),
+    fromCatalog: catalogKeys.has(key),
   }));
 }
 
@@ -37,7 +47,7 @@ function slugifyRarity(rarity: string): string {
   return rarity
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 24);
@@ -101,6 +111,7 @@ export default function AdminStockRow({ card }: { card: Card }) {
             initialStock={v.stock}
             initialPrice={v.price}
             hidden={v.hidden}
+            fromCatalog={v.fromCatalog}
             isNew={false}
           />
         ))}
@@ -442,6 +453,7 @@ function VariantCell({
   initialStock,
   initialPrice,
   hidden,
+  fromCatalog,
   isNew,
 }: {
   card: Card;
@@ -451,6 +463,7 @@ function VariantCell({
   initialStock: number;
   initialPrice: number;
   hidden: boolean;
+  fromCatalog: boolean;
   isNew: boolean;
 }) {
   const router = useRouter();
@@ -607,11 +620,12 @@ function VariantCell({
         )}
 
         {!isNew && (
-          <VisibilityButton
+          <VariantActionButtons
             card={card}
             variant={variantKey}
             label={label}
             hidden={hidden}
+            fromCatalog={fromCatalog}
           />
         )}
 
@@ -621,37 +635,40 @@ function VariantCell({
   );
 }
 
-function VisibilityButton({
+function VariantActionButtons({
   card,
   variant,
   label,
   hidden,
+  fromCatalog,
 }: {
   card: Card;
   variant: VariantKey;
   label: string;
   hidden: boolean;
+  fromCatalog: boolean;
 }) {
   const router = useRouter();
-  const [busy, setBusy] = useState(false);
+  const [visibilityBusy, setVisibilityBusy] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function toggleVisibility() {
+  async function setHidden(nextHidden: boolean) {
     const ok = window.confirm(
-      `${hidden ? "Restaurer" : "Masquer"} la variante ${label} de ${card.name} ?\n\n` +
-        (hidden
-          ? `Elle sera de nouveau visible sur le site.`
-          : `Elle sera cachee du site sans modifier son stock ni son prix.`),
+      `${nextHidden ? "Supprimer" : "Restaurer"} la variante ${label} de ${card.name} ?\n\n` +
+        (nextHidden
+          ? `Elle sera cachee du site sans modifier son stock ni son prix.`
+          : `Elle sera de nouveau visible sur le site.`),
     );
 
     if (!ok) return;
 
-    setBusy(true);
+    setVisibilityBusy(true);
     setError(null);
 
     try {
       const res = await fetch("/api/admin/variant-visibility", {
-        method: hidden ? "DELETE" : "POST",
+        method: nextHidden ? "POST" : "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cardId: card.id, variant }),
       });
@@ -663,24 +680,79 @@ function VisibilityButton({
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
     } finally {
-      setBusy(false);
+      setVisibilityBusy(false);
     }
   }
 
+  async function deleteCustomVariant() {
+    const ok = window.confirm(
+      `Supprimer definitivement la variante ${label} de ${card.name} ?\n\n` +
+        `Cela retire cette variante ajoutee manuellement.`,
+    );
+
+    if (!ok) return;
+
+    setDeleteBusy(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/stock", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardId: card.id, variant }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+
+      await fetch("/api/admin/variant-visibility", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardId: card.id, variant }),
+      }).catch(() => {});
+
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setDeleteBusy(false);
+    }
+  }
+
+  const busy = visibilityBusy || deleteBusy;
+
   return (
     <>
-      <button
-        type="button"
-        onClick={toggleVisibility}
-        disabled={busy}
-        className={`rounded px-3 py-1 text-xs font-medium text-white disabled:opacity-60 ${
-          hidden
-            ? "bg-emerald-600/80 hover:bg-emerald-600"
-            : "bg-red-600/80 hover:bg-red-600"
-        }`}
-      >
-        {busy ? "..." : hidden ? "Restaurer" : "Masquer"}
-      </button>
+      {hidden ? (
+        <button
+          type="button"
+          onClick={() => setHidden(false)}
+          disabled={busy}
+          className="rounded bg-emerald-600/80 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-600 disabled:opacity-60"
+        >
+          {visibilityBusy ? "..." : "Restaurer"}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => (fromCatalog ? setHidden(true) : deleteCustomVariant())}
+          disabled={busy}
+          className="rounded bg-red-600/80 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
+        >
+          {busy ? "..." : "Supprimer"}
+        </button>
+      )}
+
+      {hidden && !fromCatalog && (
+        <button
+          type="button"
+          onClick={deleteCustomVariant}
+          disabled={busy}
+          className="rounded bg-red-600/80 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
+        >
+          {deleteBusy ? "..." : "Supprimer"}
+        </button>
+      )}
 
       {error && <span className="text-xs text-red-400">{error}</span>}
     </>
