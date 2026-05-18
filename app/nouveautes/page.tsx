@@ -41,7 +41,7 @@ export default async function NouveautesPage() {
 
             return (
               <div key={`${card.id}-${variant}`} className="relative">
-                <div className="absolute left-2 top-2 z-10 rounded-full bg-emerald-500 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow">
+                <div className="absolute left-2 top-2 z-10 rounded-full bg-violet-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow">
                   {date ? `Nouveau ${date}` : "Nouveau"}
                 </div>
                 <CardTile card={card} variantKey={variant} />
