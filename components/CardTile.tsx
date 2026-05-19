@@ -7,7 +7,6 @@ import {
   formatRarityLabel,
   getPreferredDisplayVariant,
   orderDisplayVariants,
-  rarityDisplayLabel,
 } from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
 
@@ -27,7 +26,11 @@ export default function CardTile({
     ? displayVariant.stock <= 0
     : visibleVariants.length === 0 ||
       visibleVariants.every(({ variant }) => variant.stock <= 0);
-  const stockVariants = variantKey ? [preferredDisplay] : visibleVariants;
+  const stockVariants = variantKey
+    ? [preferredDisplay]
+    : visibleVariants.length > 0
+      ? visibleVariants
+      : [preferredDisplay];
   const stockByRarity = stockVariants.reduce<
     { rarity: string; stock: number }[]
   >((items, { variant }) => {
@@ -40,7 +43,6 @@ export default function CardTile({
     }
     return items;
   }, []);
-  const rarityLabel = rarityDisplayLabel(card, variantKey);
   const price = displayVariant.price;
 
   return (
@@ -80,9 +82,6 @@ export default function CardTile({
           <div className="text-xs text-gray-500 truncate">{card.number}</div>
 
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-1 text-xs font-medium text-amber-300">
-              {rarityLabel}
-            </span>
             {stockByRarity.map((item) => (
               <span
                 key={item.rarity}
