@@ -4,6 +4,7 @@ import ConditionBadge from "@/components/ConditionBadge";
 import FavoriteHeartButton from "@/components/FavoriteHeartButton";
 import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
 import {
+  formatRarityLabel,
   getPreferredDisplayVariant,
   orderDisplayVariants,
   rarityDisplayLabel,
@@ -26,6 +27,19 @@ export default function CardTile({
     ? displayVariant.stock <= 0
     : visibleVariants.length === 0 ||
       visibleVariants.every(({ variant }) => variant.stock <= 0);
+  const stockVariants = variantKey ? [preferredDisplay] : visibleVariants;
+  const stockByRarity = stockVariants.reduce<
+    { rarity: string; stock: number }[]
+  >((items, { variant }) => {
+    const label = formatRarityLabel(variant.rarity);
+    const existing = items.find((item) => item.rarity === label);
+    if (existing) {
+      existing.stock += variant.stock;
+    } else {
+      items.push({ rarity: label, stock: variant.stock });
+    }
+    return items;
+  }, []);
   const rarityLabel = rarityDisplayLabel(card, variantKey);
   const price = displayVariant.price;
 
@@ -69,6 +83,18 @@ export default function CardTile({
             <span className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-1 text-xs font-medium text-amber-300">
               {rarityLabel}
             </span>
+            {stockByRarity.map((item) => (
+              <span
+                key={item.rarity}
+                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                  item.stock > 0
+                    ? "bg-emerald-500/15 text-emerald-300"
+                    : "bg-red-500/15 text-red-300"
+                }`}
+              >
+                {item.rarity} : {item.stock}
+              </span>
+            ))}
             <ConditionBadge condition={displayVariant.condition ?? card.condition} />
           </div>
 
