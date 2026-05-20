@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   title: "Sleeves",
 };
 
+export const dynamic = "force-dynamic";
+
 const sleeveHighlights = [
   "Protection pour cartes Pokémon",
   "Formats adaptés aux cartes standard",
