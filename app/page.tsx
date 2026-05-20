@@ -2,7 +2,7 @@ import Link from "next/link";
 import { desc, eq, inArray } from "drizzle-orm";
 import BlocTile from "@/components/BlocTile";
 import CardTile from "@/components/CardTile";
-import { BLOCS } from "@/lib/catalog";
+import { BLOCS, type Rarity } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { reviews, users } from "@/lib/db/schema";
 import { formatRecentDate, getRecentCards } from "@/lib/recent-cards";
@@ -16,6 +16,8 @@ type LatestReview = {
   createdAt: Date;
   userName: string;
 };
+
+const FEATURED_NEW_RARITIES: Rarity[] = ["Ultra Rare", "Secrete"];
 
 async function getLatestReviews(limit = 3): Promise<LatestReview[]> {
   try {
@@ -74,7 +76,7 @@ export default async function HomePage() {
   const blocsLoop = [...BLOCS, ...BLOCS];
   const [latestReviews, recentCards] = await Promise.all([
     getLatestReviews(),
-    getRecentCards(8),
+    getRecentCards(4, { rarities: FEATURED_NEW_RARITIES }),
   ]);
 
   return (
@@ -171,7 +173,7 @@ export default async function HomePage() {
               Nouveautés
             </p>
             <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
-              Dernières cartes ajoutées
+              Dernières Ultra Rare et Secrètes ajoutées
             </h2>
             <p className="mt-2 text-gray-300">
               Les ajouts récents en stock, directement depuis l'admin.

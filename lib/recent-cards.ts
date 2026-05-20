@@ -6,6 +6,7 @@ import {
   getCard,
   listVariants,
   type Card,
+  type Rarity,
   type VariantKey,
 } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
@@ -25,7 +26,11 @@ export type RecentCard = {
   updatedAt: Date | string;
 };
 
-async function getRecentStockRows(limit: number): Promise<RecentRow[]> {
+type RecentCardsOptions = {
+  rarities?: readonly Rarity[];
+};
+
+async function getRecentStockRows(fetchLimit: number): Promise<RecentRow[]> {
   try {
     const rows = await getDb()
       .select({
@@ -36,12 +41,16 @@ async function getRecentStockRows(limit: number): Promise<RecentRow[]> {
       })
       .from(stockOverrides)
       .orderBy(desc(stockOverrides.updatedAt))
-      .limit(Math.max(limit * 4, 60));
+      .limit(fetchLimit);
 
     return rows.filter((row) => row.stock > 0);
   } catch {
     return [];
   }
+}
+
+function matchesRarity(rarity: Rarity, allowedRarities?: readonly Rarity[]) {
+  return !allowedRarities || allowedRarities.includes(rarity);
 }
 
 function uniqByCard(cards: Card[]) {
@@ -53,13 +62,20 @@ function uniqByCard(cards: Card[]) {
   });
 }
 
-async function getFallbackCards(limit: number): Promise<RecentCard[]> {
+async function getFallbackCards(
+  limit: number,
+  options: RecentCardsOptions = {},
+): Promise<RecentCard[]> {
   const liveCards = await applyStockOverrides(CARDS);
 
   return liveCards
     .flatMap((card) =>
       listVariants(card)
-        .filter(({ variant }) => variant.stock > 0)
+        .filter(
+          ({ variant }) =>
+            variant.stock > 0 &&
+            matchesRarity(variant.rarity, options.rarities),
+        )
         .map(({ key }) => ({
           card,
           variant: key,
@@ -69,11 +85,17 @@ async function getFallbackCards(limit: number): Promise<RecentCard[]> {
     .slice(0, limit);
 }
 
-export async function getRecentCards(limit = 48): Promise<RecentCard[]> {
-  const rows = await getRecentStockRows(limit);
+export async function getRecentCards(
+  limit = 48,
+  options: RecentCardsOptions = {},
+): Promise<RecentCard[]> {
+  const fetchLimit = options.rarities
+    ? Math.max(limit * 25, 500)
+    : Math.max(limit * 4, 60);
+  const rows = await getRecentStockRows(fetchLimit);
 
   if (rows.length === 0) {
-    return getFallbackCards(limit);
+    return getFallbackCards(limit, options);
   }
 
   const baseCards = uniqByCard(
@@ -90,6 +112,7 @@ export async function getRecentCards(limit = 48): Promise<RecentCard[]> {
 
     const liveVariant = listVariants(card).find(({ key }) => key === row.variant);
     if (!liveVariant || liveVariant.variant.stock <= 0) continue;
+    if (!matchesRarity(liveVariant.variant.rarity, options.rarities)) continue;
 
     const entryKey = `${row.cardId}:${row.variant}`;
     if (seen.has(entryKey)) continue;
