@@ -173,7 +173,7 @@ export default async function HomePage() {
               Nouveautés
             </p>
             <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
-              Dernières Ultra Rare et Secrètes ajoutées
+              Derniers ajouts
             </h2>
             <p className="mt-2 text-gray-300">
               Les ajouts récents en stock, directement depuis l'admin.
