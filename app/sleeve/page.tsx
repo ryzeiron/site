@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import FavoriteSleeveButton from "@/components/FavoriteSleeveButton";
 import Link from "next/link";
 import SleeveAddToCartButton from "@/components/SleeveAddToCartButton";
 import { formatPrice } from "@/lib/format";
@@ -144,6 +145,7 @@ export default async function SleevePage() {
                     sleeveId={product.id}
                     stock={product.stock}
                   />
+                  <FavoriteSleeveButton sleeveId={product.id} />
                 </div>
               </article>
             ))}

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { desc, eq, or } from "drizzle-orm";
 import { auth, signOut } from "@/lib/auth";
 import { getDb } from "@/lib/db/client";
-import { favoriteCards, orders } from "@/lib/db/schema";
+import { favoriteCards, favoriteSleeves, orders } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -58,7 +58,7 @@ export default async function ComptePage({
 
   const db = getDb();
 
-  const [userOrders, userFavorites] = await Promise.all([
+  const [userOrders, userCardFavorites, userSleeveFavorites] = await Promise.all([
     db
       .select()
       .from(orders)
@@ -73,7 +73,12 @@ export default async function ComptePage({
       .select()
       .from(favoriteCards)
       .where(eq(favoriteCards.userId, session.user.id)),
+    db
+      .select()
+      .from(favoriteSleeves)
+      .where(eq(favoriteSleeves.userId, session.user.id)),
   ]);
+  const favoriteCount = userCardFavorites.length + userSleeveFavorites.length;
 
   return (
     <div className="space-y-6 py-6">
@@ -109,7 +114,7 @@ export default async function ComptePage({
             {ACCOUNT_SECTIONS.map((item) => {
               const count =
                 item.id === "favoris"
-                  ? userFavorites.length
+                  ? favoriteCount
                   : item.id === "commandes"
                     ? userOrders.length
                     : null;
@@ -159,7 +164,7 @@ export default async function ComptePage({
             <section>
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="text-xl font-bold text-white">
-                  Mes favoris ({userFavorites.length})
+                  Mes favoris ({favoriteCount})
                 </h2>
 
                 <Link
@@ -171,8 +176,8 @@ export default async function ComptePage({
               </div>
 
               <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-sm text-gray-300">
-                Les cartes ajoutées ici te permettent de recevoir un email si
-                une carte en rupture revient en stock.
+                Retrouve ici tes cartes et sleeves favoris. Les cartes en
+                rupture gardent aussi l&apos;alerte de retour en stock.
               </div>
             </section>
           )}

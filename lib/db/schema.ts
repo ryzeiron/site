@@ -70,6 +70,16 @@ export const favoriteCards = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.cardId, t.variant] })],
 );
 
+export const favoriteSleeves = pgTable(
+  "favorite_sleeves",
+  {
+    userId: text("user_id").notNull(),
+    sleeveId: text("sleeve_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.sleeveId] })],
+);
+
 export const reviews = pgTable("reviews", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().unique(),
