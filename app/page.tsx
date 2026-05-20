@@ -166,6 +166,37 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <section className="rounded-2xl border border-violet-300/20 bg-gradient-to-br from-zinc-950 via-violet-950/70 to-fuchsia-950/50 p-6 text-gray-100 backdrop-blur-sm md:p-10">
+        <div className="grid gap-6 lg:grid-cols-[1fr_280px] lg:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-300">
+              Accessoires
+            </p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+              Sleeves
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-300 md:text-base">
+              Protège tes cartes avec des sleeves adaptées aux cartes Pokémon :
+              parfait pour le classeur, les top loaders et les envois.
+            </p>
+            <Link
+              href="/sleeve"
+              className="mt-5 inline-flex rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700"
+            >
+              Voir les sleeves
+            </Link>
+          </div>
+
+          <div className="relative mx-auto h-44 w-56">
+            <div className="absolute left-6 top-5 h-36 w-24 rotate-[-12deg] rounded-lg border border-violet-200/40 bg-violet-500/20 shadow-xl shadow-violet-950/40" />
+            <div className="absolute left-20 top-2 h-36 w-24 rotate-[5deg] rounded-lg border border-fuchsia-200/40 bg-fuchsia-500/20 shadow-xl shadow-fuchsia-950/30" />
+            <div className="absolute left-28 top-7 flex h-36 w-24 rotate-[15deg] items-center justify-center rounded-lg border border-white/30 bg-white/10 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-xl shadow-black/40 backdrop-blur-sm">
+              Sleeve
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="rounded-2xl border border-white/10 bg-zinc-950/75 p-6 text-gray-100 backdrop-blur-sm md:p-10">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
