@@ -6,6 +6,7 @@ import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
 import { getRequestOrigin } from "@/lib/site-url";
+import { getSleevesByIds } from "@/lib/sleeves";
 import {
   releaseStockReservation,
   reserveStockItems,
@@ -14,7 +15,8 @@ import {
 type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
 
 type Body = {
-  items: { cardId: string; variant: VariantKey; quantity: number }[];
+  items?: { cardId: string; variant: VariantKey; quantity: number }[];
+  sleeveItems?: { sleeveId: string; quantity: number }[];
   promoCode?: string;
   country?: Country;
   relay?: {
@@ -73,11 +75,36 @@ function encodeItems(
   return parts;
 }
 
+function encodeSleeves(
+  items: { sleeveId: string; quantity: number }[],
+): Record<string, string> {
+  const compact = items.map((i) => [i.sleeveId, i.quantity]);
+  const json = JSON.stringify(compact);
+
+  if (json.length <= META_VALUE_MAX) {
+    return { sleeves: json, sleeves_parts: "1" };
+  }
+
+  const parts: Record<string, string> = {};
+  let i = 0;
+
+  for (let offset = 0; offset < json.length; offset += META_VALUE_MAX, i++) {
+    parts[`sleeves_${i}`] = json.slice(offset, offset + META_VALUE_MAX);
+  }
+
+  parts.sleeves_parts = String(i);
+  return parts;
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Body;
+    const cardItems = Array.isArray(body.items) ? body.items : [];
+    const rawSleeveItems = Array.isArray(body.sleeveItems)
+      ? body.sleeveItems
+      : [];
 
-    if (!body.items || body.items.length === 0) {
+    if (cardItems.length === 0 && rawSleeveItems.length === 0) {
       return NextResponse.json({ error: "Panier vide." }, { status: 400 });
     }
 
@@ -107,7 +134,7 @@ export async function POST(request: Request) {
       promo?.type === "percent_off" ? 1 - promo.percent / 100 : 1;
     const shippingMultiplier = promo?.type === "free_shipping" ? 0 : 1;
 
-    const rawCards = body.items
+    const rawCards = cardItems
       .map((i) => getCard(i.cardId))
       .filter((c): c is NonNullable<typeof c> => !!c);
 
@@ -124,7 +151,7 @@ export async function POST(request: Request) {
       }
     >();
 
-    const lineItems = body.items.map((item) => {
+    const lineItems = cardItems.map((item) => {
       const card = cardMap.get(item.cardId);
 
       if (!card) {
@@ -171,6 +198,60 @@ export async function POST(request: Request) {
       };
     });
 
+    const sleeveItemsById = new Map<
+      string,
+      { sleeveId: string; quantity: number }
+    >();
+
+    for (const item of rawSleeveItems) {
+      if (!item?.sleeveId) continue;
+      if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+        throw new Error("Quantité invalide.");
+      }
+
+      const existing = sleeveItemsById.get(item.sleeveId);
+      if (existing) {
+        existing.quantity += item.quantity;
+      } else {
+        sleeveItemsById.set(item.sleeveId, {
+          sleeveId: item.sleeveId,
+          quantity: item.quantity,
+        });
+      }
+    }
+
+    const sleeveItems = Array.from(sleeveItemsById.values());
+    const sleeveRows = await getSleevesByIds(
+      sleeveItems.map((item) => item.sleeveId),
+    );
+    const sleeveMap = new Map(sleeveRows.map((sleeve) => [sleeve.id, sleeve]));
+
+    for (const item of sleeveItems) {
+      const sleeve = sleeveMap.get(item.sleeveId);
+      if (!sleeve || !sleeve.active) {
+        throw new Error("Sleeve introuvable.");
+      }
+
+      if (item.quantity > sleeve.stock) {
+        throw new Error(`Stock insuffisant pour ${sleeve.name}.`);
+      }
+
+      lineItems.push({
+        price_data: {
+          currency: "eur",
+          unit_amount: Math.max(
+            0,
+            Math.round(sleeve.priceCents * percentMultiplier),
+          ),
+          product_data: {
+            name: sleeve.name,
+            description: sleeve.description ?? "Sleeve",
+          },
+        },
+        quantity: item.quantity,
+      });
+    }
+
     const country: Country =
       body.country && ALLOWED_COUNTRIES.includes(body.country)
         ? body.country
@@ -183,7 +264,8 @@ export async function POST(request: Request) {
 
     const origin = getRequestOrigin(request);
 
-    const itemsMeta = encodeItems(body.items);
+    const itemsMeta = encodeItems(cardItems);
+    const sleeveMeta = encodeSleeves(sleeveItems);
     const reservationId = randomUUID();
     const relayMeta: Record<string, string> = {};
 
@@ -242,6 +324,7 @@ export async function POST(request: Request) {
         line_items: lineItems,
         metadata: {
           ...itemsMeta,
+          ...sleeveMeta,
           ...relayMeta,
           country,
           reservation_id: reservationId,

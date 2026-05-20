@@ -1,4 +1,4 @@
-import { integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -109,6 +109,18 @@ export const orders = pgTable("orders", {
   mondialRelayError: text("mondial_relay_error"),
   status: text("status").notNull().default("paid"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const sleeves = pgTable("sleeves", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  image: text("image"),
+  priceCents: integer("price_cents").notNull().default(0),
+  stock: integer("stock").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const tickets = pgTable("tickets", {

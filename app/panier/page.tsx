@@ -6,7 +6,7 @@ import ConditionBadge from "@/components/ConditionBadge";
 import MondialRelayPicker, {
   type SelectedRelay,
 } from "@/components/MondialRelayPicker";
-import { useCart } from "@/lib/cart";
+import { isCardCartItem, isSleeveCartItem, useCart } from "@/lib/cart";
 import { resolveVariant, type Card } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
@@ -14,16 +14,29 @@ type AppliedPromo =
   | { code: string; type: "percent_off"; percent: number; label: string }
   | { code: string; type: "free_shipping"; label: string };
 
+type SleeveProduct = {
+  id: string;
+  name: string;
+  description: string | null;
+  image: string | null;
+  priceCents: number;
+  stock: number;
+  active: boolean;
+};
+
 export default function CartPage() {
   const items = useCart((s) => s.items);
   const cartId = useCart((s) => s.cartId);
   const setQuantity = useCart((s) => s.setQuantity);
   const remove = useCart((s) => s.remove);
+  const setSleeveQuantity = useCart((s) => s.setSleeveQuantity);
+  const removeSleeve = useCart((s) => s.removeSleeve);
   const clear = useCart((s) => s.clear);
 
   const [mounted, setMounted] = useState(false);
   const [loadingCards, setLoadingCards] = useState(true);
   const [cards, setCards] = useState<Record<string, Card>>({});
+  const [sleeves, setSleeves] = useState<Record<string, SleeveProduct>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,10 +69,13 @@ export default function CartPage() {
 
   useEffect(() => setMounted(true), []);
 
+  const cardItems = useMemo(() => items.filter(isCardCartItem), [items]);
+  const sleeveItems = useMemo(() => items.filter(isSleeveCartItem), [items]);
+
   useEffect(() => {
     if (!mounted) return;
 
-    const ids = Array.from(new Set(items.map((i) => i.cardId)));
+    const ids = Array.from(new Set(cardItems.map((i) => i.cardId)));
 
     if (ids.length === 0) {
       setCards({});
@@ -82,17 +98,50 @@ export default function CartPage() {
       })
       .catch(() => setCards({}))
       .finally(() => setLoadingCards(false));
-  }, [items, mounted]);
+  }, [cardItems, mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const ids = Array.from(new Set(sleeveItems.map((i) => i.sleeveId)));
+
+    if (ids.length === 0) {
+      setSleeves({});
+      return;
+    }
+
+    fetch("/api/sleeves/batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    })
+      .then((r) => r.json())
+      .then((data: { sleeves?: SleeveProduct[] }) => {
+        const map: Record<string, SleeveProduct> = {};
+        for (const sleeve of data.sleeves ?? []) map[sleeve.id] = sleeve;
+        setSleeves(map);
+      })
+      .catch(() => setSleeves({}));
+  }, [sleeveItems, mounted]);
 
   const subtotal = useMemo(() => {
-    return items.reduce((sum, item) => {
+    const cardsTotal = cardItems.reduce((sum, item) => {
       const card = cards[item.cardId];
       if (!card) return sum;
 
       const v = resolveVariant(card, item.variant);
       return sum + v.price * item.quantity;
     }, 0);
-  }, [items, cards]);
+
+    const sleevesTotal = sleeveItems.reduce((sum, item) => {
+      const sleeve = sleeves[item.sleeveId];
+      if (!sleeve) return sum;
+
+      return sum + (sleeve.priceCents / 100) * item.quantity;
+    }, 0);
+
+    return cardsTotal + sleevesTotal;
+  }, [cardItems, sleeveItems, cards, sleeves]);
 
   const discount =
     appliedPromo?.type === "percent_off"
@@ -159,7 +208,8 @@ export default function CartPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items,
+          items: cardItems,
+          sleeveItems,
           cartId,
           promoCode: appliedPromo?.code,
           relay: selectedRelay,
@@ -209,7 +259,7 @@ export default function CartPage() {
       <h1 className="text-3xl font-bold text-white">Votre panier</h1>
 
       <div className="mt-6 space-y-3">
-        {items.map((item) => {
+        {cardItems.map((item) => {
           const card = cards[item.cardId];
           if (!card) return null;
 
@@ -311,6 +361,112 @@ export default function CartPage() {
               <button
                 type="button"
                 onClick={() => remove(card.id, item.variant)}
+                className="text-xs text-gray-400 hover:text-red-400"
+              >
+                Retirer
+              </button>
+            </div>
+          );
+        })}
+
+        {sleeveItems.map((item) => {
+          const sleeve = sleeves[item.sleeveId];
+          if (!sleeve) return null;
+
+          const myAvailable = sleeve.stock + item.quantity;
+          const outOfStock = myAvailable <= 0;
+          const price = sleeve.priceCents / 100;
+
+          return (
+            <div
+              key={`sleeve-${item.sleeveId}`}
+              className="flex items-center gap-4 rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200 backdrop-blur-sm"
+            >
+              <div className="relative flex h-20 w-16 items-center justify-center overflow-hidden rounded bg-gradient-to-br from-violet-950 to-zinc-950 px-1 text-center text-xs font-semibold text-violet-200">
+                {sleeve.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={sleeve.image}
+                    alt={sleeve.name}
+                    className={`h-full w-full object-contain ${
+                      outOfStock ? "opacity-40 grayscale" : ""
+                    }`}
+                  />
+                ) : (
+                  <span>Sleeve</span>
+                )}
+
+                {outOfStock && (
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                    <span className="rounded bg-red-600 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white shadow -rotate-12">
+                      Rupture
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1">
+                <Link
+                  href="/sleeve"
+                  className="font-semibold text-white hover:underline"
+                >
+                  {sleeve.name}
+                </Link>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
+                  <span className="inline-flex items-center rounded-full bg-violet-500/20 px-2 py-1 font-medium text-violet-300">
+                    Sleeve
+                  </span>
+                  <span>{sleeve.stock} en stock</span>
+                </div>
+                <div className="mt-1 text-sm text-gray-200">
+                  {formatPrice(price)}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSleeveQuantity(
+                      sleeve.id,
+                      item.quantity - 1,
+                      myAvailable,
+                    )
+                  }
+                  className="h-8 w-8 rounded bg-white/10 text-white hover:bg-white/20"
+                  aria-label="Diminuer"
+                >
+                  -
+                </button>
+
+                <span className="w-8 text-center text-white">
+                  {item.quantity}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSleeveQuantity(
+                      sleeve.id,
+                      item.quantity + 1,
+                      myAvailable,
+                    )
+                  }
+                  disabled={item.quantity >= myAvailable}
+                  className="h-8 w-8 rounded bg-white/10 text-white hover:bg-white/20 disabled:opacity-50"
+                  aria-label="Augmenter"
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="w-20 text-right font-semibold text-white">
+                {formatPrice(price * item.quantity)}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => removeSleeve(sleeve.id)}
                 className="text-xs text-gray-400 hover:text-red-400"
               >
                 Retirer

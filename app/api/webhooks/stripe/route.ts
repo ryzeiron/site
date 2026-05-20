@@ -5,6 +5,7 @@ import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { orders, processedEvents, stockOverrides } from "@/lib/db/schema";
+import { decrementSleeveStock } from "@/lib/sleeves";
 import {
   confirmStockReservation,
   releaseStockReservation,
@@ -13,6 +14,7 @@ import {
 export const runtime = "nodejs";
 
 type CompactItem = [string, VariantKey, number];
+type CompactSleeveItem = [string, number];
 
 function decodeItems(metadata: Stripe.Metadata | null): CompactItem[] {
   if (!metadata) return [];
@@ -35,6 +37,32 @@ function decodeItems(metadata: Stripe.Metadata | null): CompactItem[] {
     const parsed = JSON.parse(json);
     if (!Array.isArray(parsed)) return [];
     return parsed as CompactItem[];
+  } catch {
+    return [];
+  }
+}
+
+function decodeSleeves(metadata: Stripe.Metadata | null): CompactSleeveItem[] {
+  if (!metadata) return [];
+  const partsCount = Number(metadata.sleeves_parts ?? "0");
+  let json = "";
+
+  if (metadata.sleeves) {
+    json = metadata.sleeves;
+  } else if (partsCount > 0) {
+    for (let i = 0; i < partsCount; i++) {
+      const chunk = metadata[`sleeves_${i}`];
+      if (!chunk) return [];
+      json += chunk;
+    }
+  }
+
+  if (!json) return [];
+
+  try {
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed)) return [];
+    return parsed as CompactSleeveItem[];
   } catch {
     return [];
   }
@@ -105,6 +133,7 @@ export async function POST(request: Request) {
   }
 
   const items = decodeItems(session.metadata);
+  const sleeveItems = decodeSleeves(session.metadata);
   const shippingDetails = session.collected_information?.shipping_details;
   const customerName =
     session.customer_details?.name ?? shippingDetails?.name ?? "Client";
@@ -143,9 +172,14 @@ export async function POST(request: Request) {
     .onConflictDoNothing();
 
   if (items.length === 0 || reservationId) {
+    await decrementSleeveStock(
+      sleeveItems.map(([sleeveId, quantity]) => ({ sleeveId, quantity })),
+    );
+
     return NextResponse.json({
       received: true,
       items: items.length,
+      sleeves: sleeveItems.length,
       reservationConfirmed: Boolean(reservationId),
     });
   }
@@ -181,9 +215,14 @@ export async function POST(request: Request) {
       });
   }
 
+  await decrementSleeveStock(
+    sleeveItems.map(([sleeveId, quantity]) => ({ sleeveId, quantity })),
+  );
+
   return NextResponse.json({
     received: true,
     decremented: items.length,
+    sleevesDecremented: sleeveItems.length,
     labelCreated: Boolean(mondialRelayLabelUrl),
     labelError: mondialRelayError,
   });

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import SleeveAddToCartButton from "@/components/SleeveAddToCartButton";
+import { formatPrice } from "@/lib/format";
+import { getSleeves } from "@/lib/sleeves";
 
 export const metadata: Metadata = {
   title: "Sleeves",
@@ -11,7 +14,9 @@ const sleeveHighlights = [
   "Idéal pour classeurs, top loaders et envois",
 ];
 
-export default function SleevePage() {
+export default async function SleevePage() {
+  const products = await getSleeves({ activeOnly: true });
+
   return (
     <div className="space-y-8">
       <section className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-violet-900/60 via-zinc-950 to-fuchsia-950/50 p-6 text-gray-100 backdrop-blur-sm md:p-10">
@@ -69,14 +74,79 @@ export default function SleevePage() {
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-zinc-950/75 p-6 text-gray-100 md:p-8">
-        <h2 className="text-2xl font-extrabold text-white">
-          Produits à venir
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-300">
-          La page est prête. Il restera à ajouter les modèles disponibles, les
-          prix et les stocks quand tu voudras vendre les sleeves directement
-          depuis le site.
-        </p>
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-300">
+              Boutique
+            </p>
+            <h2 className="mt-2 text-2xl font-extrabold text-white">
+              Sleeves disponibles
+            </h2>
+          </div>
+        </div>
+
+        {products.length === 0 ? (
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5 text-sm text-gray-300">
+            Aucun sleeve disponible pour le moment.
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {products.map((product) => (
+              <article
+                key={product.id}
+                className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-zinc-950">
+                  {product.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className={`h-full w-full object-contain p-2 ${
+                        product.stock <= 0 ? "opacity-40 grayscale" : ""
+                      }`}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-center text-sm font-bold uppercase tracking-[0.18em] text-violet-200">
+                      Sleeve
+                    </div>
+                  )}
+
+                  {product.stock <= 0 ? (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow">
+                        Rupture
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="mt-4">
+                  <h3 className="font-semibold text-white">{product.name}</h3>
+                  {product.description ? (
+                    <p className="mt-2 line-clamp-3 text-sm leading-6 text-gray-400">
+                      {product.description}
+                    </p>
+                  ) : null}
+
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <span className="text-lg font-extrabold text-brand-400">
+                      {formatPrice(product.priceCents / 100)}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {product.stock} en stock
+                    </span>
+                  </div>
+
+                  <SleeveAddToCartButton
+                    sleeveId={product.id}
+                    stock={product.stock}
+                  />
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

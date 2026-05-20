@@ -371,6 +371,13 @@ export default async function AdminPage({
         </Link>
 
         <Link
+          href="/admin/sleeves"
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+        >
+          Sleeves
+        </Link>
+
+        <Link
           href="/admin/clients"
           className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
         >

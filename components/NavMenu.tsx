@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 const LINKS = [
   { href: "/", label: "Accueil", description: "Retour à la boutique", icon: <HomeIcon /> },
   { href: "/nouveautes", label: "Nouveautés", description: "Dernières cartes ajoutées", icon: <SparklesIcon /> },
+  { href: "/sleeve", label: "Sleeves", description: "Protections pour cartes", icon: <SleeveIcon /> },
   { href: "/recherche", label: "Recherche", description: "Trouver une carte", icon: <SearchIcon /> },
   { href: "/blocs", label: "Blocs", description: "Toutes les séries", icon: <BlocksIcon /> },
   { href: "/contact", label: "Contact", description: "Demande spéciale", icon: <ContactIcon /> },
@@ -167,6 +168,16 @@ function BlocksIcon() {
       <rect x="14" y="3" width="7" height="7" rx="1.5" />
       <rect x="3" y="14" width="7" height="7" rx="1.5" />
       <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
+function SleeveIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+      <path d="M9 7h6" />
+      <path d="M9 17h6" />
     </svg>
   );
 }
