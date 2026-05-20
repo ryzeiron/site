@@ -207,7 +207,7 @@ export default async function HomePage() {
               Derniers ajouts
             </h2>
             <p className="mt-2 text-gray-300">
-              Les ajouts récents en stock, directement depuis l'admin.
+              Les dernières cartes rares ajoutées à la boutique.
             </p>
           </div>
           <Link
