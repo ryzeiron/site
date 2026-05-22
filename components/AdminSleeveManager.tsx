@@ -5,31 +5,13 @@ import { useState } from "react";
 import type { SleeveProduct } from "@/lib/sleeves";
 
 type SleeveFormState = {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
   price: string;
   stock: string;
   active: boolean;
 };
 
-const EMPTY_FORM: SleeveFormState = {
-  id: "",
-  name: "",
-  description: "",
-  image: "",
-  price: "0",
-  stock: "0",
-  active: true,
-};
-
 function toForm(product: SleeveProduct): SleeveFormState {
   return {
-    id: product.id,
-    name: product.name,
-    description: product.description ?? "",
-    image: product.image ?? "",
     price: String(product.priceCents / 100),
     stock: String(product.stock),
     active: product.active,
@@ -41,30 +23,21 @@ export default function AdminSleeveManager({
 }: {
   sleeves: SleeveProduct[];
 }) {
-  const [createForm, setCreateForm] = useState<SleeveFormState>(EMPTY_FORM);
-
   return (
     <div className="space-y-5">
-      <SleeveEditor
-        title="Ajouter un sleeve"
-        form={createForm}
-        setForm={setCreateForm}
-        afterSave={() => setCreateForm(EMPTY_FORM)}
-      />
+      <div className="rounded-lg border border-violet-300/20 bg-violet-500/10 p-4 text-sm text-violet-100">
+        Les sleeves sont maintenant dans le catalogue du site. Ici, tu modifies
+        seulement le prix, le stock et la visibilité.
+      </div>
 
       <div className="space-y-3">
         {sleeves.length === 0 ? (
           <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-5 text-sm text-gray-300">
-            Aucun sleeve ajouté pour le moment.
+            Aucun sleeve dans le catalogue pour le moment.
           </div>
         ) : (
           sleeves.map((product) => (
-            <SleeveEditor
-              key={product.id}
-              title={product.name}
-              form={toForm(product)}
-              productId={product.id}
-            />
+            <SleeveEditor key={product.id} product={product} />
           ))
         )}
       </div>
@@ -72,32 +45,17 @@ export default function AdminSleeveManager({
   );
 }
 
-function SleeveEditor({
-  title,
-  form: initialForm,
-  setForm: externalSetForm,
-  productId,
-  afterSave,
-}: {
-  title: string;
-  form: SleeveFormState;
-  setForm?: (form: SleeveFormState) => void;
-  productId?: string;
-  afterSave?: () => void;
-}) {
+function SleeveEditor({ product }: { product: SleeveProduct }) {
   const router = useRouter();
-  const [localForm, setLocalForm] = useState(initialForm);
+  const [form, setForm] = useState<SleeveFormState>(toForm(product));
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const form = externalSetForm ? initialForm : localForm;
-  const setForm = externalSetForm ?? setLocalForm;
   const price = Number.parseFloat(form.price.replace(",", "."));
   const stock = Number.parseInt(form.stock, 10);
   const canSave =
-    form.name.trim().length > 0 &&
     Number.isFinite(price) &&
     price >= 0 &&
     Number.isInteger(stock) &&
@@ -119,10 +77,7 @@ function SleeveEditor({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: productId ?? form.id,
-          name: form.name,
-          description: form.description,
-          image: form.image,
+          id: product.id,
           price,
           stock,
           active: form.active,
@@ -132,7 +87,6 @@ function SleeveEditor({
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error ?? "Erreur");
 
-      afterSave?.();
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
       router.refresh();
@@ -143,20 +97,20 @@ function SleeveEditor({
     }
   }
 
-  async function remove() {
-    if (!productId) return;
-
-    const ok = window.confirm(`Supprimer définitivement ${form.name} ?`);
+  async function resetOverride() {
+    const ok = window.confirm(
+      `Réinitialiser le prix, le stock et la visibilité de ${product.name} ?`,
+    );
     if (!ok) return;
 
-    setDeleting(true);
+    setResetting(true);
     setError(null);
 
     try {
       const response = await fetch("/api/admin/sleeves", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: productId }),
+        body: JSON.stringify({ id: product.id }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -166,20 +120,28 @@ function SleeveEditor({
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
     } finally {
-      setDeleting(false);
+      setResetting(false);
     }
   }
 
   return (
     <section className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-semibold text-white">{title}</h2>
-          {productId ? (
-            <p className="mt-1 font-mono text-xs text-gray-500">{productId}</p>
+          <h2 className="font-semibold text-white">{product.name}</h2>
+          <p className="mt-1 font-mono text-xs text-gray-500">{product.id}</p>
+          {product.description ? (
+            <p className="mt-2 max-w-2xl text-sm text-gray-400">
+              {product.description}
+            </p>
+          ) : null}
+          {product.hasOverride ? (
+            <p className="mt-2 text-xs text-emerald-300">
+              Modification admin active.
+            </p>
           ) : (
-            <p className="mt-1 text-xs text-gray-500">
-              L'identifiant est créé automatiquement depuis le nom.
+            <p className="mt-2 text-xs text-gray-500">
+              Valeurs par défaut du catalogue.
             </p>
           )}
         </div>
@@ -195,28 +157,13 @@ function SleeveEditor({
         </label>
       </div>
 
+      {product.image ? (
+        <div className="mb-3 rounded border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-gray-400">
+          Image : {product.image}
+        </div>
+      ) : null}
+
       <div className="grid gap-3 md:grid-cols-2">
-        <label className="text-sm">
-          <span className="mb-1 block text-gray-400">Nom</span>
-          <input
-            type="text"
-            value={form.name}
-            onChange={(e) => update({ name: e.target.value })}
-            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
-          />
-        </label>
-
-        <label className="text-sm">
-          <span className="mb-1 block text-gray-400">Image</span>
-          <input
-            type="text"
-            value={form.image}
-            onChange={(e) => update({ image: e.target.value })}
-            placeholder="/sleeves/nom-image.webp"
-            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
-          />
-        </label>
-
         <label className="text-sm">
           <span className="mb-1 block text-gray-400">Prix</span>
           <div className="flex items-center gap-2">
@@ -242,16 +189,6 @@ function SleeveEditor({
             className="w-32 rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
           />
         </label>
-
-        <label className="text-sm md:col-span-2">
-          <span className="mb-1 block text-gray-400">Description</span>
-          <textarea
-            value={form.description}
-            onChange={(e) => update({ description: e.target.value })}
-            rows={2}
-            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
-          />
-        </label>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -267,17 +204,17 @@ function SleeveEditor({
                 : "cursor-not-allowed bg-white/10 text-gray-400"
           }`}
         >
-          {saved ? "OK" : saving ? "..." : productId ? "Enregistrer" : "Ajouter"}
+          {saved ? "OK" : saving ? "..." : "Enregistrer"}
         </button>
 
-        {productId ? (
+        {product.hasOverride ? (
           <button
             type="button"
-            onClick={remove}
-            disabled={deleting}
-            className="rounded bg-red-600/80 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-60"
+            onClick={resetOverride}
+            disabled={resetting}
+            className="rounded bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20 disabled:opacity-60"
           >
-            {deleting ? "..." : "Supprimer"}
+            {resetting ? "..." : "Réinitialiser"}
           </button>
         ) : null}
 

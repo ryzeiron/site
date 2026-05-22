@@ -121,15 +121,11 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const sleeves = pgTable("sleeves", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  image: text("image"),
+export const sleeveOverrides = pgTable("sleeve_overrides", {
+  sleeveId: text("sleeve_id").primaryKey(),
   priceCents: integer("price_cents").notNull().default(0),
   stock: integer("stock").notNull().default(0),
   active: boolean("active").notNull().default(true),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

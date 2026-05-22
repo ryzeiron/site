@@ -1,33 +1,16 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/admin/auth";
+import { getCatalogSleeve } from "@/lib/catalog/sleeves";
 import { getDb } from "@/lib/db/client";
-import { sleeves } from "@/lib/db/schema";
+import { sleeveOverrides } from "@/lib/db/schema";
 
 type Body = {
   id?: string;
-  name?: string;
-  description?: string;
-  image?: string;
   price?: number;
   stock?: number;
   active?: boolean;
 };
-
-function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 60);
-}
-
-function cleanOptional(value: string | undefined) {
-  const trimmed = value?.trim();
-  return trimmed ? trimmed : null;
-}
 
 export async function POST(request: Request) {
   if (!(await isAdmin())) {
@@ -41,17 +24,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
-  const name = body.name?.trim();
-  const id = (body.id?.trim() || (name ? slugify(name) : "")).trim();
+  const id = body.id?.trim();
   const price = body.price;
   const stock = body.stock;
 
-  if (!id || !/^[a-z0-9-]{2,60}$/.test(id)) {
-    return NextResponse.json({ error: "Identifiant sleeve invalide." }, { status: 400 });
-  }
-
-  if (!name) {
-    return NextResponse.json({ error: "Nom obligatoire." }, { status: 400 });
+  if (!id || !getCatalogSleeve(id)) {
+    return NextResponse.json(
+      { error: "Sleeve introuvable dans le catalogue." },
+      { status: 404 },
+    );
   }
 
   if (typeof price !== "number" || !Number.isFinite(price) || price < 0) {
@@ -67,23 +48,17 @@ export async function POST(request: Request) {
     const now = new Date();
 
     await getDb()
-      .insert(sleeves)
+      .insert(sleeveOverrides)
       .values({
-        id,
-        name,
-        description: cleanOptional(body.description),
-        image: cleanOptional(body.image),
+        sleeveId: id,
         priceCents,
         stock,
         active: body.active ?? true,
         updatedAt: now,
       })
       .onConflictDoUpdate({
-        target: sleeves.id,
+        target: sleeveOverrides.sleeveId,
         set: {
-          name,
-          description: cleanOptional(body.description),
-          image: cleanOptional(body.image),
           priceCents,
           stock,
           active: body.active ?? true,
@@ -116,7 +91,9 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    await getDb().delete(sleeves).where(eq(sleeves.id, id));
+    await getDb()
+      .delete(sleeveOverrides)
+      .where(eq(sleeveOverrides.sleeveId, id));
     return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur base de données.";
