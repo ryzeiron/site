@@ -6,15 +6,17 @@ import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
 import { getCard, getSerie, resolveVariant, type Card } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
-import { favoriteCards, users } from "@/lib/db/schema";
+import { favoriteCards, favoriteSleeves, users } from "@/lib/db/schema";
 import { formatRarityLabel } from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
+import { getSleevesByIds, type SleeveProduct } from "@/lib/sleeves";
 import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
 type Search = { q?: string };
 type FavoriteRow = typeof favoriteCards.$inferSelect;
+type FavoriteSleeveRow = typeof favoriteSleeves.$inferSelect;
 type UserRow = typeof users.$inferSelect;
 
 type FavoriteClient = {
@@ -29,6 +31,15 @@ type FavoriteGroup = {
   cardId: string;
   variant: string;
   card: Card | null;
+  count: number;
+  clients: FavoriteClient[];
+  latestDate: Date | string;
+};
+
+type SleeveFavoriteGroup = {
+  key: string;
+  sleeveId: string;
+  sleeve: SleeveProduct | null;
   count: number;
   clients: FavoriteClient[];
   latestDate: Date | string;
@@ -109,6 +120,55 @@ function buildFavoriteGroups({
   });
 }
 
+function buildSleeveFavoriteGroups({
+  favoriteRows,
+  userRows,
+  sleeveMap,
+}: {
+  favoriteRows: FavoriteSleeveRow[];
+  userRows: UserRow[];
+  sleeveMap: Map<string, SleeveProduct>;
+}) {
+  const usersById = new Map(userRows.map((user) => [user.id, user]));
+  const groups = new Map<string, SleeveFavoriteGroup>();
+
+  for (const favorite of favoriteRows) {
+    const user = usersById.get(favorite.userId);
+    const sleeve = sleeveMap.get(favorite.sleeveId) ?? null;
+    const current = groups.get(favorite.sleeveId);
+
+    const client: FavoriteClient = {
+      id: favorite.userId,
+      name: user?.name ?? null,
+      email: user?.email ?? "Client introuvable",
+      createdAt: favorite.createdAt,
+    };
+
+    if (current) {
+      current.count += 1;
+      current.clients.push(client);
+      if (new Date(favorite.createdAt) > new Date(current.latestDate)) {
+        current.latestDate = favorite.createdAt;
+      }
+      continue;
+    }
+
+    groups.set(favorite.sleeveId, {
+      key: favorite.sleeveId,
+      sleeveId: favorite.sleeveId,
+      sleeve,
+      count: 1,
+      clients: [client],
+      latestDate: favorite.createdAt,
+    });
+  }
+
+  return Array.from(groups.values()).sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count;
+    return new Date(b.latestDate).getTime() - new Date(a.latestDate).getTime();
+  });
+}
+
 function groupFavoritesBySerie(groups: FavoriteGroup[]) {
   const bySerie = new Map<string, FavoriteGroup[]>();
 
@@ -138,8 +198,12 @@ export default async function AdminFavoritesPage({
 
   const db = getDb();
 
-  const [favoriteRows, userRows] = await Promise.all([
+  const [favoriteRows, sleeveFavoriteRows, userRows] = await Promise.all([
     db.select().from(favoriteCards).orderBy(desc(favoriteCards.createdAt)),
+    db
+      .select()
+      .from(favoriteSleeves)
+      .orderBy(desc(favoriteSleeves.createdAt)),
     db.select().from(users),
   ]);
 
@@ -151,9 +215,23 @@ export default async function AdminFavoritesPage({
     .map((cardId) => getCard(cardId))
     .filter((card): card is Card => !!card);
 
-  const liveCards = await applyStockOverrides(rawCards);
+  const [liveCards, sleeveRows] = await Promise.all([
+    applyStockOverrides(rawCards),
+    getSleevesByIds(
+      Array.from(
+        new Set(sleeveFavoriteRows.map((favorite) => favorite.sleeveId)),
+      ),
+    ),
+  ]);
+
   const cardMap = new Map(liveCards.map((card) => [card.id, card]));
+  const sleeveMap = new Map(sleeveRows.map((sleeve) => [sleeve.id, sleeve]));
   const groups = buildFavoriteGroups({ favoriteRows, userRows, cardMap });
+  const sleeveGroups = buildSleeveFavoriteGroups({
+    favoriteRows: sleeveFavoriteRows,
+    userRows,
+    sleeveMap,
+  });
 
   const filteredGroups = query
     ? groups.filter((group) => {
@@ -180,11 +258,32 @@ export default async function AdminFavoritesPage({
       })
     : groups;
 
-  const interestedClients = new Set(
-    favoriteRows.map((favorite) => favorite.userId),
-  ).size;
+  const filteredSleeveGroups = query
+    ? sleeveGroups.filter((group) => {
+        const text = normalize(
+          [
+            group.sleeve?.name ?? group.sleeveId,
+            group.sleeve?.description ?? "",
+            group.sleeveId,
+            ...group.clients.map(
+              (client) => `${client.name ?? ""} ${client.email}`,
+            ),
+          ].join(" "),
+        );
+
+        return text.includes(normalize(query));
+      })
+    : sleeveGroups;
+
+  const interestedClients = new Set([
+    ...favoriteRows.map((favorite) => favorite.userId),
+    ...sleeveFavoriteRows.map((favorite) => favorite.userId),
+  ]).size;
 
   const serieGroups = groupFavoritesBySerie(filteredGroups);
+  const totalFavorites = favoriteRows.length + sleeveFavoriteRows.length;
+  const hasFilteredFavorites =
+    filteredGroups.length > 0 || filteredSleeveGroups.length > 0;
 
   return (
     <div className="py-6">
@@ -192,7 +291,7 @@ export default async function AdminFavoritesPage({
         <div>
           <h1 className="text-3xl font-bold text-white">Admin - Favoris</h1>
           <p className="mt-1 text-sm text-gray-400">
-            Regroupe toutes les cartes mises en favori par les clients.
+            Regroupe les cartes et les sleeves mis en favori par les clients.
           </p>
         </div>
 
@@ -221,15 +320,24 @@ export default async function AdminFavoritesPage({
         </Link>
       </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-3">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
           <div className="text-sm text-gray-400">Cartes favorites</div>
           <div className="mt-1 text-2xl font-bold text-white">{groups.length}</div>
         </div>
 
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
+          <div className="text-sm text-gray-400">Sleeves favoris</div>
+          <div className="mt-1 text-2xl font-bold text-white">
+            {sleeveGroups.length}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
           <div className="text-sm text-gray-400">Favoris enregistrés</div>
-          <div className="mt-1 text-2xl font-bold text-white">{favoriteRows.length}</div>
+          <div className="mt-1 text-2xl font-bold text-white">
+            {totalFavorites}
+          </div>
         </div>
 
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
@@ -243,7 +351,7 @@ export default async function AdminFavoritesPage({
           type="search"
           name="q"
           defaultValue={query}
-          placeholder="Rechercher une série, une carte ou un client"
+          placeholder="Rechercher une série, une carte, un sleeve ou un client"
           className="min-w-[260px] flex-1 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white outline-none placeholder:text-gray-500 focus:border-violet-400/70"
         />
 
@@ -258,44 +366,81 @@ export default async function AdminFavoritesPage({
         )}
       </form>
 
-      {filteredGroups.length === 0 ? (
+      {!hasFilteredFavorites ? (
         <p className="text-gray-400">Aucun favori trouvé.</p>
       ) : (
-        <div className="space-y-5">
-          {serieGroups.map(([serieId, groupsInSerie]) => {
-            const serie = getSerie(serieId);
-            const favoriteCount = groupsInSerie.reduce(
-              (total, group) => total + group.count,
-              0,
-            );
+        <div className="space-y-8">
+          {filteredGroups.length > 0 ? (
+            <section>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-2xl font-bold text-white">
+                  Cartes favorites
+                </h2>
+                <span className="rounded-full bg-violet-500/20 px-3 py-1 text-sm font-bold text-violet-100">
+                  {filteredGroups.length} carte
+                  {filteredGroups.length > 1 ? "s" : ""}
+                </span>
+              </div>
 
-            return (
-              <section key={serieId} className="overflow-hidden rounded-lg border border-white/10 bg-zinc-950/30">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-3">
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">
-                      {serie?.code ?? "Série inconnue"}
-                    </div>
-                    <h2 className="text-xl font-bold text-white">
-                      {serie?.name ?? "Cartes introuvables"}
-                    </h2>
-                  </div>
+              <div className="space-y-5">
+                {serieGroups.map(([serieId, groupsInSerie]) => {
+                  const serie = getSerie(serieId);
+                  const favoriteCount = groupsInSerie.reduce(
+                    (total, group) => total + group.count,
+                    0,
+                  );
 
-                  <div className="rounded-full bg-violet-500/20 px-3 py-1 text-sm font-bold text-violet-100">
-                    {groupsInSerie.length} carte
-                    {groupsInSerie.length > 1 ? "s" : ""} - {favoriteCount}{" "}
-                    favori{favoriteCount > 1 ? "s" : ""}
-                  </div>
-                </div>
+                  return (
+                    <section key={serieId} className="overflow-hidden rounded-lg border border-white/10 bg-zinc-950/30">
+                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-3">
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">
+                            {serie?.code ?? "Série inconnue"}
+                          </div>
+                          <h2 className="text-xl font-bold text-white">
+                            {serie?.name ?? "Cartes introuvables"}
+                          </h2>
+                        </div>
 
-                <div className="space-y-3 p-3 sm:p-4">
-                  {groupsInSerie.map((group) => (
-                    <FavoriteGroupCard key={group.key} group={group} />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+                        <div className="rounded-full bg-violet-500/20 px-3 py-1 text-sm font-bold text-violet-100">
+                          {groupsInSerie.length} carte
+                          {groupsInSerie.length > 1 ? "s" : ""} -{" "}
+                          {favoriteCount} favori
+                          {favoriteCount > 1 ? "s" : ""}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 p-3 sm:p-4">
+                        {groupsInSerie.map((group) => (
+                          <FavoriteGroupCard key={group.key} group={group} />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          {filteredSleeveGroups.length > 0 ? (
+            <section>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-2xl font-bold text-white">
+                  Sleeves favoris
+                </h2>
+                <span className="rounded-full bg-violet-500/20 px-3 py-1 text-sm font-bold text-violet-100">
+                  {filteredSleeveGroups.length} sleeve
+                  {filteredSleeveGroups.length > 1 ? "s" : ""}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {filteredSleeveGroups.map((group) => (
+                  <SleeveFavoriteGroupCard key={group.key} group={group} />
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
       )}
     </div>
@@ -376,28 +521,116 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
             )}
           </div>
 
-          <details className="group mt-4 rounded border border-white/10 bg-black/20">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm text-gray-200 transition hover:bg-white/5">
-              <span>Voir les clients intéressés</span>
-              <span className="text-lg text-violet-300 transition group-open:rotate-180">v</span>
-            </summary>
-
-            <div className="space-y-2 border-t border-white/10 p-3">
-              {group.clients.map((client) => (
-                <div key={`${group.key}-${client.id}`} className="rounded bg-zinc-950/50 px-3 py-2 text-sm">
-                  <div className="font-medium text-white">
-                    {client.name || "Client sans nom"}
-                  </div>
-                  <div className="text-xs text-gray-400">{client.email}</div>
-                  <div className="mt-1 text-xs text-gray-500">
-                    Ajouté le {formatDate(client.createdAt)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </details>
+          <ClientDetails clients={group.clients} itemKey={group.key} />
         </div>
       </div>
     </article>
+  );
+}
+
+function SleeveFavoriteGroupCard({ group }: { group: SleeveFavoriteGroup }) {
+  const sleeve = group.sleeve;
+  const outOfStock = !sleeve || sleeve.stock <= 0;
+
+  return (
+    <article className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
+      <div className="flex gap-4">
+        <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded border border-white/10 bg-zinc-950 sm:h-32 sm:w-24">
+          {sleeve?.image ? (
+            <Image src={sleeve.image} alt={sleeve.name} fill sizes="96px" className="object-contain p-2" />
+          ) : (
+            <div className="flex h-full items-center justify-center px-2 text-center text-xs font-bold uppercase tracking-[0.18em] text-violet-200">
+              Sleeve
+            </div>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="truncate text-xl font-bold text-white">
+                {sleeve?.name ?? group.sleeveId}
+              </h3>
+
+              <div className="mt-1 text-sm text-gray-400">
+                Accessoire - {group.sleeveId}
+              </div>
+            </div>
+
+            <div className="rounded-full bg-violet-500/20 px-3 py-1 text-sm font-bold text-violet-100">
+              {group.count} client{group.count > 1 ? "s" : ""}
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            {sleeve ? (
+              <>
+                <span className="rounded bg-violet-500/15 px-2 py-1 text-violet-200">
+                  Sleeve
+                </span>
+
+                <span className="rounded bg-white/10 px-2 py-1 text-gray-200">
+                  {formatPrice(sleeve.priceCents / 100)}
+                </span>
+              </>
+            ) : null}
+
+            <span className={`rounded px-2 py-1 ${outOfStock ? "bg-red-500/15 text-red-200" : "bg-emerald-500/15 text-emerald-200"}`}>
+              {sleeve ? `${sleeve.stock} en stock` : "Sleeve introuvable"}
+            </span>
+
+            <span className="rounded bg-white/10 px-2 py-1 text-gray-300">
+              Dernier ajout : {formatDate(group.latestDate)}
+            </span>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/admin/sleeves"
+              className="rounded bg-brand-500 px-3 py-2 text-xs font-medium text-white hover:bg-brand-600"
+            >
+              Modifier le stock
+            </Link>
+
+            <Link href="/sleeve" className="rounded bg-white/10 px-3 py-2 text-xs font-medium text-white hover:bg-white/20">
+              Voir les sleeves
+            </Link>
+          </div>
+
+          <ClientDetails clients={group.clients} itemKey={group.key} />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ClientDetails({
+  clients,
+  itemKey,
+}: {
+  clients: FavoriteClient[];
+  itemKey: string;
+}) {
+  return (
+    <details className="group mt-4 rounded border border-white/10 bg-black/20">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm text-gray-200 transition hover:bg-white/5">
+        <span>Voir les clients intéressés</span>
+        <span className="text-lg text-violet-300 transition group-open:rotate-180">v</span>
+      </summary>
+
+      <div className="space-y-2 border-t border-white/10 p-3">
+        {clients.map((client) => (
+          <div key={`${itemKey}-${client.id}`} className="rounded bg-zinc-950/50 px-3 py-2 text-sm">
+            <div className="font-medium text-white">
+              {client.name || "Client sans nom"}
+            </div>
+            <div className="text-xs text-gray-400">{client.email}</div>
+            <div className="mt-1 text-xs text-gray-500">
+              Ajouté le {formatDate(client.createdAt)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </details>
   );
 }
