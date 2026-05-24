@@ -32,8 +32,7 @@ export default async function SleevePage() {
               Sleeves
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-gray-300 md:text-base">
-              Retrouve ici les protections pour garder tes cartes propres,
-              protégées et prêtes à rejoindre ton classeur ou ta collection.
+              Retrouve ici les sleeves pour ta collection.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
