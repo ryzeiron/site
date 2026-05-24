@@ -176,7 +176,7 @@ export default async function HomePage() {
               Sleeves
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-300 md:text-base">
-              Sleeves de collection
+              Sleeves de collection à l'unité.
             </p>
             <Link
               href="/sleeve"
