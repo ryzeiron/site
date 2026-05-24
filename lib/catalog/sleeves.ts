@@ -106,6 +106,7 @@ export const catalogSleeves: CatalogSleeve[] = [
   {id: "sleeve-11", name: "Sleeve 11", description: "1 sleeve.", image: "/sleeves/95.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
   {id: "sleeve-12", name: "Sleeve 12", description: "1 sleeve.", image: "/sleeves/96.webp", defaultPriceCents: 100, defaultStock: 2, active: true,},
   {id: "sleeve-13", name: "Sleeve 13", description: "1 sleeve.", image: "/sleeves/97.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
+  {id: "mewtow-3", name: "Mewtwo 3", description: "1 sleeve.", image: "/sleeves/98.webp", defaultPriceCents: 50, defaultStock: 10, active: true,},
   
   
   
