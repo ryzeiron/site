@@ -2,7 +2,6 @@ import Link from "next/link";
 import CardImage from "@/components/CardImage";
 import ConditionBadge from "@/components/ConditionBadge";
 import FavoriteHeartButton from "@/components/FavoriteHeartButton";
-import StockBadge from "@/components/StockBadge";
 import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
 import {
   formatRarityLabel,
@@ -45,10 +44,6 @@ export default function CardTile({
     return items;
   }, []);
   const price = displayVariant.price;
-  const totalStock = stockVariants.reduce(
-    (total, { variant }) => total + Math.max(0, variant.stock),
-    0,
-  );
 
   return (
     <div className="card-hover relative overflow-hidden rounded-xl border border-white/10 bg-zinc-900/70 text-gray-200 backdrop-blur-sm">
@@ -60,14 +55,6 @@ export default function CardTile({
 
       <Link href={`/carte/${card.id}`} className="block">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center text-gray-300 font-semibold overflow-hidden">
-          <div className="absolute left-2 top-2 z-10">
-            <StockBadge
-              stock={totalStock}
-              compact
-              label={outOfStock ? "Rupture" : `${totalStock} dispo`}
-            />
-          </div>
-
           {card.image ? (
             <CardImage
               src={card.image}

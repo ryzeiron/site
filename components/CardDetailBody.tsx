@@ -91,10 +91,6 @@ export default function CardDetailBody({ card }: { card: Card }) {
   const variants = orderDisplayVariants(card);
   const allOutOfStock =
     variants.length === 0 || variants.every((v) => v.variant.stock <= 0);
-  const totalStock = variants.reduce(
-    (total, { variant }) => total + Math.max(0, variant.stock),
-    0,
-  );
   const prices = variants.map(({ variant }) => variant.price);
   const minPrice = prices.length > 0 ? Math.min(...prices) : card.price;
   const maxPrice = prices.length > 0 ? Math.max(...prices) : card.price;
@@ -131,10 +127,6 @@ export default function CardDetailBody({ card }: { card: Card }) {
               {card.name}
             </span>
           )}
-
-          <div className="absolute left-3 top-3">
-            <StockBadge stock={totalStock} label={allOutOfStock ? "Rupture" : `${totalStock} dispo`} />
-          </div>
 
           {allOutOfStock && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -189,11 +181,7 @@ export default function CardDetailBody({ card }: { card: Card }) {
           <p className="mt-4 text-gray-300">{card.description}</p>
         )}
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-4">
-            <div className="text-xs text-gray-500">Stock total</div>
-            <div className="mt-1 text-2xl font-bold text-white">{totalStock}</div>
-          </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-4">
             <div className="text-xs text-gray-500">État</div>
             <div className="mt-2">
