@@ -176,8 +176,7 @@ export default async function HomePage() {
               Sleeves
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-300 md:text-base">
-              Protège tes cartes avec des sleeves adaptées aux cartes Pokémon :
-              parfait pour le classeur, les top loaders et les envois.
+              Sleeves de collection
             </p>
             <Link
               href="/sleeve"
