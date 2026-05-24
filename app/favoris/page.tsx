@@ -12,11 +12,33 @@ import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
-export default async function FavorisPage() {
+type Search = { type?: string };
+type FavoriteFilter = "tout" | "cartes" | "sleeves";
+
+function filterClass(active: boolean) {
+  return [
+    "rounded-full px-4 py-2 text-sm font-semibold transition",
+    active
+      ? "bg-violet-600 text-white"
+      : "bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white",
+  ].join(" ");
+}
+
+export default async function FavorisPage({
+  searchParams,
+}: {
+  searchParams: Promise<Search>;
+}) {
   const session = await auth();
   if (!session?.user) {
     redirect("/connexion?callbackUrl=/favoris");
   }
+
+  const { type } = await searchParams;
+  const activeFilter: FavoriteFilter =
+    type === "cartes" || type === "sleeves" ? type : "tout";
+  const showCards = activeFilter !== "sleeves";
+  const showSleeves = activeFilter !== "cartes";
 
   const [cardFavorites, sleeveFavorites] = await Promise.all([
     getDb()
@@ -43,6 +65,9 @@ export default async function FavorisPage() {
     favoriteSleeveProducts.map((sleeve) => [sleeve.id, sleeve]),
   );
   const hasFavorites = cardFavorites.length > 0 || sleeveFavorites.length > 0;
+  const hasVisibleFavorites =
+    (showCards && cardFavorites.length > 0) ||
+    (showSleeves && sleeveFavorites.length > 0);
 
   return (
     <div className="py-6">
@@ -61,6 +86,24 @@ export default async function FavorisPage() {
         </Link>
       </div>
 
+      <div className="mb-6 flex flex-wrap gap-2">
+        <Link href="/favoris" className={filterClass(activeFilter === "tout")}>
+          Tout ({cardFavorites.length + sleeveFavorites.length})
+        </Link>
+        <Link
+          href="/favoris?type=cartes"
+          className={filterClass(activeFilter === "cartes")}
+        >
+          Cartes ({cardFavorites.length})
+        </Link>
+        <Link
+          href="/favoris?type=sleeves"
+          className={filterClass(activeFilter === "sleeves")}
+        >
+          Sleeves ({sleeveFavorites.length})
+        </Link>
+      </div>
+
       {!hasFavorites ? (
         <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-6 text-center text-gray-400">
           <p>Tu n&apos;as pas encore ajouté de favori.</p>
@@ -71,9 +114,19 @@ export default async function FavorisPage() {
             Parcourir le catalogue
           </Link>
         </div>
+      ) : !hasVisibleFavorites ? (
+        <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-6 text-center text-gray-400">
+          <p>Aucun favori dans cette catégorie pour le moment.</p>
+          <Link
+            href="/favoris"
+            className="mt-4 inline-block rounded-full bg-brand-500 px-5 py-2 text-sm font-medium text-white hover:bg-brand-600"
+          >
+            Voir tous mes favoris
+          </Link>
+        </div>
       ) : (
         <div className="space-y-8">
-          {cardFavorites.length > 0 ? (
+          {showCards && cardFavorites.length > 0 ? (
             <section>
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="text-xl font-bold text-white">
@@ -147,7 +200,7 @@ export default async function FavorisPage() {
             </section>
           ) : null}
 
-          {sleeveFavorites.length > 0 ? (
+          {showSleeves && sleeveFavorites.length > 0 ? (
             <section>
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="text-xl font-bold text-white">

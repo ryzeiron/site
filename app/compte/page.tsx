@@ -175,9 +175,32 @@ export default async function ComptePage({
                 </Link>
               </div>
 
-              <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-sm text-gray-300">
-                Retrouve ici tes cartes et sleeves favoris. Les cartes en
-                rupture gardent aussi l&apos;alerte de retour en stock.
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Link
+                  href="/favoris?type=cartes"
+                  className="rounded-2xl border border-violet-300/15 bg-zinc-900/70 p-4 text-gray-200 transition hover:border-violet-300/60 hover:bg-zinc-900"
+                >
+                  <div className="text-sm text-gray-400">Cartes favorites</div>
+                  <div className="mt-2 text-3xl font-bold text-white">
+                    {userCardFavorites.length}
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Cartes suivies, avec alerte si une variante revient en stock.
+                  </p>
+                </Link>
+
+                <Link
+                  href="/favoris?type=sleeves"
+                  className="rounded-2xl border border-violet-300/15 bg-zinc-900/70 p-4 text-gray-200 transition hover:border-violet-300/60 hover:bg-zinc-900"
+                >
+                  <div className="text-sm text-gray-400">Sleeves favoris</div>
+                  <div className="mt-2 text-3xl font-bold text-white">
+                    {userSleeveFavorites.length}
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Accessoires sauvegardés pour les retrouver plus vite.
+                  </p>
+                </Link>
               </div>
             </section>
           )}

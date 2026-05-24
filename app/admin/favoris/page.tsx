@@ -69,6 +69,28 @@ function variantLabel(value: string) {
   return value;
 }
 
+function getClientEmails(clients: FavoriteClient[]) {
+  return Array.from(
+    new Set(
+      clients
+        .map((client) => client.email)
+        .filter((email) => email.includes("@")),
+    ),
+  );
+}
+
+function buildMailtoHref(clients: FavoriteClient[], subject: string) {
+  const emails = getClientEmails(clients);
+  if (emails.length === 0) return "";
+
+  const params = new URLSearchParams({
+    bcc: emails.join(","),
+    subject,
+  });
+
+  return `mailto:?${params.toString()}`;
+}
+
 function buildFavoriteGroups({
   favoriteRows,
   userRows,
@@ -451,9 +473,20 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
   const card = group.card;
   const variant = card ? resolveVariant(card, group.variant) : null;
   const outOfStock = !variant || variant.stock <= 0;
+  const emailCount = getClientEmails(group.clients).length;
+  const mailtoHref =
+    outOfStock && card
+      ? buildMailtoHref(group.clients, `Retour en stock - ${card.name}`)
+      : "";
 
   return (
-    <article className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
+    <article
+      className={`rounded-lg border p-4 text-gray-200 ${
+        outOfStock
+          ? "border-red-400/30 bg-red-950/15"
+          : "border-white/10 bg-zinc-900/70"
+      }`}
+    >
       <div className="flex gap-4">
         <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded border border-white/10 bg-zinc-950 sm:h-32 sm:w-24">
           {card?.image ? (
@@ -499,6 +532,12 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
               {variant ? `${variant.stock} en stock` : "Carte introuvable"}
             </span>
 
+            {outOfStock && emailCount > 0 ? (
+              <span className="rounded bg-amber-500/15 px-2 py-1 text-amber-200">
+                {emailCount} email{emailCount > 1 ? "s" : ""} à prévenir
+              </span>
+            ) : null}
+
             <span className="rounded bg-white/10 px-2 py-1 text-gray-300">
               Dernier ajout : {formatDate(group.latestDate)}
             </span>
@@ -519,6 +558,15 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
                 </Link>
               </>
             )}
+
+            {mailtoHref ? (
+              <a
+                href={mailtoHref}
+                className="rounded bg-amber-500 px-3 py-2 text-xs font-bold text-zinc-950 hover:bg-amber-400"
+              >
+                Prévenir les clients
+              </a>
+            ) : null}
           </div>
 
           <ClientDetails clients={group.clients} itemKey={group.key} />
@@ -531,9 +579,20 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
 function SleeveFavoriteGroupCard({ group }: { group: SleeveFavoriteGroup }) {
   const sleeve = group.sleeve;
   const outOfStock = !sleeve || sleeve.stock <= 0;
+  const emailCount = getClientEmails(group.clients).length;
+  const mailtoHref =
+    outOfStock && sleeve
+      ? buildMailtoHref(group.clients, `Retour en stock - ${sleeve.name}`)
+      : "";
 
   return (
-    <article className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
+    <article
+      className={`rounded-lg border p-4 text-gray-200 ${
+        outOfStock
+          ? "border-red-400/30 bg-red-950/15"
+          : "border-white/10 bg-zinc-900/70"
+      }`}
+    >
       <div className="flex gap-4">
         <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded border border-white/10 bg-zinc-950 sm:h-32 sm:w-24">
           {sleeve?.image ? (
@@ -579,6 +638,12 @@ function SleeveFavoriteGroupCard({ group }: { group: SleeveFavoriteGroup }) {
               {sleeve ? `${sleeve.stock} en stock` : "Sleeve introuvable"}
             </span>
 
+            {outOfStock && emailCount > 0 ? (
+              <span className="rounded bg-amber-500/15 px-2 py-1 text-amber-200">
+                {emailCount} email{emailCount > 1 ? "s" : ""} à prévenir
+              </span>
+            ) : null}
+
             <span className="rounded bg-white/10 px-2 py-1 text-gray-300">
               Dernier ajout : {formatDate(group.latestDate)}
             </span>
@@ -595,6 +660,15 @@ function SleeveFavoriteGroupCard({ group }: { group: SleeveFavoriteGroup }) {
             <Link href="/sleeve" className="rounded bg-white/10 px-3 py-2 text-xs font-medium text-white hover:bg-white/20">
               Voir les sleeves
             </Link>
+
+            {mailtoHref ? (
+              <a
+                href={mailtoHref}
+                className="rounded bg-amber-500 px-3 py-2 text-xs font-bold text-zinc-950 hover:bg-amber-400"
+              >
+                Prévenir les clients
+              </a>
+            ) : null}
           </div>
 
           <ClientDetails clients={group.clients} itemKey={group.key} />

@@ -25,26 +25,55 @@ type VariantSpec = {
   price: number;
   hidden: boolean;
   fromCatalog: boolean;
+  modified: boolean;
 };
 
 function buildVariants(card: Card): VariantSpec[] {
   const catalogCard = getCard(card.id);
-  const catalogKeys = new Set(
+  const catalogVariants = new Map(
     catalogCard
-      ? listVariants(catalogCard, { includeHidden: true }).map(({ key }) => key)
-      : ["base"],
+      ? listVariants(catalogCard, { includeHidden: true }).map(({ key, variant }) => [
+          key,
+          variant,
+        ])
+      : [],
   );
 
-  return listVariants(card, { includeHidden: true }).map(({ key, variant }) => ({
-    key,
-    label: key === "base" ? "Base" : key === "alt" ? "Alt" : formatRarityLabel(variant.rarity),
-    rarity: variant.rarity,
-    condition: variant.condition ?? card.condition,
-    stock: variant.stock,
-    price: variant.price,
-    hidden: isVariantHidden(card, key),
-    fromCatalog: catalogKeys.has(key),
-  }));
+  return listVariants(card, { includeHidden: true }).map(({ key, variant }) => {
+    const catalogVariant = catalogVariants.get(key);
+    const condition = variant.condition ?? card.condition;
+    const catalogCondition =
+      catalogVariant && catalogCard
+        ? catalogVariant.condition ?? catalogCard.condition
+        : undefined;
+    const hidden = isVariantHidden(card, key);
+    const fromCatalog = catalogVariants.has(key);
+    const modified =
+      hidden ||
+      !fromCatalog ||
+      !catalogVariant ||
+      variant.stock !== catalogVariant.stock ||
+      Math.abs(variant.price - catalogVariant.price) > 0.0001 ||
+      variant.rarity !== catalogVariant.rarity ||
+      condition !== catalogCondition;
+
+    return {
+      key,
+      label:
+        key === "base"
+          ? "Base"
+          : key === "alt"
+            ? "Alt"
+            : formatRarityLabel(variant.rarity),
+      rarity: variant.rarity,
+      condition,
+      stock: variant.stock,
+      price: variant.price,
+      hidden,
+      fromCatalog,
+      modified,
+    };
+  });
 }
 
 function slugifyRarity(rarity: string): string {
@@ -76,64 +105,121 @@ function pickUniqueKey(card: Card, rarity: Rarity): string {
   return candidate;
 }
 
+function stockBadgeClass(stock: number, hidden: boolean) {
+  if (hidden) return "border-amber-400/40 bg-amber-500/15 text-amber-200";
+  if (stock <= 0) return "border-red-400/40 bg-red-500/15 text-red-200";
+  if (stock <= 2) return "border-orange-400/40 bg-orange-500/15 text-orange-200";
+  return "border-emerald-400/40 bg-emerald-500/15 text-emerald-200";
+}
+
+function stockLabel(stock: number, hidden: boolean) {
+  if (hidden) return "Masquée";
+  if (stock <= 0) return "Rupture";
+  if (stock <= 2) return "Stock faible";
+  return "Disponible";
+}
+
 export default function AdminStockRow({ card }: { card: Card }) {
   const variants = buildVariants(card);
+  const totalStock = variants.reduce((total, variant) => total + variant.stock, 0);
+  const hiddenCount = variants.filter((variant) => variant.hidden).length;
+  const modifiedCount = variants.filter((variant) => variant.modified).length;
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMeta, setEditingMeta] = useState(false);
 
   return (
-    <div className="rounded-lg border border-white/10 bg-zinc-900/50 p-4">
-      <div className="mb-3 flex flex-wrap items-baseline gap-3">
-        <span className="font-mono text-sm text-gray-400">{card.number}</span>
-        <span className="font-semibold text-white">{card.name}</span>
+    <section className="overflow-hidden rounded-lg border border-white/10 bg-zinc-950/55 text-gray-200">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 bg-white/[0.03] p-4">
+        <div className="flex min-w-0 gap-3">
+          <div className="relative hidden h-16 w-12 shrink-0 overflow-hidden rounded border border-white/10 bg-zinc-950 sm:block">
+            {card.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={card.image} alt={card.name} className="h-full w-full object-contain" />
+            ) : null}
+          </div>
 
-        {!editingMeta && (
+          <div className="min-w-0">
+            <div className="font-mono text-xs text-gray-500">{card.number}</div>
+            <h3 className="truncate text-lg font-bold text-white">{card.name}</h3>
+            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+              <span className={`rounded-full border px-2 py-1 ${stockBadgeClass(totalStock, false)}`}>
+                {totalStock} en stock
+              </span>
+              <span className="rounded-full border border-violet-300/30 bg-violet-500/15 px-2 py-1 text-violet-200">
+                {variants.length} variante{variants.length > 1 ? "s" : ""}
+              </span>
+              {hiddenCount > 0 ? (
+                <span className="rounded-full border border-amber-300/30 bg-amber-500/15 px-2 py-1 text-amber-200">
+                  {hiddenCount} masquée{hiddenCount > 1 ? "s" : ""}
+                </span>
+              ) : null}
+              {modifiedCount > 0 ? (
+                <span className="rounded-full border border-fuchsia-300/30 bg-fuchsia-500/15 px-2 py-1 text-fuchsia-200">
+                  {modifiedCount} modifiée{modifiedCount > 1 ? "s" : ""}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => setEditingMeta(true)}
-            className="ml-auto text-xs text-violet-300 hover:text-violet-200"
+            onClick={() => setEditingMeta((value) => !value)}
+            className="rounded bg-white/10 px-3 py-2 text-xs font-medium text-white hover:bg-white/20"
           >
-            Modifier les infos
+            {editingMeta ? "Fermer les infos" : "Modifier les infos"}
           </button>
-        )}
+          <button
+            type="button"
+            onClick={() => setShowAddForm((value) => !value)}
+            className="rounded bg-violet-600 px-3 py-2 text-xs font-medium text-white hover:bg-violet-700"
+          >
+            {showAddForm ? "Fermer ajout" : "+ Variante"}
+          </button>
+        </div>
       </div>
 
-      {editingMeta && (
-        <div className="mb-3">
+      {editingMeta ? (
+        <div className="border-b border-white/10 p-4">
           <CardMetaForm card={card} onClose={() => setEditingMeta(false)} />
         </div>
-      )}
+      ) : null}
 
-      <div className="flex flex-wrap gap-3">
-        {variants.map((v) => (
-          <VariantCell
-            key={v.key}
-            card={card}
-            variantKey={v.key}
-            label={v.label}
-            rarity={v.rarity}
-            initialCondition={v.condition}
-            initialStock={v.stock}
-            initialPrice={v.price}
-            hidden={v.hidden}
-            fromCatalog={v.fromCatalog}
-            isNew={false}
-          />
-        ))}
-
-        {showAddForm ? (
-          <NewVariantForm card={card} onCancel={() => setShowAddForm(false)} />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowAddForm(true)}
-            className="self-start rounded border border-dashed border-white/20 px-3 py-2 text-sm text-gray-300 hover:border-white/40 hover:text-white"
-          >
-            + Ajouter une variante
-          </button>
-        )}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[980px] text-left text-sm">
+          <thead className="bg-black/20 text-xs uppercase tracking-[0.14em] text-gray-500">
+            <tr>
+              <th className="px-4 py-3 font-semibold">Carte</th>
+              <th className="px-4 py-3 font-semibold">Variante</th>
+              <th className="px-4 py-3 font-semibold">Rareté</th>
+              <th className="px-4 py-3 font-semibold">État</th>
+              <th className="px-4 py-3 font-semibold">Stock</th>
+              <th className="px-4 py-3 font-semibold">Prix</th>
+              <th className="px-4 py-3 font-semibold">Statut</th>
+              <th className="px-4 py-3 font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/10">
+            {variants.map((variant, index) => (
+              <VariantRow
+                key={variant.key}
+                card={card}
+                variant={variant}
+                showCardCell={index === 0}
+                cardRowSpan={variants.length}
+              />
+            ))}
+          </tbody>
+        </table>
       </div>
-    </div>
+
+      {showAddForm ? (
+        <div className="border-t border-white/10 p-4">
+          <NewVariantForm card={card} onCancel={() => setShowAddForm(false)} />
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -216,51 +302,53 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
   }
 
   return (
-    <div className="space-y-2 rounded-lg border border-violet-400/40 bg-zinc-900/80 p-3">
+    <div className="space-y-3 rounded-lg border border-violet-400/40 bg-zinc-900/80 p-3">
       <div className="text-xs font-semibold uppercase tracking-wider text-violet-300">
-        Modifier les infos
+        Modifier les infos de la carte
       </div>
 
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-24 shrink-0 text-gray-400">Nom</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
-        />
-      </div>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <label className="text-sm">
+          <span className="mb-1 block text-gray-400">Nom</span>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          />
+        </label>
 
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-24 shrink-0 text-gray-400">Image devant</label>
-        <input
-          type="text"
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          placeholder="/cartes/serie/numero.webp"
-          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
-        />
-      </div>
+        <label className="text-sm">
+          <span className="mb-1 block text-gray-400">Image devant</span>
+          <input
+            type="text"
+            value={image}
+            onChange={(e) => setImage(e.target.value)}
+            placeholder="/cartes/serie/numero.webp"
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          />
+        </label>
 
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-24 shrink-0 text-gray-400">Image dos</label>
-        <input
-          type="text"
-          value={imageBack}
-          onChange={(e) => setImageBack(e.target.value)}
-          placeholder="/cartes/serie/numero-dos.webp"
-          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
-        />
-      </div>
+        <label className="text-sm">
+          <span className="mb-1 block text-gray-400">Image dos</span>
+          <input
+            type="text"
+            value={imageBack}
+            onChange={(e) => setImageBack(e.target.value)}
+            placeholder="/cartes/serie/numero-dos.webp"
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          />
+        </label>
 
-      <div className="flex items-start gap-2 text-sm">
-        <label className="w-24 shrink-0 pt-1 text-gray-400">Description</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={2}
-          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
-        />
+        <label className="text-sm">
+          <span className="mb-1 block text-gray-400">Description</span>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={2}
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          />
+        </label>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -268,7 +356,7 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
           type="button"
           onClick={save}
           disabled={!canSave || saving}
-          className={`rounded px-3 py-1 text-xs font-medium transition ${
+          className={`rounded px-3 py-2 text-xs font-medium transition ${
             canSave
               ? "bg-brand-500 text-white hover:bg-brand-600"
               : "cursor-not-allowed bg-white/10 text-gray-400"
@@ -280,7 +368,7 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
         <button
           type="button"
           onClick={onClose}
-          className="rounded bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20"
+          className="rounded bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20"
         >
           Annuler
         </button>
@@ -289,7 +377,7 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
           type="button"
           onClick={reset}
           disabled={resetting}
-          className="ml-auto rounded bg-red-600/80 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
+          className="ml-auto rounded bg-red-600/80 px-3 py-2 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
           title="Retire les infos personnalisées et revient au catalogue"
         >
           {resetting ? "..." : "Reset au catalogue"}
@@ -361,144 +449,134 @@ function NewVariantForm({
   }
 
   return (
-    <div className="flex min-w-[260px] flex-col gap-2 rounded-lg border border-violet-400/40 bg-zinc-900/80 p-3">
-      <div className="text-xs font-semibold uppercase tracking-wider text-violet-300">
+    <div className="rounded-lg border border-dashed border-violet-400/50 bg-violet-500/10 p-3">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-violet-200">
         Nouvelle variante
       </div>
 
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-12 text-gray-400">Rareté</label>
-        <select
-          value={rarityValue}
-          onChange={(e) => setRarityValue(e.target.value)}
-          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
-        >
-          <option value="">-- Choisir --</option>
-          {RARITIES.map((r) => (
-            <option key={r} value={r}>
-              {formatRarityLabel(r)}
-            </option>
-          ))}
-        </select>
+      <div className="grid gap-3 md:grid-cols-[1fr_1fr_7rem_8rem_auto] md:items-end">
+        <label className="text-sm">
+          <span className="mb-1 block text-gray-400">Rareté</span>
+          <select
+            value={rarityValue}
+            onChange={(e) => setRarityValue(e.target.value)}
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          >
+            <option value="">-- Choisir --</option>
+            {RARITIES.map((r) => (
+              <option key={r} value={r}>
+                {formatRarityLabel(r)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-sm">
+          <span className="mb-1 block text-gray-400">État</span>
+          <select
+            value={conditionValue}
+            onChange={(e) => setConditionValue(e.target.value as Condition)}
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          >
+            {CONDITIONS.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-sm">
+          <span className="mb-1 block text-gray-400">Stock</span>
+          <input
+            type="number"
+            min={0}
+            value={stockValue}
+            onChange={(e) => setStockValue(e.target.value)}
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          />
+        </label>
+
+        <label className="text-sm">
+          <span className="mb-1 block text-gray-400">Prix</span>
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={priceValue}
+            onChange={(e) => setPriceValue(e.target.value)}
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          />
+        </label>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={create}
+            disabled={!valid || saving}
+            className={`rounded px-3 py-2 text-xs font-medium transition ${
+              valid
+                ? "bg-brand-500 text-white hover:bg-brand-600"
+                : "cursor-not-allowed bg-white/10 text-gray-400"
+            }`}
+          >
+            {saving ? "..." : "Créer"}
+          </button>
+
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded bg-white/10 px-3 py-2 text-xs text-white hover:bg-white/20"
+          >
+            Annuler
+          </button>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-12 text-gray-400">État</label>
-        <select
-          value={conditionValue}
-          onChange={(e) => setConditionValue(e.target.value as Condition)}
-          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
-        >
-          {CONDITIONS.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-12 text-gray-400">Stock</label>
-        <input
-          type="number"
-          min={0}
-          value={stockValue}
-          onChange={(e) => setStockValue(e.target.value)}
-          className="w-20 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
-        />
-      </div>
-
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-12 text-gray-400">Prix</label>
-        <input
-          type="number"
-          min={0}
-          step="0.01"
-          value={priceValue}
-          onChange={(e) => setPriceValue(e.target.value)}
-          className="w-24 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
-        />
-        <span className="text-xs text-gray-500">€</span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={create}
-          disabled={!valid || saving}
-          className={`rounded px-3 py-1 text-xs font-medium transition ${
-            valid
-              ? "bg-brand-500 text-white hover:bg-brand-600"
-              : "cursor-not-allowed bg-white/10 text-gray-400"
-          }`}
-        >
-          {saving ? "..." : "Créer"}
-        </button>
-
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20"
-        >
-          Annuler
-        </button>
-
-        {error && <span className="text-xs text-red-400">{error}</span>}
-      </div>
+      {error && <div className="mt-2 text-xs text-red-300">{error}</div>}
     </div>
   );
 }
 
-function VariantCell({
+function VariantRow({
   card,
-  variantKey,
-  label,
-  rarity,
-  initialCondition,
-  initialStock,
-  initialPrice,
-  hidden,
-  fromCatalog,
-  isNew,
+  variant,
+  showCardCell,
+  cardRowSpan,
 }: {
   card: Card;
-  variantKey: VariantKey;
-  label: string;
-  rarity: Rarity;
-  initialCondition: Condition;
-  initialStock: number;
-  initialPrice: number;
-  hidden: boolean;
-  fromCatalog: boolean;
-  isNew: boolean;
+  variant: VariantSpec;
+  showCardCell: boolean;
+  cardRowSpan: number;
 }) {
   const router = useRouter();
-  const [rarityValue, setRarityValue] = useState<string>(rarity);
-  const [conditionValue, setConditionValue] =
-    useState<Condition>(initialCondition);
-  const [stockValue, setStockValue] = useState<string>(String(initialStock));
-  const [priceValue, setPriceValue] = useState<string>(String(initialPrice));
+  const [rarityValue, setRarityValue] = useState<string>(variant.rarity);
+  const [conditionValue, setConditionValue] = useState<Condition>(
+    variant.condition,
+  );
+  const [stockValue, setStockValue] = useState<string>(String(variant.stock));
+  const [priceValue, setPriceValue] = useState<string>(String(variant.price));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setRarityValue(rarity);
-    setConditionValue(initialCondition);
-    setStockValue(String(initialStock));
-    setPriceValue(String(initialPrice));
+    setRarityValue(variant.rarity);
+    setConditionValue(variant.condition);
+    setStockValue(String(variant.stock));
+    setPriceValue(String(variant.price));
     setError(null);
-  }, [rarity, initialCondition, initialStock, initialPrice]);
+  }, [variant.rarity, variant.condition, variant.stock, variant.price]);
 
   const currentStock = Number.parseInt(stockValue, 10);
   const currentPrice = Number.parseFloat(priceValue.replace(",", "."));
   const stockValid = Number.isInteger(currentStock) && currentStock >= 0;
   const priceValid = Number.isFinite(currentPrice) && currentPrice >= 0;
 
-  const stockChanged = currentStock !== initialStock;
-  const priceChanged = Math.abs(currentPrice - initialPrice) > 0.0001;
-  const rarityChanged = rarityValue !== rarity;
-  const conditionChanged = conditionValue !== initialCondition;
+  const stockChanged = currentStock !== variant.stock;
+  const priceChanged = Math.abs(currentPrice - variant.price) > 0.0001;
+  const rarityChanged = rarityValue !== variant.rarity;
+  const conditionChanged = conditionValue !== variant.condition;
   const hasChanges =
     stockChanged || priceChanged || rarityChanged || conditionChanged;
   const canSave = hasChanges && stockValid && priceValid;
@@ -512,7 +590,7 @@ function VariantCell({
     try {
       const body: Record<string, unknown> = {
         cardId: card.id,
-        variant: variantKey,
+        variant: variant.key,
       };
 
       if (stockChanged) body.stock = currentStock;
@@ -540,33 +618,26 @@ function VariantCell({
   }
 
   return (
-    <div
-      className={`flex min-w-[240px] flex-col gap-2 rounded-lg border p-3 ${
-        hidden
-          ? "border-amber-400/40 bg-amber-950/20"
-          : "border-white/10 bg-zinc-900/60"
-      }`}
-    >
-      <div className="flex items-center gap-2 text-xs">
-        <span className="rounded bg-violet-500/20 px-2 py-0.5 font-semibold uppercase tracking-wider text-violet-300">
-          {label}
-        </span>
-        <span className="font-mono text-[10px] text-gray-500">
-          {variantKey}
-        </span>
-        {hidden && (
-          <span className="rounded bg-amber-500/20 px-2 py-0.5 font-semibold uppercase tracking-wider text-amber-300">
-            Masquée
-          </span>
-        )}
-      </div>
+    <tr className={`${variant.hidden ? "bg-amber-950/10" : ""} align-top`}>
+      {showCardCell ? (
+        <td rowSpan={cardRowSpan} className="w-56 border-r border-white/10 px-4 py-3">
+          <div className="font-semibold text-white">{card.name}</div>
+          <div className="mt-1 font-mono text-xs text-gray-500">{card.number}</div>
+        </td>
+      ) : null}
 
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-12 text-gray-400">Rareté</label>
+      <td className="px-4 py-3">
+        <div className="font-semibold text-white">{variant.label}</div>
+        <div className="mt-1 font-mono text-[11px] text-gray-500">
+          {variant.key}
+        </div>
+      </td>
+
+      <td className="px-4 py-3">
         <select
           value={rarityValue}
           onChange={(e) => setRarityValue(e.target.value)}
-          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
+          className="w-44 rounded border border-white/10 bg-zinc-950 px-2 py-1.5 text-white"
         >
           {RARITIES.map((r) => (
             <option key={r} value={r}>
@@ -574,14 +645,13 @@ function VariantCell({
             </option>
           ))}
         </select>
-      </div>
+      </td>
 
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-12 text-gray-400">État</label>
+      <td className="px-4 py-3">
         <select
           value={conditionValue}
           onChange={(e) => setConditionValue(e.target.value as Condition)}
-          className="flex-1 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
+          className="w-32 rounded border border-white/10 bg-zinc-950 px-2 py-1.5 text-white"
         >
           {CONDITIONS.map((value) => (
             <option key={value} value={value}>
@@ -589,77 +659,91 @@ function VariantCell({
             </option>
           ))}
         </select>
-      </div>
+      </td>
 
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-12 text-gray-400">Stock</label>
+      <td className="px-4 py-3">
         <input
           type="number"
           min={0}
           value={stockValue}
           onChange={(e) => setStockValue(e.target.value)}
-          className="w-20 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
+          className={`w-20 rounded border px-2 py-1.5 text-white ${stockBadgeClass(currentStock, variant.hidden)} bg-opacity-10`}
         />
-      </div>
+        {!stockValid ? <div className="mt-1 text-xs text-red-300">Invalide</div> : null}
+      </td>
 
-      <div className="flex items-center gap-2 text-sm">
-        <label className="w-12 text-gray-400">Prix</label>
-        <input
-          type="number"
-          min={0}
-          step="0.01"
-          value={priceValue}
-          onChange={(e) => setPriceValue(e.target.value)}
-          className="w-24 rounded border border-white/10 bg-zinc-900 px-2 py-1 text-white"
-        />
-        <span className="text-xs text-gray-500">€</span>
-      </div>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-1">
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={priceValue}
+            onChange={(e) => setPriceValue(e.target.value)}
+            className="w-24 rounded border border-white/10 bg-zinc-950 px-2 py-1.5 text-white"
+          />
+          <span className="text-xs text-gray-500">€</span>
+        </div>
+        {!priceValid ? <div className="mt-1 text-xs text-red-300">Invalide</div> : null}
+      </td>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={save}
-          disabled={!canSave || saving}
-          className={`rounded px-3 py-1 text-xs font-medium transition ${
-            saved
-              ? "bg-emerald-500 text-white"
-              : canSave
-                ? "bg-brand-500 text-white hover:bg-brand-600"
-                : "cursor-not-allowed bg-white/10 text-gray-400"
-          }`}
-        >
-          {saved ? "OK" : saving ? "..." : "Enregistrer"}
-        </button>
+      <td className="px-4 py-3">
+        <div className="flex flex-col items-start gap-1.5">
+          <span className={`rounded-full border px-2 py-1 text-xs font-medium ${stockBadgeClass(currentStock, variant.hidden)}`}>
+            {stockLabel(currentStock, variant.hidden)}
+          </span>
+          {variant.modified ? (
+            <span className="rounded-full border border-fuchsia-300/30 bg-fuchsia-500/15 px-2 py-1 text-xs font-medium text-fuchsia-200">
+              Modifiée
+            </span>
+          ) : null}
+        </div>
+      </td>
 
-        {!isNew && hasChanges && (
+      <td className="px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => {
-              setRarityValue(rarity);
-              setConditionValue(initialCondition);
-              setStockValue(String(initialStock));
-              setPriceValue(String(initialPrice));
-              setError(null);
-            }}
-            className="rounded bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20"
+            onClick={save}
+            disabled={!canSave || saving}
+            className={`rounded px-3 py-1.5 text-xs font-medium transition ${
+              saved
+                ? "bg-emerald-500 text-white"
+                : canSave
+                  ? "bg-brand-500 text-white hover:bg-brand-600"
+                  : "cursor-not-allowed bg-white/10 text-gray-400"
+            }`}
           >
-            Annuler
+            {saved ? "OK" : saving ? "..." : "Enregistrer"}
           </button>
-        )}
 
-        {!isNew && (
+          {hasChanges ? (
+            <button
+              type="button"
+              onClick={() => {
+                setRarityValue(variant.rarity);
+                setConditionValue(variant.condition);
+                setStockValue(String(variant.stock));
+                setPriceValue(String(variant.price));
+                setError(null);
+              }}
+              className="rounded bg-white/10 px-3 py-1.5 text-xs text-white hover:bg-white/20"
+            >
+              Annuler
+            </button>
+          ) : null}
+
           <VariantActionButtons
             card={card}
-            variant={variantKey}
-            label={label}
-            hidden={hidden}
-            fromCatalog={fromCatalog}
+            variant={variant.key}
+            label={variant.label}
+            hidden={variant.hidden}
+            fromCatalog={variant.fromCatalog}
           />
-        )}
-
-        {error && <span className="text-xs text-red-400">{error}</span>}
-      </div>
-    </div>
+        </div>
+        {error && <div className="mt-2 text-xs text-red-400">{error}</div>}
+      </td>
+    </tr>
   );
 }
 
@@ -685,8 +769,8 @@ function VariantActionButtons({
     const ok = window.confirm(
       `${nextHidden ? "Supprimer" : "Restaurer"} la variante ${label} de ${card.name} ?\n\n` +
         (nextHidden
-          ? `Elle sera cachée du site sans modifier son stock ni son prix.`
-          : `Elle sera de nouveau visible sur le site.`),
+          ? "Elle sera cachée du site sans modifier son stock ni son prix."
+          : "Elle sera de nouveau visible sur le site."),
     );
 
     if (!ok) return;
@@ -715,7 +799,7 @@ function VariantActionButtons({
   async function deleteCustomVariant() {
     const ok = window.confirm(
       `Supprimer définitivement la variante ${label} de ${card.name} ?\n\n` +
-        `Cela retire cette variante ajoutée manuellement.`,
+        "Cela retire cette variante ajoutée manuellement.",
     );
 
     if (!ok) return;
@@ -756,7 +840,7 @@ function VariantActionButtons({
           type="button"
           onClick={() => setHidden(false)}
           disabled={busy}
-          className="rounded bg-emerald-600/80 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-600 disabled:opacity-60"
+          className="rounded bg-emerald-600/80 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-600 disabled:opacity-60"
         >
           {visibilityBusy ? "..." : "Restaurer"}
         </button>
@@ -765,22 +849,22 @@ function VariantActionButtons({
           type="button"
           onClick={() => (fromCatalog ? setHidden(true) : deleteCustomVariant())}
           disabled={busy}
-          className="rounded bg-red-600/80 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
+          className="rounded bg-red-600/80 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
         >
           {busy ? "..." : "Supprimer"}
         </button>
       )}
 
-      {hidden && !fromCatalog && (
+      {hidden && !fromCatalog ? (
         <button
           type="button"
           onClick={deleteCustomVariant}
           disabled={busy}
-          className="rounded bg-red-600/80 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
+          className="rounded bg-red-600/80 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60"
         >
           {deleteBusy ? "..." : "Supprimer"}
         </button>
-      )}
+      ) : null}
 
       {error && <span className="text-xs text-red-400">{error}</span>}
     </>
