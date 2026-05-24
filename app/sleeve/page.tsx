@@ -89,7 +89,7 @@ export default async function SleevePage() {
 
         {products.length === 0 ? (
           <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5 text-sm text-gray-300">
-            Aucun sleeve disponible pour le moment.
+            Aucune sleeve disponible pour le moment.
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
