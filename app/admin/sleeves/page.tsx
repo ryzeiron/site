@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import AdminSleeveManager from "@/components/AdminSleeveManager";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
@@ -29,13 +30,9 @@ export default async function AdminSleevesPage() {
         <LogoutButton />
       </div>
 
+      <AdminCatalogTabs active="sleeves" sleevesCount={sleeveRows.length} />
+
       <div className="mb-6 flex flex-wrap gap-3">
-        <Link
-          href="/admin"
-          className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
-        >
-          Stocks cartes
-        </Link>
         <Link
           href="/admin/commandes"
           className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"

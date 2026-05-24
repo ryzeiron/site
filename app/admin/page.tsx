@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import AdminSerieBulkActions from "@/components/AdminSerieBulkActions";
 import { formatRarityLabel } from "@/lib/display-variants";
 import AdminStockRow from "@/components/AdminStockRow";
@@ -524,6 +525,8 @@ export default async function AdminPage({
         <LogoutButton />
       </div>
 
+      <AdminCatalogTabs active="cards" cardsCount={totalCards} />
+
       <form className="flex flex-wrap gap-3 mb-6" action="/admin">
         <select
           name="serie"
@@ -593,13 +596,6 @@ export default async function AdminPage({
           className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
         >
           Commandes
-        </Link>
-
-        <Link
-          href="/admin/sleeves"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
-        >
-          Sleeves
         </Link>
 
         <Link
