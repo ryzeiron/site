@@ -5,11 +5,10 @@ import { desc } from "drizzle-orm";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
-import { CARDS, getCard, getSerie, listVariants, resolveVariant, type Card } from "@/lib/catalog";
+import { CARDS, resolveVariant, type Card } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { favoriteCards, favoriteSleeves, orders } from "@/lib/db/schema";
 import { formatRarityLabel } from "@/lib/display-variants";
-import { formatPrice } from "@/lib/format";
 import { getSleeves, type SleeveProduct } from "@/lib/sleeves";
 import { applyStockOverrides } from "@/lib/stock";
 
@@ -135,20 +134,6 @@ function groupFavoriteSleeves(
   });
 }
 
-function getLowCardVariants(cards: Card[]) {
-  return cards
-    .flatMap((card) =>
-      listVariants(card).map(({ key, variant }) => ({
-        key,
-        card,
-        variant,
-        serie: getSerie(card.serieId),
-      })),
-    )
-    .filter(({ variant }) => variant.stock > 0 && variant.stock <= 2)
-    .sort((a, b) => a.variant.stock - b.variant.stock || a.card.name.localeCompare(b.card.name, "fr"));
-}
-
 export default async function AdminDashboardPage() {
   if (!(await isAdmin())) redirect("/admin/login");
 
@@ -174,10 +159,8 @@ export default async function AdminDashboardPage() {
   const favoriteSleevesOut = favoriteSleeveGroups.filter(
     (group) => !group.sleeve || group.sleeve.stock <= 0,
   );
-  const lowCardVariants = getLowCardVariants(cardsWithStock);
-  const lowSleeves = sleeveRows
-    .filter((sleeve) => sleeve.active && sleeve.stock > 0 && sleeve.stock <= 3)
-    .sort((a, b) => a.stock - b.stock || a.name.localeCompare(b.name, "fr"));
+  const recentOrders = orderRows.slice(0, 6);
+  const favoriteCount = favoriteCardRows.length + favoriteSleeveRows.length;
 
   return (
     <div className="py-6">
@@ -185,7 +168,7 @@ export default async function AdminDashboardPage() {
         <div>
           <h1 className="text-3xl font-bold text-white">Accueil admin</h1>
           <p className="mt-1 text-sm text-gray-400">
-            Vue rapide sur les commandes, les favoris en rupture et les stocks à surveiller.
+            Vue rapide sur les commandes, les favoris en rupture et les raccourcis utiles.
           </p>
         </div>
 
@@ -213,8 +196,8 @@ export default async function AdminDashboardPage() {
           value={favoriteCardsOut.length + favoriteSleevesOut.length}
           tone="rose"
         />
-        <StatCard label="Cartes stock faible" value={lowCardVariants.length} tone="amber" />
-        <StatCard label="Sleeves stock faible" value={lowSleeves.length} tone="violet" />
+        <StatCard label="Commandes récentes" value={orderRows.length} tone="amber" />
+        <StatCard label="Produits favoris" value={favoriteCount} tone="violet" />
       </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
@@ -274,44 +257,16 @@ export default async function AdminDashboardPage() {
         </DashboardPanel>
 
         <DashboardPanel
-          title="Cartes en stock faible"
-          href="/admin?quick=low"
-          empty="Aucune carte en stock faible."
+          title="Dernières commandes"
+          href="/admin/commandes"
+          empty="Aucune commande pour le moment."
         >
-          {lowCardVariants.slice(0, 8).map(({ card, key, variant, serie }) => (
-            <div key={`${card.id}-${key}`} className="rounded-xl bg-white/[0.03] p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate font-semibold text-white">{card.name}</div>
-                  <div className="mt-1 text-xs text-gray-400">
-                    {serie?.code ?? card.serieId} - {formatRarityLabel(variant.rarity)}
-                  </div>
-                </div>
-                <Badge>{variant.stock} restant{variant.stock > 1 ? "s" : ""}</Badge>
-              </div>
-            </div>
+          {recentOrders.map((order) => (
+            <OrderLine key={order.id} order={order} />
           ))}
         </DashboardPanel>
 
-        <DashboardPanel
-          title="Sleeves en stock faible"
-          href="/admin/sleeves"
-          empty="Aucune sleeve en stock faible."
-        >
-          {lowSleeves.slice(0, 8).map((sleeve) => (
-            <div key={sleeve.id} className="rounded-xl bg-white/[0.03] p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate font-semibold text-white">{sleeve.name}</div>
-                  <div className="mt-1 text-xs text-gray-400">
-                    {formatPrice(sleeve.priceCents / 100)}
-                  </div>
-                </div>
-                <Badge>{sleeve.stock} restant{sleeve.stock > 1 ? "s" : ""}</Badge>
-              </div>
-            </div>
-          ))}
-        </DashboardPanel>
+        <QuickActionsPanel />
       </div>
     </div>
   );
@@ -379,6 +334,65 @@ function DashboardPanel({
 
       <div className="space-y-2">
         {hasChildren ? children : <p className="text-sm text-gray-400">{empty}</p>}
+      </div>
+    </section>
+  );
+}
+
+function QuickActionsPanel() {
+  const actions = [
+    {
+      href: "/admin",
+      title: "Modifier les cartes",
+      detail: "Stocks, prix, raretés et variantes",
+    },
+    {
+      href: "/admin/sleeves",
+      title: "Gérer les sleeves",
+      detail: "Prix, stock, visibilité et ajouts",
+    },
+    {
+      href: "/admin/favoris",
+      title: "Voir la demande",
+      detail: "Cartes et sleeves ajoutées aux favoris",
+    },
+    {
+      href: "/admin/tickets",
+      title: "Messages clients",
+      detail: "Demandes envoyées depuis le site",
+    },
+    {
+      href: "/admin/modifications",
+      title: "Historique",
+      detail: "Dernières modifications admin",
+    },
+    {
+      href: "/",
+      title: "Voir le site",
+      detail: "Retour côté client",
+    },
+  ];
+
+  return (
+    <section className="rounded-2xl border border-white/10 bg-zinc-950/70 p-5">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold text-white">Actions rapides</h2>
+        <p className="mt-1 text-sm text-gray-400">
+          Les accès les plus utiles pour gérer le site.
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {actions.map((action) => (
+          <Link
+            key={action.href}
+            href={action.href}
+            className="rounded-xl border border-white/10 bg-white/[0.03] p-3 transition hover:border-violet-300/50 hover:bg-violet-500/10"
+          >
+            <div className="font-semibold text-white">{action.title}</div>
+            <div className="mt-1 text-xs text-gray-400">{action.detail}</div>
+          </Link>
+        ))}
       </div>
     </section>
   );

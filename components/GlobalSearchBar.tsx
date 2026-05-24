@@ -110,7 +110,7 @@ export default function GlobalSearchBar() {
   }, [trimmedQuery]);
 
   return (
-    <div className="border-b border-white/10 bg-black/35 backdrop-blur-sm">
+    <div className="relative z-[100] border-b border-white/10 bg-black/35 backdrop-blur-sm">
       <div className="mx-auto max-w-6xl px-4 py-3">
         <div ref={containerRef} className="relative">
           <form action="/recherche" className="relative">
@@ -136,7 +136,7 @@ export default function GlobalSearchBar() {
           </form>
 
           {open && trimmedQuery.length >= 2 ? (
-            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-2xl border border-violet-300/20 bg-zinc-950/95 shadow-2xl shadow-black/60 backdrop-blur">
+            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[110] overflow-hidden rounded-2xl border border-violet-300/20 bg-zinc-950/95 shadow-2xl shadow-black/60 backdrop-blur">
               <div className="max-h-[70vh] overflow-y-auto p-3">
                 {loading ? (
                   <div className="rounded-xl bg-white/[0.04] px-4 py-3 text-sm text-gray-300">
