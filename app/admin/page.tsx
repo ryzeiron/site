@@ -11,6 +11,7 @@ import {
   SERIES,
   getBloc,
   getSerie,
+  isVariantHidden,
   isRarity,
   listVariants,
   type Card,
@@ -21,7 +22,23 @@ import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
-type Search = { serie?: string; q?: string; rarity?: string };
+type Search = {
+  serie?: string;
+  q?: string;
+  rarity?: string;
+  quick?: string;
+  page?: string;
+};
+type QuickFilter = "out" | "low" | "modified" | "hidden" | "premium";
+type AdminHrefParams = {
+  serieId: string;
+  query: string;
+  rarity: Rarity | "";
+  quick: QuickFilter | "";
+  page?: number;
+};
+
+const ADMIN_PAGE_SIZE = 50;
 
 type AdminSerieGroup = {
   label: string;
@@ -212,6 +229,174 @@ function searchableText(card: Card) {
   );
 }
 
+function isQuickFilter(value?: string): value is QuickFilter {
+  return (
+    value === "out" ||
+    value === "low" ||
+    value === "modified" ||
+    value === "hidden" ||
+    value === "premium"
+  );
+}
+
+function AdminPagination({
+  currentPage,
+  totalPages,
+  paginationHref,
+}: {
+  currentPage: number;
+  totalPages: number;
+  paginationHref: (page: number) => string;
+}) {
+  const firstPage = Math.max(1, currentPage - 2);
+  const lastPage = Math.min(totalPages, currentPage + 2);
+  const pages = Array.from(
+    { length: lastPage - firstPage + 1 },
+    (_, index) => firstPage + index,
+  );
+
+  return (
+    <nav
+      className="flex flex-wrap items-center gap-2"
+      aria-label="Pagination admin"
+    >
+      <Link
+        href={paginationHref(Math.max(1, currentPage - 1))}
+        aria-disabled={currentPage === 1}
+        className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+          currentPage === 1
+            ? "pointer-events-none bg-white/5 text-gray-600"
+            : "bg-white/10 text-white hover:bg-white/20"
+        }`}
+      >
+        Précédent
+      </Link>
+
+      {firstPage > 1 ? (
+        <>
+          <Link
+            href={paginationHref(1)}
+            className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
+          >
+            1
+          </Link>
+          {firstPage > 2 ? (
+            <span className="px-1 text-gray-500">...</span>
+          ) : null}
+        </>
+      ) : null}
+
+      {pages.map((page) => (
+        <Link
+          key={page}
+          href={paginationHref(page)}
+          aria-current={page === currentPage ? "page" : undefined}
+          className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+            page === currentPage
+              ? "bg-violet-600 text-white"
+              : "bg-white/10 text-white hover:bg-white/20"
+          }`}
+        >
+          {page}
+        </Link>
+      ))}
+
+      {lastPage < totalPages ? (
+        <>
+          {lastPage < totalPages - 1 ? (
+            <span className="px-1 text-gray-500">...</span>
+          ) : null}
+          <Link
+            href={paginationHref(totalPages)}
+            className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
+          >
+            {totalPages}
+          </Link>
+        </>
+      ) : null}
+
+      <Link
+        href={paginationHref(Math.min(totalPages, currentPage + 1))}
+        aria-disabled={currentPage === totalPages}
+        className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+          currentPage === totalPages
+            ? "pointer-events-none bg-white/5 text-gray-600"
+            : "bg-white/10 text-white hover:bg-white/20"
+        }`}
+      >
+        Suivant
+      </Link>
+    </nav>
+  );
+}
+
+function variantSignature(card: Card) {
+  return listVariants(card, { includeHidden: true })
+    .map(
+      ({ key, variant }) =>
+        `${key}:${variant.rarity}:${variant.stock}:${variant.price}:${variant.condition ?? card.condition}:${isVariantHidden(card, key)}`,
+    )
+    .join("|");
+}
+
+function isModifiedFromCatalog(card: Card, catalogCard?: Card) {
+  if (!catalogCard) return true;
+  return variantSignature(card) !== variantSignature(catalogCard);
+}
+
+function cardMatchesQuickFilter(
+  card: Card,
+  quick: QuickFilter,
+  catalogCard?: Card,
+) {
+  const variants = listVariants(card, { includeHidden: true });
+
+  if (quick === "out") {
+    return variants.some(({ variant }) => variant.stock <= 0);
+  }
+
+  if (quick === "low") {
+    return variants.some(({ variant }) => variant.stock > 0 && variant.stock <= 2);
+  }
+
+  if (quick === "hidden") {
+    return variants.some(({ key }) => isVariantHidden(card, key));
+  }
+
+  if (quick === "premium") {
+    return variants.some(
+      ({ variant }) =>
+        variant.rarity === "Ultra Rare" || variant.rarity === "Secrete",
+    );
+  }
+
+  return isModifiedFromCatalog(card, catalogCard);
+}
+
+function parsePage(value?: string) {
+  const page = Number.parseInt(value ?? "1", 10);
+  return Number.isFinite(page) && page > 0 ? page : 1;
+}
+
+function adminHref({
+  serieId,
+  query,
+  rarity,
+  quick,
+  page,
+}: AdminHrefParams) {
+  const params = new URLSearchParams();
+
+  if (serieId) params.set("serie", serieId);
+  if (query) params.set("q", query);
+  if (rarity) params.set("rarity", rarity);
+  if (quick) params.set("quick", quick);
+  if (page && page > 1) params.set("page", String(page));
+
+  const search = params.toString();
+  return search ? `/admin?${search}` : "/admin";
+}
+
 function getAdminSerieGroups() {
   const groupedSerieIds = new Set(
     ADMIN_SERIE_GROUPS.flatMap((group) => group.seriesIds),
@@ -243,10 +428,13 @@ export default async function AdminPage({
   const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
   const rarity: Rarity | "" =
     params.rarity && isRarity(params.rarity) ? params.rarity : "";
-  const hasSearch = terms.length > 0 || Boolean(rarity);
+  const quick = isQuickFilter(params.quick) ? params.quick : "";
+  const requestedPage = parsePage(params.page);
+  const hasSearch = terms.length > 0 || Boolean(rarity) || Boolean(quick);
 
   const serie = serieId ? getSerie(serieId) : undefined;
   const allCardsWithStock = await applyStockOverrides(CARDS);
+  const catalogById = new Map(CARDS.map((card) => [card.id, card]));
   const stockedCards = allCardsWithStock.filter((card) =>
     listVariants(card).some(({ variant }) => variant.stock > 0),
   ).length;
@@ -281,8 +469,43 @@ export default async function AdminPage({
     );
   }
 
+  if (quick) {
+    filteredCards = filteredCards.filter((card) =>
+      cardMatchesQuickFilter(card, quick, catalogById.get(card.id)),
+    );
+  }
+
   const serieGroups = getAdminSerieGroups();
   const totalCards = CARDS.length;
+  const totalFilteredCards = filteredCards.length;
+  const totalPages = Math.max(1, Math.ceil(totalFilteredCards / ADMIN_PAGE_SIZE));
+  const currentPage = Math.min(requestedPage, totalPages);
+  const startIndex = (currentPage - 1) * ADMIN_PAGE_SIZE;
+  const paginatedCards = filteredCards.slice(
+    startIndex,
+    startIndex + ADMIN_PAGE_SIZE,
+  );
+  const visibleStart = totalFilteredCards === 0 ? 0 : startIndex + 1;
+  const visibleEnd = Math.min(startIndex + ADMIN_PAGE_SIZE, totalFilteredCards);
+  const paginationHref = (page: number) =>
+    adminHref({ serieId, query, rarity, quick, page });
+  const quickCounts = {
+    out: allCardsWithStock.filter((card) =>
+      cardMatchesQuickFilter(card, "out", catalogById.get(card.id)),
+    ).length,
+    low: allCardsWithStock.filter((card) =>
+      cardMatchesQuickFilter(card, "low", catalogById.get(card.id)),
+    ).length,
+    modified: allCardsWithStock.filter((card) =>
+      cardMatchesQuickFilter(card, "modified", catalogById.get(card.id)),
+    ).length,
+    hidden: allCardsWithStock.filter((card) =>
+      cardMatchesQuickFilter(card, "hidden", catalogById.get(card.id)),
+    ).length,
+    premium: allCardsWithStock.filter((card) =>
+      cardMatchesQuickFilter(card, "premium", catalogById.get(card.id)),
+    ).length,
+  };
 
   return (
     <div className="py-6">
@@ -340,6 +563,8 @@ export default async function AdminPage({
           ))}
         </select>
 
+        {quick ? <input type="hidden" name="quick" value={quick} /> : null}
+
         <button
           type="submit"
           className="rounded bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 text-sm font-medium"
@@ -347,7 +572,7 @@ export default async function AdminPage({
           Filtrer
         </button>
 
-        {(serieId || query || rarity) && (
+        {(serieId || query || rarity || quick) && (
           <Link
             href="/admin"
             className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
@@ -399,6 +624,50 @@ export default async function AdminPage({
         </Link>
       </form>
 
+      <section className="mb-6 rounded-2xl border border-white/10 bg-zinc-950/65 p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-white">À traiter</h2>
+            <p className="mt-1 text-sm text-gray-400">
+              Filtres rapides pour repérer les stocks à surveiller.
+            </p>
+          </div>
+          {quick ? (
+            <Link
+              href="/admin"
+              className="rounded-full bg-white/10 px-3 py-1.5 text-sm text-white hover:bg-white/20"
+            >
+              Voir tout
+            </Link>
+          ) : null}
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {[
+            { key: "out", label: "Rupture", count: quickCounts.out, tone: "red" },
+            { key: "low", label: "Stock faible", count: quickCounts.low, tone: "orange" },
+            { key: "modified", label: "Modifiées", count: quickCounts.modified, tone: "fuchsia" },
+            { key: "hidden", label: "Masquées", count: quickCounts.hidden, tone: "amber" },
+            { key: "premium", label: "Ultra/Secrètes", count: quickCounts.premium, tone: "violet" },
+          ].map((item) => (
+            <Link
+              key={item.key}
+              href={`/admin?quick=${item.key}`}
+              className={`rounded-xl border p-4 transition hover:-translate-y-0.5 ${
+                quick === item.key
+                  ? "border-violet-300/60 bg-violet-500/20"
+                  : "border-white/10 bg-white/[0.03] hover:border-violet-300/40"
+              }`}
+            >
+              <div className="text-sm text-gray-400">{item.label}</div>
+              <div className="mt-2 text-3xl font-bold text-white">
+                {item.count}
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {serie && (
         <AdminSerieBulkActions
           serieId={serie.id}
@@ -414,10 +683,40 @@ export default async function AdminPage({
       ) : filteredCards.length === 0 ? (
         <p className="text-gray-400">Aucune carte trouvée.</p>
       ) : (
-        <div className="space-y-3">
-          {filteredCards.map((c) => (
-            <AdminStockRow key={c.id} card={c} />
-          ))}
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-950/65 p-4 text-sm text-gray-300">
+            <div>
+              Affichage de{" "}
+              <span className="font-semibold text-white">{visibleStart}</span> à{" "}
+              <span className="font-semibold text-white">{visibleEnd}</span> sur{" "}
+              <span className="font-semibold text-white">{totalFilteredCards}</span>{" "}
+              carte{totalFilteredCards > 1 ? "s" : ""}.
+            </div>
+
+            {totalPages > 1 ? (
+              <AdminPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                paginationHref={paginationHref}
+              />
+            ) : null}
+          </div>
+
+          <div className="space-y-3">
+            {paginatedCards.map((c) => (
+              <AdminStockRow key={c.id} card={c} />
+            ))}
+          </div>
+
+          {totalPages > 1 ? (
+            <div className="flex justify-center rounded-2xl border border-white/10 bg-zinc-950/65 p-4">
+              <AdminPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                paginationHref={paginationHref}
+              />
+            </div>
+          ) : null}
         </div>
       )}
     </div>

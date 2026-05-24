@@ -518,6 +518,19 @@ export default function CartPage() {
             {itemCount} article{itemCount > 1 ? "s" : ""}
           </span>
         </div>
+
+        <div className="mb-4 grid gap-2 text-xs text-gray-300">
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+            Paiement sécurisé par Stripe
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+            Cartes protégées avant expédition
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+            Livraison suivie en point relais
+          </div>
+        </div>
+
         <div className="mb-3">
           <label className="text-sm text-gray-300">Code promo</label>
 

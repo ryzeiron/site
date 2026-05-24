@@ -43,6 +43,13 @@ const STATUS_LABELS: Record<string, { title: string; detail: string }> = {
   },
 };
 
+const STATUS_STEPS = [
+  { key: "paid", label: "Payée" },
+  { key: "label_to_create", label: "Préparation" },
+  { key: "label_created", label: "Bordereau" },
+  { key: "shipped", label: "Expédiée" },
+];
+
 async function getOrder(sessionId: string): Promise<OrderLookup> {
   let session: Stripe.Checkout.Session | null = null;
   let lineItems: Stripe.LineItem[] = [];
@@ -113,6 +120,15 @@ function getStatus(
   };
 }
 
+function getStatusKey(
+  order: OrderRow | null,
+  session: Stripe.Checkout.Session | null,
+) {
+  if (order?.status && STATUS_LABELS[order.status]) return order.status;
+  if (session?.payment_status === "paid") return "paid";
+  return "pending";
+}
+
 export default async function OrderStatus({
   sessionId,
   clearCart = false,
@@ -124,6 +140,11 @@ export default async function OrderStatus({
 
   const relay = getRelay(session, order);
   const status = getStatus(order, session);
+  const statusKey = getStatusKey(order, session);
+  const activeStepIndex = Math.max(
+    0,
+    STATUS_STEPS.findIndex((step) => step.key === statusKey),
+  );
   const total = session?.amount_total ? session.amount_total / 100 : null;
   const createdAt =
     order?.createdAt ??
@@ -162,7 +183,7 @@ export default async function OrderStatus({
         </p>
       </div>
 
-      <section className="mt-8 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-5">
+      <section className="mt-8 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
         <div className="text-xs uppercase tracking-wider text-emerald-300 font-semibold">
           Statut
         </div>
@@ -170,6 +191,40 @@ export default async function OrderStatus({
         <h2 className="mt-2 text-2xl font-bold text-white">{status.title}</h2>
 
         <p className="mt-2 text-emerald-100/80">{status.detail}</p>
+
+        <div className="mt-5 grid gap-2 sm:grid-cols-4">
+          {STATUS_STEPS.map((step, index) => {
+            const done = index <= activeStepIndex && statusKey !== "pending";
+            const current = index === activeStepIndex && statusKey !== "pending";
+
+            return (
+              <div
+                key={step.key}
+                className={`rounded-xl border px-3 py-2 text-sm ${
+                  done
+                    ? "border-emerald-300/40 bg-emerald-400/15 text-emerald-100"
+                    : "border-white/10 bg-black/20 text-gray-400"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold ${
+                      done ? "bg-emerald-400 text-zinc-950" : "bg-white/10"
+                    }`}
+                  >
+                    {index + 1}
+                  </span>
+                  <span className="font-semibold">{step.label}</span>
+                </div>
+                {current ? (
+                  <div className="mt-1 text-xs text-emerald-200">
+                    Étape en cours
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
 
         {order?.mondialRelayExpeditionNumber ? (
           <div className="mt-4 rounded border border-emerald-400/30 bg-emerald-950/30 px-3 py-2 text-sm text-emerald-100">
@@ -193,7 +248,7 @@ export default async function OrderStatus({
       </section>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <section className="rounded-lg border border-white/10 bg-zinc-900/70 p-5">
+        <section className="rounded-2xl border border-white/10 bg-zinc-900/70 p-5">
           <h2 className="text-lg font-semibold text-white">Commande</h2>
 
           <dl className="mt-4 space-y-3 text-sm">
@@ -224,7 +279,7 @@ export default async function OrderStatus({
           </dl>
         </section>
 
-        <section className="rounded-lg border border-white/10 bg-zinc-900/70 p-5">
+        <section className="rounded-2xl border border-white/10 bg-zinc-900/70 p-5">
           <h2 className="text-lg font-semibold text-white">Point relais</h2>
 
           {relay.code ? (
@@ -256,7 +311,7 @@ export default async function OrderStatus({
       </div>
 
       {lineItems.length > 0 ? (
-        <section className="mt-6 rounded-lg border border-white/10 bg-zinc-900/70 p-5">
+        <section className="mt-6 rounded-2xl border border-white/10 bg-zinc-900/70 p-5">
           <h2 className="text-lg font-semibold text-white">Articles</h2>
 
           <div className="mt-4 divide-y divide-white/10">

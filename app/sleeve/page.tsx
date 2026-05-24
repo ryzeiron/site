@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import FavoriteSleeveButton from "@/components/FavoriteSleeveButton";
 import Link from "next/link";
 import SleeveAddToCartButton from "@/components/SleeveAddToCartButton";
+import StockBadge from "@/components/StockBadge";
 import { formatPrice } from "@/lib/format";
 import { getSleeves } from "@/lib/sleeves";
 
@@ -135,9 +136,15 @@ export default async function SleevePage() {
                     <span className="text-lg font-extrabold text-brand-400">
                       {formatPrice(product.priceCents / 100)}
                     </span>
-                    <span className="text-xs text-gray-400">
-                      {product.stock} en stock
-                    </span>
+                    <StockBadge
+                      stock={product.stock}
+                      compact
+                      label={
+                        product.stock <= 0
+                          ? "Rupture"
+                          : `${product.stock} dispo`
+                      }
+                    />
                   </div>
 
                   <SleeveAddToCartButton

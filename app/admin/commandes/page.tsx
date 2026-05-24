@@ -16,11 +16,31 @@ const STATUS_LABELS: Record<string, string> = {
   shipped: "Colis expédié",
 };
 
+function statusClass(status: string) {
+  if (status === "paid") return "border-sky-400/35 bg-sky-500/15 text-sky-200";
+  if (status === "label_to_create") {
+    return "border-amber-400/35 bg-amber-500/15 text-amber-200";
+  }
+  if (status === "label_created") {
+    return "border-violet-400/35 bg-violet-500/15 text-violet-200";
+  }
+  if (status === "shipped") {
+    return "border-emerald-400/35 bg-emerald-500/15 text-emerald-200";
+  }
+  return "border-white/15 bg-white/10 text-gray-200";
+}
+
 export default async function AdminOrdersPage() {
   if (!(await isAdmin())) redirect("/admin/login");
 
   const db = getDb();
   const rows = await db.select().from(orders).orderBy(desc(orders.createdAt));
+  const stats = {
+    paid: rows.filter((order) => order.status === "paid").length,
+    labelToCreate: rows.filter((order) => order.status === "label_to_create").length,
+    labelCreated: rows.filter((order) => order.status === "label_created").length,
+    shipped: rows.filter((order) => order.status === "shipped").length,
+  };
 
   return (
     <div className="py-6">
@@ -72,6 +92,31 @@ export default async function AdminOrdersPage() {
         </Link>
       </div>
 
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl border border-sky-400/20 bg-sky-500/10 p-4">
+          <div className="text-sm text-sky-200">Payées</div>
+          <div className="mt-1 text-3xl font-bold text-white">{stats.paid}</div>
+        </div>
+        <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-4">
+          <div className="text-sm text-amber-200">Bordereaux à créer</div>
+          <div className="mt-1 text-3xl font-bold text-white">
+            {stats.labelToCreate}
+          </div>
+        </div>
+        <div className="rounded-xl border border-violet-400/20 bg-violet-500/10 p-4">
+          <div className="text-sm text-violet-200">Étiquettes créées</div>
+          <div className="mt-1 text-3xl font-bold text-white">
+            {stats.labelCreated}
+          </div>
+        </div>
+        <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+          <div className="text-sm text-emerald-200">Expédiées</div>
+          <div className="mt-1 text-3xl font-bold text-white">
+            {stats.shipped}
+          </div>
+        </div>
+      </div>
+
       {rows.length === 0 ? (
         <p className="text-gray-400">Aucune commande pour le moment.</p>
       ) : (
@@ -79,7 +124,7 @@ export default async function AdminOrdersPage() {
           {rows.map((order) => (
             <div
               key={order.id}
-              className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200"
+              className="rounded-2xl border border-white/10 bg-zinc-900/70 p-4 text-gray-200"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -96,10 +141,17 @@ export default async function AdminOrdersPage() {
                   </div>
                 </div>
 
-                <div className="text-xs text-gray-400">
-                  {order.createdAt
-                    ? new Date(order.createdAt).toLocaleString("fr-FR")
-                    : ""}
+                <div className="text-right">
+                  <div className="text-xs text-gray-400">
+                    {order.createdAt
+                      ? new Date(order.createdAt).toLocaleString("fr-FR")
+                      : ""}
+                  </div>
+                  <span
+                    className={`mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${statusClass(order.status)}`}
+                  >
+                    {STATUS_LABELS[order.status] ?? order.status}
+                  </span>
                 </div>
               </div>
 
@@ -124,9 +176,8 @@ export default async function AdminOrdersPage() {
                   {order.relayCity ?? ""}
                 </div>
 
-                <div>
-                  <span className="text-gray-400">Statut :</span>{" "}
-                  {STATUS_LABELS[order.status] ?? order.status}
+                <div className="mt-2 text-xs text-gray-500">
+                  ID commande : <span className="font-mono">{order.id}</span>
                 </div>
               </div>
 
