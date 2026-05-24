@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import CardTile from "@/components/CardTile";
-import { CARDS, getBloc, getSerie, type Card } from "@/lib/catalog";
+import FavoriteSleeveButton from "@/components/FavoriteSleeveButton";
+import SleeveAddToCartButton from "@/components/SleeveAddToCartButton";
+import StockBadge from "@/components/StockBadge";
+import { CARDS, SERIES, getBloc, getSerie, type Card, type Serie } from "@/lib/catalog";
+import { formatPrice } from "@/lib/format";
+import { getSleeves, type SleeveProduct } from "@/lib/sleeves";
 import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +17,9 @@ export const metadata: Metadata = {
 
 type Search = { q?: string };
 
-const MAX_RESULTS = 160;
+const MAX_CARD_RESULTS = 160;
+const MAX_SERIE_RESULTS = 24;
+const MAX_SLEEVE_RESULTS = 24;
 
 function normalizeSearch(value: string) {
   return value
@@ -22,24 +29,36 @@ function normalizeSearch(value: string) {
     .trim();
 }
 
-function searchableText(card: Card) {
+function matchesTerms(text: string, terms: string[]) {
+  const normalized = normalizeSearch(text);
+  return terms.every((term) => normalized.includes(term));
+}
+
+function searchableCardText(card: Card) {
   const serie = getSerie(card.serieId);
   const bloc = serie ? getBloc(serie.blocId) : undefined;
 
-  return normalizeSearch(
-    [
-      card.name,
-      card.number,
-      card.rarity,
-      card.condition,
-      card.language,
-      serie?.name,
-      serie?.code,
-      bloc?.name,
-    ]
-      .filter(Boolean)
-      .join(" "),
-  );
+  return [
+    card.name,
+    card.number,
+    card.rarity,
+    card.condition,
+    card.language,
+    serie?.name,
+    serie?.code,
+    bloc?.name,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function searchableSerieText(serie: Serie) {
+  const bloc = getBloc(serie.blocId);
+  return [serie.name, serie.code, bloc?.name].filter(Boolean).join(" ");
+}
+
+function searchableSleeveText(sleeve: SleeveProduct) {
+  return [sleeve.name, sleeve.description].filter(Boolean).join(" ");
 }
 
 export default async function SearchPage({
@@ -51,19 +70,33 @@ export default async function SearchPage({
   const query = q.trim();
   const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
 
-  const rawResults =
+  const rawCardResults =
     terms.length > 0
-      ? CARDS.filter((card) => {
-          const text = searchableText(card);
-          return terms.every((term) => text.includes(term));
-        })
+      ? CARDS.filter((card) => matchesTerms(searchableCardText(card), terms))
       : [];
 
-  const visibleRawResults = rawResults.slice(0, MAX_RESULTS);
+  const serieResults =
+    terms.length > 0
+      ? SERIES.filter((serie) => matchesTerms(searchableSerieText(serie), terms)).slice(
+          0,
+          MAX_SERIE_RESULTS,
+        )
+      : [];
+
+  const sleeveResults =
+    terms.length > 0
+      ? (await getSleeves({ activeOnly: true }))
+          .filter((sleeve) => matchesTerms(searchableSleeveText(sleeve), terms))
+          .slice(0, MAX_SLEEVE_RESULTS)
+      : [];
+
+  const visibleRawCards = rawCardResults.slice(0, MAX_CARD_RESULTS);
   const cards =
-    visibleRawResults.length > 0
-      ? await applyStockOverrides(visibleRawResults)
-      : visibleRawResults;
+    visibleRawCards.length > 0
+      ? await applyStockOverrides(visibleRawCards)
+      : visibleRawCards;
+  const totalResults =
+    rawCardResults.length + serieResults.length + sleeveResults.length;
 
   return (
     <div>
@@ -72,7 +105,7 @@ export default async function SearchPage({
           Recherche globale
         </h1>
         <p className="mt-2 text-gray-300">
-          Recherche une carte ou un pokémon dans tous les blocs et toutes les séries.
+          Recherche une carte, une série ou une sleeve dans tout le site.
         </p>
 
         <form action="/recherche" className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -80,7 +113,7 @@ export default async function SearchPage({
             name="q"
             type="search"
             defaultValue={query}
-            placeholder="Exemple : Pikachu, Dracaufeu, Reverse..."
+            placeholder="Exemple : Pikachu, Dracaufeu, Reverse, sleeves..."
             className="min-h-11 flex-1 rounded-full border border-white/10 bg-black/45 px-5 text-sm text-white outline-none placeholder:text-gray-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30"
           />
           <button
@@ -94,28 +127,27 @@ export default async function SearchPage({
 
       {terms.length === 0 ? (
         <p className="mt-8 text-gray-400">
-          Tape le nom d'une carte pour afficher les résultats.
+          Tape un nom pour afficher les résultats.
         </p>
-      ) : rawResults.length === 0 ? (
+      ) : totalResults === 0 ? (
         <div className="mt-8 rounded-lg border border-white/10 bg-zinc-950/70 p-6 text-center">
-          <h2 className="text-xl font-bold text-white">Aucune carte trouvée</h2>
+          <h2 className="text-xl font-bold text-white">Aucun résultat trouvé</h2>
           <p className="mt-2 text-gray-400">
             Essaie avec un nom plus court ou vérifie l'orthographe.
           </p>
         </div>
       ) : (
-        <section className="mt-8">
+        <div className="mt-8 space-y-10">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-2xl font-bold text-white">
                 Résultats pour "{query}"
               </h2>
               <p className="mt-1 text-sm text-gray-400">
-                {rawResults.length} carte{rawResults.length > 1 ? "s" : ""} trouvée
-                {rawResults.length > 1 ? "s" : ""}
-                {rawResults.length > MAX_RESULTS
-                  ? `, affichage des ${MAX_RESULTS} premières`
-                  : ""}
+                {rawCardResults.length} carte
+                {rawCardResults.length > 1 ? "s" : ""}, {serieResults.length} série
+                {serieResults.length > 1 ? "s" : ""}, {sleeveResults.length} sleeve
+                {sleeveResults.length > 1 ? "s" : ""}.
               </p>
             </div>
             <Link
@@ -126,41 +158,164 @@ export default async function SearchPage({
             </Link>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {cards.map((card) => {
-              const serie = getSerie(card.serieId);
-              const bloc = serie ? getBloc(serie.blocId) : undefined;
+          {serieResults.length > 0 ? (
+            <section>
+              <h3 className="text-xl font-bold text-white">Séries</h3>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {serieResults.map((serie) => {
+                  const bloc = getBloc(serie.blocId);
 
-              return (
-                <div key={card.id}>
-                  <div className="mb-2 min-h-10 rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-xs text-gray-300">
-                    {bloc && serie ? (
-                      <>
-                        <Link
-                          href={`/blocs/${bloc.id}`}
-                          className="text-violet-200 hover:text-white"
-                        >
-                          {bloc.name}
-                        </Link>{" "}
-                        <span className="text-gray-600">/</span>{" "}
-                        <Link
-                          href={`/blocs/${bloc.id}/${serie.id}`}
-                          className="text-gray-200 hover:text-white"
-                        >
+                  return (
+                    <Link
+                      key={serie.id}
+                      href={`/blocs/${bloc?.id ?? serie.blocId}/${serie.id}`}
+                      className="flex gap-4 rounded-xl border border-white/10 bg-zinc-950/70 p-3 text-gray-200 transition hover:border-violet-400/60 hover:bg-violet-500/10"
+                    >
+                      <div className="flex aspect-[4/3] w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-zinc-900">
+                        {serie.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={serie.image}
+                            alt={serie.name}
+                            className="h-full w-full object-contain p-1"
+                          />
+                        ) : (
+                          <span className="text-sm font-bold text-violet-200">
+                            {serie.code}
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-sm text-violet-200">{serie.code}</div>
+                        <div className="truncate font-semibold text-white">
                           {serie.name}
-                        </Link>
-                      </>
-                    ) : (
-                      "Série inconnue"
-                    )}
-                  </div>
-                  <CardTile card={card} />
+                        </div>
+                        <div className="mt-1 truncate text-xs text-gray-400">
+                          {bloc?.name ?? "Bloc"}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          {sleeveResults.length > 0 ? (
+            <section>
+              <h3 className="text-xl font-bold text-white">Sleeves</h3>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {sleeveResults.map((sleeve) => (
+                  <SleeveSearchCard key={sleeve.id} sleeve={sleeve} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {cards.length > 0 ? (
+            <section>
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Cartes</h3>
+                  {rawCardResults.length > MAX_CARD_RESULTS ? (
+                    <p className="mt-1 text-sm text-gray-400">
+                      Affichage des {MAX_CARD_RESULTS} premières cartes.
+                    </p>
+                  ) : null}
                 </div>
-              );
-            })}
-          </div>
-        </section>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                {cards.map((card) => {
+                  const serie = getSerie(card.serieId);
+                  const bloc = serie ? getBloc(serie.blocId) : undefined;
+
+                  return (
+                    <div key={card.id}>
+                      <div className="mb-2 min-h-10 rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-xs text-gray-300">
+                        {bloc && serie ? (
+                          <>
+                            <Link
+                              href={`/blocs/${bloc.id}`}
+                              className="text-violet-200 hover:text-white"
+                            >
+                              {bloc.name}
+                            </Link>{" "}
+                            <span className="text-gray-600">/</span>{" "}
+                            <Link
+                              href={`/blocs/${bloc.id}/${serie.id}`}
+                              className="text-gray-200 hover:text-white"
+                            >
+                              {serie.name}
+                            </Link>
+                          </>
+                        ) : (
+                          "Série inconnue"
+                        )}
+                      </div>
+                      <CardTile card={card} />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+        </div>
       )}
     </div>
+  );
+}
+
+function SleeveSearchCard({ sleeve }: { sleeve: SleeveProduct }) {
+  return (
+    <article className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
+      <Link href="/sleeve" className="block">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-zinc-950">
+          {sleeve.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={sleeve.image}
+              alt={sleeve.name}
+              className={`h-full w-full object-contain p-2 ${
+                sleeve.stock <= 0 ? "opacity-40 grayscale" : ""
+              }`}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-center text-sm font-bold uppercase tracking-[0.18em] text-violet-200">
+              Sleeve
+            </div>
+          )}
+
+          {sleeve.stock <= 0 ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow">
+                Rupture
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        <h4 className="mt-4 font-semibold text-white">{sleeve.name}</h4>
+        {sleeve.description ? (
+          <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-400">
+            {sleeve.description}
+          </p>
+        ) : null}
+      </Link>
+
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <span className="text-lg font-extrabold text-brand-400">
+          {formatPrice(sleeve.priceCents / 100)}
+        </span>
+        <StockBadge
+          stock={sleeve.stock}
+          compact
+          label={sleeve.stock <= 0 ? "Rupture" : `${sleeve.stock} dispo`}
+        />
+      </div>
+
+      <SleeveAddToCartButton sleeveId={sleeve.id} stock={sleeve.stock} />
+      <FavoriteSleeveButton sleeveId={sleeve.id} />
+    </article>
   );
 }

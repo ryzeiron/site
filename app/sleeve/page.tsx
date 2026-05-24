@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import FavoriteSleeveButton from "@/components/FavoriteSleeveButton";
 import Link from "next/link";
-import SleeveAddToCartButton from "@/components/SleeveAddToCartButton";
-import StockBadge from "@/components/StockBadge";
-import { formatPrice } from "@/lib/format";
+import SleeveCatalogGrid from "@/components/SleeveCatalogGrid";
 import { getSleeves } from "@/lib/sleeves";
 
 export const metadata: Metadata = {
@@ -93,69 +90,7 @@ export default async function SleevePage() {
             Aucune sleeve disponible pour le moment.
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
-              <article
-                key={product.id}
-                className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-zinc-950">
-                  {product.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className={`h-full w-full object-contain p-2 ${
-                        product.stock <= 0 ? "opacity-40 grayscale" : ""
-                      }`}
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-center text-sm font-bold uppercase tracking-[0.18em] text-violet-200">
-                      Sleeve
-                    </div>
-                  )}
-
-                  {product.stock <= 0 ? (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow">
-                        Rupture
-                      </span>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="mt-4">
-                  <h3 className="font-semibold text-white">{product.name}</h3>
-                  {product.description ? (
-                    <p className="mt-2 line-clamp-3 text-sm leading-6 text-gray-400">
-                      {product.description}
-                    </p>
-                  ) : null}
-
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <span className="text-lg font-extrabold text-brand-400">
-                      {formatPrice(product.priceCents / 100)}
-                    </span>
-                    <StockBadge
-                      stock={product.stock}
-                      compact
-                      label={
-                        product.stock <= 0
-                          ? "Rupture"
-                          : `${product.stock} dispo`
-                      }
-                    />
-                  </div>
-
-                  <SleeveAddToCartButton
-                    sleeveId={product.id}
-                    stock={product.stock}
-                  />
-                  <FavoriteSleeveButton sleeveId={product.id} />
-                </div>
-              </article>
-            ))}
-          </div>
+          <SleeveCatalogGrid products={products} />
         )}
       </section>
     </div>

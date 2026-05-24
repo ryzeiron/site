@@ -2,6 +2,7 @@ import Link from "next/link";
 import CardImage from "@/components/CardImage";
 import ConditionBadge from "@/components/ConditionBadge";
 import FavoriteHeartButton from "@/components/FavoriteHeartButton";
+import QuickAddCardButton from "@/components/QuickAddCardButton";
 import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
 import {
   formatRarityLabel,
@@ -106,6 +107,8 @@ export default function CardTile({
           </div>
         </div>
       </Link>
+
+      <QuickAddCardButton card={card} variantKey={variantKey} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 type AdminCatalogTabsProps = {
-  active: "cards" | "sleeves";
+  active: "dashboard" | "cards" | "sleeves";
   cardsCount?: number;
   sleevesCount?: number;
 };
@@ -23,10 +23,18 @@ export default function AdminCatalogTabs({
   return (
     <nav className="mb-6 rounded-2xl border border-violet-300/15 bg-zinc-950/75 p-2">
       <div className="px-2 pb-2 pt-1 text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">
-        Catalogue admin
+        Admin
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <Link
+          href="/admin/dashboard"
+          className={tabClass(active === "dashboard")}
+          aria-current={active === "dashboard" ? "page" : undefined}
+        >
+          <span>Accueil</span>
+        </Link>
+
         <Link
           href="/admin"
           className={tabClass(active === "cards")}

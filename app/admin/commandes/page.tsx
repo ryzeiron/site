@@ -57,8 +57,15 @@ export default async function AdminOrdersPage() {
 
       <div className="mb-6">
         <Link
+          href="/admin/dashboard"
+          className="rounded bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 text-sm"
+        >
+          Accueil admin
+        </Link>
+
+        <Link
           href="/admin"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+          className="ml-3 rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
         >
           Retour stocks
         </Link>
