@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { lte } from "drizzle-orm";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import AdminSerieBulkActions from "@/components/AdminSerieBulkActions";
 import { formatRarityLabel } from "@/lib/display-variants";
 import AdminStockRow from "@/components/AdminStockRow";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
+import { getDb } from "@/lib/db/client";
+import { cardOverrides, hiddenVariants, stockOverrides } from "@/lib/db/schema";
 import {
   CARDS,
   RARITIES,
@@ -30,7 +33,7 @@ type Search = {
   quick?: string;
   page?: string;
 };
-type QuickFilter = "out" | "low" | "modified" | "hidden" | "premium";
+type QuickFilter = "out" | "modified" | "hidden" | "premium";
 type AdminHrefParams = {
   serieId: string;
   query: string;
@@ -233,7 +236,6 @@ function searchableText(card: Card) {
 function isQuickFilter(value?: string): value is QuickFilter {
   return (
     value === "out" ||
-    value === "low" ||
     value === "modified" ||
     value === "hidden" ||
     value === "premium"
@@ -356,10 +358,6 @@ function cardMatchesQuickFilter(
     return variants.some(({ variant }) => variant.stock <= 0);
   }
 
-  if (quick === "low") {
-    return variants.some(({ variant }) => variant.stock > 0 && variant.stock <= 2);
-  }
-
   if (quick === "hidden") {
     return variants.some(({ key }) => isVariantHidden(card, key));
   }
@@ -372,6 +370,87 @@ function cardMatchesQuickFilter(
   }
 
   return isModifiedFromCatalog(card, catalogCard);
+}
+
+async function getQuickOverrideCardIds(quick: QuickFilter) {
+  const db = getDb();
+
+  try {
+    if (quick === "out") {
+      const rows = await db
+        .select({ cardId: stockOverrides.cardId })
+        .from(stockOverrides)
+        .where(lte(stockOverrides.stock, 0));
+
+      return rows.map((row) => row.cardId);
+    }
+
+    if (quick === "hidden") {
+      const rows = await db
+        .select({ cardId: hiddenVariants.cardId })
+        .from(hiddenVariants);
+
+      return rows.map((row) => row.cardId);
+    }
+
+    if (quick === "modified") {
+      const [stockRows, cardRows, hiddenRows] = await Promise.all([
+        db.select({ cardId: stockOverrides.cardId }).from(stockOverrides),
+        db.select({ cardId: cardOverrides.cardId }).from(cardOverrides),
+        db.select({ cardId: hiddenVariants.cardId }).from(hiddenVariants),
+      ]);
+
+      return [
+        ...stockRows.map((row) => row.cardId),
+        ...cardRows.map((row) => row.cardId),
+        ...hiddenRows.map((row) => row.cardId),
+      ];
+    }
+  } catch {
+    return [];
+  }
+
+  return [];
+}
+
+async function getQuickCandidateCards(
+  quick: QuickFilter,
+  catalogById: Map<string, Card>,
+) {
+  const ids = new Set<string>();
+
+  for (const card of CARDS) {
+    if (cardMatchesQuickFilter(card, quick, catalogById.get(card.id))) {
+      ids.add(card.id);
+    }
+  }
+
+  for (const cardId of await getQuickOverrideCardIds(quick)) {
+    ids.add(cardId);
+  }
+
+  return Array.from(ids)
+    .map((id) => catalogById.get(id))
+    .filter((card): card is Card => Boolean(card));
+}
+
+function cardMatchesTextAndRarity(
+  card: Card,
+  terms: string[],
+  rarity: Rarity | "",
+) {
+  if (terms.length > 0) {
+    const text = searchableText(card);
+    if (!terms.every((term) => text.includes(term))) return false;
+  }
+
+  if (rarity) {
+    return listVariants(card, { includeHidden: true }).some(
+      ({ variant }) => variant.rarity === rarity,
+    );
+  }
+
+  return true;
 }
 
 function parsePage(value?: string) {
@@ -434,45 +513,27 @@ export default async function AdminPage({
   const hasSearch = terms.length > 0 || Boolean(rarity) || Boolean(quick);
 
   const serie = serieId ? getSerie(serieId) : undefined;
-  const allCardsWithStock = await applyStockOverrides(CARDS);
   const catalogById = new Map(CARDS.map((card) => [card.id, card]));
-  const stockedCards = allCardsWithStock.filter((card) =>
-    listVariants(card).some(({ variant }) => variant.stock > 0),
-  ).length;
-  const totalStock = allCardsWithStock.reduce(
-    (total, card) =>
-      total +
-      listVariants(card).reduce(
-        (variantTotal, { variant }) => variantTotal + variant.stock,
-        0,
-      ),
-    0,
-  );
-  const cards = serie
-    ? allCardsWithStock.filter((card) => card.serieId === serie.id)
-    : serieId
-      ? []
-      : hasSearch
-        ? allCardsWithStock
-        : [];
-  let filteredCards = cards;
+  let filteredCards: Card[] = [];
 
-  if (terms.length > 0) {
-    filteredCards = filteredCards.filter((c) => {
-      const text = searchableText(c);
-      return terms.every((term) => text.includes(term));
-    });
-  }
+  if (serie) {
+    const serieCards = CARDS.filter((card) => card.serieId === serie.id);
+    const serieCardsWithStock = await applyStockOverrides(serieCards);
 
-  if (rarity) {
-    filteredCards = filteredCards.filter((c) =>
-      listVariants(c).some(({ variant }) => variant.rarity === rarity),
+    filteredCards = serieCardsWithStock.filter(
+      (card) =>
+        cardMatchesTextAndRarity(card, terms, rarity) &&
+        (!quick || cardMatchesQuickFilter(card, quick, catalogById.get(card.id))),
     );
-  }
+  } else if (serieId) {
+    filteredCards = [];
+  } else if (hasSearch) {
+    const candidateCards = quick
+      ? await getQuickCandidateCards(quick, catalogById)
+      : CARDS;
 
-  if (quick) {
-    filteredCards = filteredCards.filter((card) =>
-      cardMatchesQuickFilter(card, quick, catalogById.get(card.id)),
+    filteredCards = candidateCards.filter((card) =>
+      cardMatchesTextAndRarity(card, terms, rarity),
     );
   }
 
@@ -482,31 +543,17 @@ export default async function AdminPage({
   const totalPages = Math.max(1, Math.ceil(totalFilteredCards / ADMIN_PAGE_SIZE));
   const currentPage = Math.min(requestedPage, totalPages);
   const startIndex = (currentPage - 1) * ADMIN_PAGE_SIZE;
-  const paginatedCards = filteredCards.slice(
+  const pageCatalogCards = filteredCards.slice(
     startIndex,
     startIndex + ADMIN_PAGE_SIZE,
   );
+  const paginatedCards = serie
+    ? pageCatalogCards
+    : await applyStockOverrides(pageCatalogCards);
   const visibleStart = totalFilteredCards === 0 ? 0 : startIndex + 1;
   const visibleEnd = Math.min(startIndex + ADMIN_PAGE_SIZE, totalFilteredCards);
   const paginationHref = (page: number) =>
     adminHref({ serieId, query, rarity, quick, page });
-  const quickCounts = {
-    out: allCardsWithStock.filter((card) =>
-      cardMatchesQuickFilter(card, "out", catalogById.get(card.id)),
-    ).length,
-    low: allCardsWithStock.filter((card) =>
-      cardMatchesQuickFilter(card, "low", catalogById.get(card.id)),
-    ).length,
-    modified: allCardsWithStock.filter((card) =>
-      cardMatchesQuickFilter(card, "modified", catalogById.get(card.id)),
-    ).length,
-    hidden: allCardsWithStock.filter((card) =>
-      cardMatchesQuickFilter(card, "hidden", catalogById.get(card.id)),
-    ).length,
-    premium: allCardsWithStock.filter((card) =>
-      cardMatchesQuickFilter(card, "premium", catalogById.get(card.id)),
-    ).length,
-  };
 
   return (
     <div className="py-6">
@@ -516,9 +563,8 @@ export default async function AdminPage({
             Admin - Stocks & prix
           </h1>
           <p className="text-sm text-gray-400 mt-1">
-            {stockedCards} cartes en stock sur {totalCards} cartes
-            enregistrées, {totalStock} exemplaires au total. Modifie le stock
-            et le prix par variante - les valeurs écrasent celles du catalogue.
+            {totalCards} cartes enregistrées. Choisis une série ou lance une
+            recherche pour charger uniquement les cartes utiles.
           </p>
         </div>
 
@@ -625,7 +671,7 @@ export default async function AdminPage({
           <div>
             <h2 className="text-lg font-bold text-white">À traiter</h2>
             <p className="mt-1 text-sm text-gray-400">
-              Filtres rapides pour repérer les stocks à surveiller.
+              Raccourcis rapides sans charger tout le catalogue au départ.
             </p>
           </div>
           {quick ? (
@@ -638,13 +684,12 @@ export default async function AdminPage({
           ) : null}
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { key: "out", label: "Rupture", count: quickCounts.out, tone: "red" },
-            { key: "low", label: "Stock faible", count: quickCounts.low, tone: "orange" },
-            { key: "modified", label: "Modifiées", count: quickCounts.modified, tone: "fuchsia" },
-            { key: "hidden", label: "Masquées", count: quickCounts.hidden, tone: "amber" },
-            { key: "premium", label: "Ultra/Secrètes", count: quickCounts.premium, tone: "violet" },
+            { key: "out", label: "Rupture" },
+            { key: "modified", label: "Modifiées" },
+            { key: "hidden", label: "Masquées" },
+            { key: "premium", label: "Ultra/Secrètes" },
           ].map((item) => (
             <Link
               key={item.key}
@@ -656,8 +701,8 @@ export default async function AdminPage({
               }`}
             >
               <div className="text-sm text-gray-400">{item.label}</div>
-              <div className="mt-2 text-3xl font-bold text-white">
-                {item.count}
+              <div className="mt-2 text-sm font-semibold text-white">
+                Ouvrir la liste
               </div>
             </Link>
           ))}

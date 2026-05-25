@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { desc } from "drizzle-orm";
+import type { ReactNode } from "react";
+import { desc, eq, or } from "drizzle-orm";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
 import { getCard, resolveVariant } from "@/lib/catalog";
@@ -11,6 +12,17 @@ import { formatPrice } from "@/lib/format";
 import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
+
+type Search = {
+  client?: string;
+  page?: string;
+};
+
+type OrderRow = typeof orders.$inferSelect;
+type FavoriteRow = typeof favoriteCards.$inferSelect;
+type CardMap = Map<string, NonNullable<ReturnType<typeof getCard>>>;
+
+const PAGE_SIZE = 25;
 
 const STATUS_LABELS: Record<string, string> = {
   paid: "Commande payée",
@@ -30,46 +42,80 @@ function formatDate(value: Date | string | null | undefined) {
   });
 }
 
-export default async function AdminClientsPage() {
+function parsePage(value?: string) {
+  const page = Number.parseInt(value ?? "1", 10);
+  return Number.isFinite(page) && page > 0 ? page : 1;
+}
+
+function clientsHref({
+  clientId,
+  page,
+}: {
+  clientId?: string | null;
+  page?: number;
+}) {
+  const params = new URLSearchParams();
+  if (clientId) params.set("client", clientId);
+  if (page && page > 1) params.set("page", String(page));
+  const search = params.toString();
+  return search ? `/admin/clients?${search}` : "/admin/clients";
+}
+
+export default async function AdminClientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Search>;
+}) {
   if (!(await isAdmin())) redirect("/admin/login");
 
+  const params = await searchParams;
+  const currentPage = parsePage(params.page);
+  const offset = (currentPage - 1) * PAGE_SIZE;
+  const selectedClientId = params.client ?? "";
   const db = getDb();
-  const [clientRows, orderRows, favoriteRows] = await Promise.all([
-    db.select().from(users).orderBy(desc(users.createdAt)),
-    db.select().from(orders).orderBy(desc(orders.createdAt)),
-    db.select().from(favoriteCards).orderBy(desc(favoriteCards.createdAt)),
-  ]);
 
-  const favoriteCardIds = Array.from(
-    new Set(favoriteRows.map((favorite) => favorite.cardId)),
-  );
+  const clientRowsPlusOne = await db
+    .select()
+    .from(users)
+    .orderBy(desc(users.createdAt))
+    .limit(PAGE_SIZE + 1)
+    .offset(offset);
+  const clientRows = clientRowsPlusOne.slice(0, PAGE_SIZE);
+  const hasNextPage = clientRowsPlusOne.length > PAGE_SIZE;
+  const hasPreviousPage = currentPage > 1;
+  const selectedClient = selectedClientId
+    ? (await db.select().from(users).where(eq(users.id, selectedClientId)).limit(1))[0] ??
+      null
+    : null;
 
-  const rawFavoriteCards = favoriteCardIds
+  const [clientOrders, clientFavorites] = selectedClient
+    ? await Promise.all([
+        db
+          .select()
+          .from(orders)
+          .where(
+            or(
+              eq(orders.userId, selectedClient.id),
+              eq(orders.customerEmail, selectedClient.email),
+            ),
+          )
+          .orderBy(desc(orders.createdAt))
+          .limit(50),
+        db
+          .select()
+          .from(favoriteCards)
+          .where(eq(favoriteCards.userId, selectedClient.id))
+          .orderBy(desc(favoriteCards.createdAt))
+          .limit(50),
+      ])
+    : [[], []];
+  const rawFavoriteCards = Array.from(
+    new Set(clientFavorites.map((favorite) => favorite.cardId)),
+  )
     .map((cardId) => getCard(cardId))
     .filter((card): card is NonNullable<typeof card> => !!card);
-
   const liveFavoriteCards = await applyStockOverrides(rawFavoriteCards);
-  const favoriteCardMap = new Map(
-    liveFavoriteCards.map((card) => [card.id, card]),
-  );
-
-  const ordersByUser = new Map<string, typeof orderRows>();
-  const favoritesByUser = new Map<string, typeof favoriteRows>();
-
-  for (const order of orderRows) {
-    const key = order.userId || order.customerEmail || "";
-    if (!key) continue;
-
-    const group = ordersByUser.get(key) ?? [];
-    group.push(order);
-    ordersByUser.set(key, group);
-  }
-
-  for (const favorite of favoriteRows) {
-    const group = favoritesByUser.get(favorite.userId) ?? [];
-    group.push(favorite);
-    favoritesByUser.set(favorite.userId, group);
-  }
+  const favoriteCardMap = new Map(liveFavoriteCards.map((card) => [card.id, card]));
 
   return (
     <div className="py-6">
@@ -77,7 +123,7 @@ export default async function AdminClientsPage() {
         <div>
           <h1 className="text-3xl font-bold text-white">Admin - Clients</h1>
           <p className="mt-1 text-sm text-gray-400">
-            Consulte les comptes clients, leurs commandes et leurs favoris.
+            Ouvre un client pour charger ses commandes et ses favoris.
           </p>
         </div>
 
@@ -85,104 +131,110 @@ export default async function AdminClientsPage() {
       </div>
 
       <div className="mb-6 flex flex-wrap gap-3">
-        <Link href="/admin" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
-          Retour stocks
-        </Link>
-
-        <Link href="/admin/modifications" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
-          Modifications
-        </Link>
-
-        <Link href="/admin/commandes" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
-          Commandes
-        </Link>
-
-        <Link href="/admin/favoris" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
-          Favoris
-        </Link>
-
-        <Link href="/admin/avis" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
-          Avis
-        </Link>
+        <AdminLink href="/admin">Retour stocks</AdminLink>
+        <AdminLink href="/admin/modifications">Modifications</AdminLink>
+        <AdminLink href="/admin/commandes">Commandes</AdminLink>
+        <AdminLink href="/admin/favoris">Favoris</AdminLink>
+        <AdminLink href="/admin/avis">Avis</AdminLink>
       </div>
 
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
-          <div className="text-sm text-gray-400">Comptes clients</div>
-          <div className="mt-1 text-2xl font-bold text-white">{clientRows.length}</div>
-        </div>
-
-        <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
-          <div className="text-sm text-gray-400">Commandes enregistrées</div>
-          <div className="mt-1 text-2xl font-bold text-white">{orderRows.length}</div>
-        </div>
-
-        <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
-          <div className="text-sm text-gray-400">Favoris enregistrés</div>
-          <div className="mt-1 text-2xl font-bold text-white">{favoriteRows.length}</div>
-        </div>
+        <StatCard label="Clients affichés" value={clientRows.length} />
+        <StatCard label="Commandes du client" value={clientOrders.length} />
+        <StatCard label="Favoris du client" value={clientFavorites.length} />
       </div>
 
       {clientRows.length === 0 ? (
         <p className="text-gray-400">Aucun compte client pour le moment.</p>
       ) : (
-        <div className="space-y-4">
-          {clientRows.map((client) => {
-            const clientOrders = [
-              ...(ordersByUser.get(client.id) ?? []),
-              ...(ordersByUser.get(client.email) ?? []),
-            ];
+        <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
+          <section className="space-y-3">
+            {clientRows.map((client) => (
+              <Link
+                key={client.id}
+                href={clientsHref({ clientId: client.id, page: currentPage })}
+                className={`block rounded-lg border p-4 text-gray-200 transition ${
+                  selectedClient?.id === client.id
+                    ? "border-violet-300/60 bg-violet-500/15"
+                    : "border-white/10 bg-zinc-900/70 hover:border-violet-300/40"
+                }`}
+              >
+                <div className="font-bold text-white">
+                  {client.name || "Client sans nom"}
+                </div>
+                <div className="mt-1 truncate text-sm text-gray-300">{client.email}</div>
+                <div className="mt-2 text-xs text-gray-500">
+                  Créé le {formatDate(client.createdAt)}
+                </div>
+              </Link>
+            ))}
 
-            const clientFavorites = favoritesByUser.get(client.id) ?? [];
+            {(hasPreviousPage || hasNextPage) && (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-zinc-950/65 p-3 text-sm">
+                <Link
+                  href={clientsHref({ page: Math.max(1, currentPage - 1) })}
+                  aria-disabled={!hasPreviousPage}
+                  className={`rounded-full px-3 py-1.5 ${
+                    hasPreviousPage
+                      ? "bg-white/10 text-white hover:bg-white/20"
+                      : "pointer-events-none bg-white/5 text-gray-600"
+                  }`}
+                >
+                  Précédent
+                </Link>
+                <span className="text-gray-400">Page {currentPage}</span>
+                <Link
+                  href={clientsHref({ page: currentPage + 1 })}
+                  aria-disabled={!hasNextPage}
+                  className={`rounded-full px-3 py-1.5 ${
+                    hasNextPage
+                      ? "bg-white/10 text-white hover:bg-white/20"
+                      : "pointer-events-none bg-white/5 text-gray-600"
+                  }`}
+                >
+                  Suivant
+                </Link>
+              </div>
+            )}
+          </section>
 
-            return (
-              <section key={client.id} className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
-                <div className="flex flex-wrap items-start justify-between gap-4">
+          <section className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
+            {!selectedClient ? (
+              <p className="text-sm text-gray-400">
+                Clique sur un client pour afficher ses commandes et ses favoris.
+              </p>
+            ) : (
+              <>
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <h2 className="text-xl font-bold text-white">
-                      {client.name || "Client sans nom"}
+                      {selectedClient.name || "Client sans nom"}
                     </h2>
-
-                    <div className="mt-1 text-sm text-gray-300">{client.email}</div>
-                    <div className="mt-1 font-mono text-xs text-gray-500">ID : {client.id}</div>
+                    <div className="mt-1 text-sm text-gray-300">{selectedClient.email}</div>
+                    <div className="mt-1 font-mono text-xs text-gray-500">
+                      ID : {selectedClient.id}
+                    </div>
                   </div>
-
                   <div className="text-right text-xs text-gray-400">
                     <div>Compte créé le</div>
-                    <div className="text-gray-200">{formatDate(client.createdAt)}</div>
+                    <div className="text-gray-200">{formatDate(selectedClient.createdAt)}</div>
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div className="grid gap-4 lg:grid-cols-2">
                   <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                     <h3 className="mb-3 font-semibold text-white">
                       Commandes ({clientOrders.length})
                     </h3>
-
                     {clientOrders.length === 0 ? (
-                      <p className="text-sm text-gray-400">Aucune commande liée à ce compte.</p>
+                      <p className="text-sm text-gray-400">
+                        Aucune commande liée à ce compte.
+                      </p>
                     ) : (
                       <div className="space-y-3">
-                        <AdminOrderMiniCard order={clientOrders[0]} />
-
-                        {clientOrders.length > 1 && (
-                          <details className="group rounded border border-white/10 bg-zinc-950/30">
-                            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm text-gray-200 transition hover:bg-white/5">
-                              <span>
-                                Voir les {clientOrders.length - 1} autre
-                                {clientOrders.length - 1 > 1 ? "s" : ""} commande
-                                {clientOrders.length - 1 > 1 ? "s" : ""}
-                              </span>
-                              <span className="text-lg text-violet-300 transition group-open:rotate-180">v</span>
-                            </summary>
-
-                            <div className="space-y-3 border-t border-white/10 p-3">
-                              {clientOrders.slice(1).map((order) => (
-                                <AdminOrderMiniCard key={order.id} order={order} />
-                              ))}
-                            </div>
-                          </details>
-                        )}
+                        {clientOrders.map((order) => (
+                          <AdminOrderMiniCard key={order.id} order={order} />
+                        ))}
                       </div>
                     )}
                   </div>
@@ -191,51 +243,49 @@ export default async function AdminClientsPage() {
                     <h3 className="mb-3 font-semibold text-white">
                       Favoris ({clientFavorites.length})
                     </h3>
-
                     {clientFavorites.length === 0 ? (
                       <p className="text-sm text-gray-400">Aucun favori enregistré.</p>
                     ) : (
                       <div className="space-y-3">
-                        <AdminFavoriteMiniCard favorite={clientFavorites[0]} favoriteCardMap={favoriteCardMap} />
-
-                        {clientFavorites.length > 1 && (
-                          <details className="group rounded border border-white/10 bg-zinc-950/30">
-                            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm text-gray-200 transition hover:bg-white/5">
-                              <span>
-                                Voir les {clientFavorites.length - 1} autre
-                                {clientFavorites.length - 1 > 1 ? "s" : ""} favori
-                                {clientFavorites.length - 1 > 1 ? "s" : ""}
-                              </span>
-                              <span className="text-lg text-violet-300 transition group-open:rotate-180">v</span>
-                            </summary>
-
-                            <div className="space-y-3 border-t border-white/10 p-3">
-                              {clientFavorites.slice(1).map((favorite) => (
-                                <AdminFavoriteMiniCard
-                                  key={`${favorite.userId}-${favorite.cardId}-${favorite.variant}`}
-                                  favorite={favorite}
-                                  favoriteCardMap={favoriteCardMap}
-                                />
-                              ))}
-                            </div>
-                          </details>
-                        )}
+                        {clientFavorites.map((favorite) => (
+                          <AdminFavoriteMiniCard
+                            key={`${favorite.userId}-${favorite.cardId}-${favorite.variant}`}
+                            favorite={favorite}
+                            favoriteCardMap={favoriteCardMap}
+                          />
+                        ))}
                       </div>
                     )}
                   </div>
                 </div>
-              </section>
-            );
-          })}
+              </>
+            )}
+          </section>
         </div>
       )}
     </div>
   );
 }
 
-type OrderRow = typeof orders.$inferSelect;
-type FavoriteRow = typeof favoriteCards.$inferSelect;
-type CardMap = Map<string, NonNullable<ReturnType<typeof getCard>>>;
+function AdminLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
+      <div className="text-sm text-gray-400">{label}</div>
+      <div className="mt-1 text-2xl font-bold text-white">{value}</div>
+    </div>
+  );
+}
 
 function AdminOrderMiniCard({ order }: { order: OrderRow }) {
   return (

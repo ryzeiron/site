@@ -12,7 +12,7 @@ import {
 import { getDb } from "@/lib/db/client";
 import { stockOverrides } from "@/lib/db/schema";
 import { notifyRestockSubscribers } from "@/lib/restock-alerts";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 type Body = {
   cardId?: string;
@@ -176,6 +176,28 @@ export async function POST(request: Request) {
 
   try {
     const db = getDb();
+    const saveOverrideWithoutConditionColumn = () =>
+      db.execute(sql`
+        insert into stock_overrides
+          (card_id, variant, stock, price_cents, rarity, updated_at)
+        values
+          (${cardId}, ${variantKey}, ${insertStock}, ${insertPriceCents}, ${insertRarity}, ${new Date()})
+        on conflict (card_id, variant) do update set
+          stock = case
+            when ${hasStock} then excluded.stock
+            else stock_overrides.stock
+          end,
+          price_cents = case
+            when ${hasPrice} then excluded.price_cents
+            else stock_overrides.price_cents
+          end,
+          rarity = case
+            when ${hasRarity} then excluded.rarity
+            else stock_overrides.rarity
+          end,
+          updated_at = ${new Date()}
+      `);
+
     const saveOverride = (includeCondition: boolean) =>
       db
         .insert(stockOverrides)
@@ -208,7 +230,7 @@ export async function POST(request: Request) {
           "La colonne SQL condition manque dans stock_overrides. Ajoute le SQL avant de modifier l'état d'une variante.",
         );
       }
-      await saveOverride(false);
+      await saveOverrideWithoutConditionColumn();
     }
 
     if (hasStock && currentStock <= 0 && stock > 0) {

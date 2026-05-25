@@ -14,10 +14,13 @@ import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
-type Search = { q?: string };
+type Search = { q?: string; type?: string };
+type FavoriteType = "all" | "cards" | "sleeves";
 type FavoriteRow = typeof favoriteCards.$inferSelect;
 type FavoriteSleeveRow = typeof favoriteSleeves.$inferSelect;
 type UserRow = typeof users.$inferSelect;
+
+const FAVORITE_GROUP_LIMIT = 20;
 
 type FavoriteClient = {
   id: string;
@@ -67,6 +70,19 @@ function variantLabel(value: string) {
   if (value === "base") return "Base";
   if (value === "alt") return "Alt";
   return value;
+}
+
+function parseFavoriteType(value?: string): FavoriteType {
+  if (value === "cards" || value === "sleeves") return value;
+  return "all";
+}
+
+function favoritesHref(type: FavoriteType, query: string) {
+  const params = new URLSearchParams();
+  if (type !== "all") params.set("type", type);
+  if (query) params.set("q", query);
+  const search = params.toString();
+  return search ? `/admin/favoris?${search}` : "/admin/favoris";
 }
 
 function getClientEmails(clients: FavoriteClient[]) {
@@ -217,15 +233,20 @@ export default async function AdminFavoritesPage({
 
   const params = await searchParams;
   const query = (params.q ?? "").trim();
+  const type = parseFavoriteType(params.type);
 
   const db = getDb();
 
   const [favoriteRows, sleeveFavoriteRows, userRows] = await Promise.all([
-    db.select().from(favoriteCards).orderBy(desc(favoriteCards.createdAt)),
-    db
-      .select()
-      .from(favoriteSleeves)
-      .orderBy(desc(favoriteSleeves.createdAt)),
+    type === "sleeves"
+      ? Promise.resolve([])
+      : db.select().from(favoriteCards).orderBy(desc(favoriteCards.createdAt)),
+    type === "cards"
+      ? Promise.resolve([])
+      : db
+          .select()
+          .from(favoriteSleeves)
+          .orderBy(desc(favoriteSleeves.createdAt)),
     db.select().from(users),
   ]);
 
@@ -302,7 +323,9 @@ export default async function AdminFavoritesPage({
     ...sleeveFavoriteRows.map((favorite) => favorite.userId),
   ]).size;
 
-  const serieGroups = groupFavoritesBySerie(filteredGroups);
+  const pagedGroups = filteredGroups.slice(0, FAVORITE_GROUP_LIMIT);
+  const pagedSleeveGroups = filteredSleeveGroups.slice(0, FAVORITE_GROUP_LIMIT);
+  const serieGroups = groupFavoritesBySerie(pagedGroups);
   const totalFavorites = favoriteRows.length + sleeveFavoriteRows.length;
   const hasFilteredFavorites =
     filteredGroups.length > 0 || filteredSleeveGroups.length > 0;
@@ -368,7 +391,29 @@ export default async function AdminFavoritesPage({
         </div>
       </div>
 
+      <div className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-zinc-950/65 p-3">
+        {[
+          { value: "all", label: "Tous" },
+          { value: "cards", label: "Cartes" },
+          { value: "sleeves", label: "Sleeves" },
+        ].map((item) => (
+          <Link
+            key={item.value}
+            href={favoritesHref(item.value as FavoriteType, query)}
+            className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+              type === item.value
+                ? "bg-violet-600 text-white"
+                : "bg-white/10 text-gray-200 hover:bg-white/20"
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
+
       <form action="/admin/favoris" className="mb-6 flex flex-wrap gap-3">
+        {type !== "all" ? <input type="hidden" name="type" value={type} /> : null}
+
         <input
           type="search"
           name="q"
@@ -382,7 +427,7 @@ export default async function AdminFavoritesPage({
         </button>
 
         {query && (
-          <Link href="/admin/favoris" className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
+          <Link href={favoritesHref(type, "")} className="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20">
             Effacer
           </Link>
         )}
@@ -392,7 +437,7 @@ export default async function AdminFavoritesPage({
         <p className="text-gray-400">Aucun favori trouvé.</p>
       ) : (
         <div className="space-y-8">
-          {filteredGroups.length > 0 ? (
+          {pagedGroups.length > 0 ? (
             <section>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-2xl font-bold text-white">
@@ -441,10 +486,16 @@ export default async function AdminFavoritesPage({
                   );
                 })}
               </div>
+              {filteredGroups.length > pagedGroups.length ? (
+                <p className="mt-3 text-sm text-gray-400">
+                  Affichage des {pagedGroups.length} premiers groupes de cartes.
+                  Utilise la recherche pour cibler une carte ou une série.
+                </p>
+              ) : null}
             </section>
           ) : null}
 
-          {filteredSleeveGroups.length > 0 ? (
+          {pagedSleeveGroups.length > 0 ? (
             <section>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-2xl font-bold text-white">
@@ -457,10 +508,16 @@ export default async function AdminFavoritesPage({
               </div>
 
               <div className="space-y-3">
-                {filteredSleeveGroups.map((group) => (
+                {pagedSleeveGroups.map((group) => (
                   <SleeveFavoriteGroupCard key={group.key} group={group} />
                 ))}
               </div>
+              {filteredSleeveGroups.length > pagedSleeveGroups.length ? (
+                <p className="mt-3 text-sm text-gray-400">
+                  Affichage des {pagedSleeveGroups.length} premiers groupes de
+                  sleeves. Utilise la recherche pour cibler un produit.
+                </p>
+              ) : null}
             </section>
           ) : null}
         </div>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Children, type ReactNode } from "react";
-import { desc } from "drizzle-orm";
+import { desc, ne } from "drizzle-orm";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
@@ -17,6 +17,9 @@ export const dynamic = "force-dynamic";
 type OrderRow = typeof orders.$inferSelect;
 type FavoriteCardRow = typeof favoriteCards.$inferSelect;
 type FavoriteSleeveRow = typeof favoriteSleeves.$inferSelect;
+
+const DASHBOARD_ORDER_LIMIT = 6;
+const DASHBOARD_FAVORITE_LIMIT = 80;
 
 const STATUS_LABELS: Record<string, string> = {
   paid: "Commande payée",
@@ -138,16 +141,39 @@ export default async function AdminDashboardPage() {
   if (!(await isAdmin())) redirect("/admin/login");
 
   const db = getDb();
-  const [orderRows, favoriteCardRows, favoriteSleeveRows, cardsWithStock, sleeveRows] =
+  const [recentOrders, openOrders, favoriteCardRows, favoriteSleeveRows, sleeveRows] =
     await Promise.all([
-      db.select().from(orders).orderBy(desc(orders.createdAt)),
-      db.select().from(favoriteCards).orderBy(desc(favoriteCards.createdAt)),
-      db.select().from(favoriteSleeves).orderBy(desc(favoriteSleeves.createdAt)),
-      applyStockOverrides(CARDS),
+      db
+        .select()
+        .from(orders)
+        .orderBy(desc(orders.createdAt))
+        .limit(DASHBOARD_ORDER_LIMIT),
+      db
+        .select()
+        .from(orders)
+        .where(ne(orders.status, "shipped"))
+        .orderBy(desc(orders.createdAt))
+        .limit(DASHBOARD_ORDER_LIMIT),
+      db
+        .select()
+        .from(favoriteCards)
+        .orderBy(desc(favoriteCards.createdAt))
+        .limit(DASHBOARD_FAVORITE_LIMIT),
+      db
+        .select()
+        .from(favoriteSleeves)
+        .orderBy(desc(favoriteSleeves.createdAt))
+        .limit(DASHBOARD_FAVORITE_LIMIT),
       getSleeves(),
     ]);
 
-  const openOrders = orderRows.filter((order) => order.status !== "shipped");
+  const favoriteCardIds = Array.from(
+    new Set(favoriteCardRows.map((favorite) => favorite.cardId)),
+  );
+  const favoriteCatalogCards = favoriteCardIds
+    .map((cardId) => CARDS.find((card) => card.id === cardId))
+    .filter((card): card is Card => Boolean(card));
+  const cardsWithStock = await applyStockOverrides(favoriteCatalogCards);
   const cardById = new Map(cardsWithStock.map((card) => [card.id, card]));
   const sleeveById = new Map(sleeveRows.map((sleeve) => [sleeve.id, sleeve]));
   const favoriteCardGroups = groupFavoriteCards(favoriteCardRows, cardById);
@@ -159,7 +185,6 @@ export default async function AdminDashboardPage() {
   const favoriteSleevesOut = favoriteSleeveGroups.filter(
     (group) => !group.sleeve || group.sleeve.stock <= 0,
   );
-  const recentOrders = orderRows.slice(0, 6);
   const favoriteCount = favoriteCardRows.length + favoriteSleeveRows.length;
 
   return (
@@ -177,7 +202,7 @@ export default async function AdminDashboardPage() {
 
       <AdminCatalogTabs
         active="dashboard"
-        cardsCount={cardsWithStock.length}
+        cardsCount={CARDS.length}
         sleevesCount={sleeveRows.length}
       />
 
@@ -196,8 +221,8 @@ export default async function AdminDashboardPage() {
           value={favoriteCardsOut.length + favoriteSleevesOut.length}
           tone="rose"
         />
-        <StatCard label="Commandes récentes" value={orderRows.length} tone="amber" />
-        <StatCard label="Produits favoris" value={favoriteCount} tone="violet" />
+        <StatCard label="Commandes récentes" value={recentOrders.length} tone="amber" />
+        <StatCard label="Favoris récents" value={favoriteCount} tone="violet" />
       </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
@@ -206,7 +231,7 @@ export default async function AdminDashboardPage() {
           href="/admin/commandes"
           empty="Aucune commande à traiter."
         >
-          {openOrders.slice(0, 6).map((order) => (
+          {openOrders.map((order) => (
             <OrderLine key={order.id} order={order} />
           ))}
         </DashboardPanel>

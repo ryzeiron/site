@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import LogoutButton from "@/components/LogoutButton";
 import AdminOrderShippingForm from "@/components/AdminOrderShippingForm";
 import { isAdmin } from "@/lib/admin/auth";
@@ -9,12 +9,43 @@ import { orders } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
 
+type Search = {
+  status?: string;
+  page?: string;
+};
+
+type OrderStatus = "paid" | "label_to_create" | "label_created" | "shipped";
+
+const PAGE_SIZE = 25;
+
 const STATUS_LABELS: Record<string, string> = {
   paid: "Commande payée",
   label_to_create: "Bordereau à créer",
   label_created: "Étiquette créée",
   shipped: "Colis expédié",
 };
+
+function isOrderStatus(value?: string): value is OrderStatus {
+  return (
+    value === "paid" ||
+    value === "label_to_create" ||
+    value === "label_created" ||
+    value === "shipped"
+  );
+}
+
+function parsePage(value?: string) {
+  const page = Number.parseInt(value ?? "1", 10);
+  return Number.isFinite(page) && page > 0 ? page : 1;
+}
+
+function ordersHref(status: OrderStatus | "", page = 1) {
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  if (page > 1) params.set("page", String(page));
+  const search = params.toString();
+  return search ? `/admin/commandes?${search}` : "/admin/commandes";
+}
 
 function statusClass(status: string) {
   if (status === "paid") return "border-sky-400/35 bg-sky-500/15 text-sky-200";
@@ -30,16 +61,43 @@ function statusClass(status: string) {
   return "border-white/15 bg-white/10 text-gray-200";
 }
 
-export default async function AdminOrdersPage() {
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<Search>;
+}) {
   if (!(await isAdmin())) redirect("/admin/login");
 
+  const params = await searchParams;
+  const status = isOrderStatus(params.status) ? params.status : "";
+  const currentPage = parsePage(params.page);
+  const offset = (currentPage - 1) * PAGE_SIZE;
   const db = getDb();
-  const rows = await db.select().from(orders).orderBy(desc(orders.createdAt));
+  const [rowsPlusOne, statusRows] = await Promise.all([
+    status
+      ? db
+          .select()
+          .from(orders)
+          .where(eq(orders.status, status))
+          .orderBy(desc(orders.createdAt))
+          .limit(PAGE_SIZE + 1)
+          .offset(offset)
+      : db
+          .select()
+          .from(orders)
+          .orderBy(desc(orders.createdAt))
+          .limit(PAGE_SIZE + 1)
+          .offset(offset),
+    db.select({ status: orders.status }).from(orders),
+  ]);
+  const rows = rowsPlusOne.slice(0, PAGE_SIZE);
+  const hasNextPage = rowsPlusOne.length > PAGE_SIZE;
+  const hasPreviousPage = currentPage > 1;
   const stats = {
-    paid: rows.filter((order) => order.status === "paid").length,
-    labelToCreate: rows.filter((order) => order.status === "label_to_create").length,
-    labelCreated: rows.filter((order) => order.status === "label_created").length,
-    shipped: rows.filter((order) => order.status === "shipped").length,
+    paid: statusRows.filter((order) => order.status === "paid").length,
+    labelToCreate: statusRows.filter((order) => order.status === "label_to_create").length,
+    labelCreated: statusRows.filter((order) => order.status === "label_created").length,
+    shipped: statusRows.filter((order) => order.status === "shipped").length,
   };
 
   return (
@@ -122,6 +180,28 @@ export default async function AdminOrdersPage() {
             {stats.shipped}
           </div>
         </div>
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-zinc-950/65 p-3">
+        {[
+          { value: "", label: "Toutes" },
+          { value: "paid", label: "Payées" },
+          { value: "label_to_create", label: "Bordereau à créer" },
+          { value: "label_created", label: "Étiquette créée" },
+          { value: "shipped", label: "Expédiées" },
+        ].map((item) => (
+          <Link
+            key={item.value || "all"}
+            href={ordersHref(item.value as OrderStatus | "")}
+            className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+              status === item.value
+                ? "bg-violet-600 text-white"
+                : "bg-white/10 text-gray-200 hover:bg-white/20"
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
       </div>
 
       {rows.length === 0 ? (
@@ -224,6 +304,36 @@ export default async function AdminOrdersPage() {
               />
             </div>
           ))}
+
+          {(hasPreviousPage || hasNextPage) && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-950/65 p-4 text-sm text-gray-300">
+              <span>Page {currentPage}</span>
+              <div className="flex gap-2">
+                <Link
+                  href={ordersHref(status, Math.max(1, currentPage - 1))}
+                  aria-disabled={!hasPreviousPage}
+                  className={`rounded-full px-3 py-1.5 font-medium ${
+                    hasPreviousPage
+                      ? "bg-white/10 text-white hover:bg-white/20"
+                      : "pointer-events-none bg-white/5 text-gray-600"
+                  }`}
+                >
+                  Précédent
+                </Link>
+                <Link
+                  href={ordersHref(status, currentPage + 1)}
+                  aria-disabled={!hasNextPage}
+                  className={`rounded-full px-3 py-1.5 font-medium ${
+                    hasNextPage
+                      ? "bg-white/10 text-white hover:bg-white/20"
+                      : "pointer-events-none bg-white/5 text-gray-600"
+                  }`}
+                >
+                  Suivant
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
