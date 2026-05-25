@@ -95,7 +95,7 @@ export const catalogSleeves: CatalogSleeve[] = [
   {id: "evolition-4", name: "Evolition 4", description: "1 sleeve.", image: "/sleeves/evolition4.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
   {id: "evolition-5", name: "Evolition 5", description: "1 sleeve.", image: "/sleeves/evolition5.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
   {id: "evolition-6", name: "Evolition 6", description: "1 sleeve.", image: "/sleeves/evolition6.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
-  {id: "evolition-7", name: "Evolition 7", description: "1 sleeve.", image: "/sleeves/evolition7.webp", defaultPriceCents: 100, defaultStock: 3, active: true,},
+  {id: "evolition-7", name: "Evolition 7", description: "1 sleeve.", image: "/sleeves/evolition.webp", defaultPriceCents: 100, defaultStock: 3, active: true,},
   {id: "noctali", name: "Noctali", description: "1 sleeve.", image: "/sleeves/noc.webp", defaultPriceCents: 100, defaultStock: 1, active: true,},
   {id: "sleeve-5", name: "Sleeve 5", description: "1 sleeve.", image: "/sleeves/89.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
   {id: "sleeve-6", name: "Sleeve 6", description: "1 sleeve.", image: "/sleeves/90.webp", defaultPriceCents: 100, defaultStock: 1, active: true,},
