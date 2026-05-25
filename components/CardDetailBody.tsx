@@ -94,6 +94,9 @@ export default function CardDetailBody({ card }: { card: Card }) {
   const prices = variants.map(({ variant }) => variant.price);
   const minPrice = prices.length > 0 ? Math.min(...prices) : card.price;
   const maxPrice = prices.length > 0 ? Math.max(...prices) : card.price;
+  const conditionLabels = Array.from(
+    new Set(variants.map(({ variant }) => variant.condition ?? card.condition)),
+  );
   const gridCols =
     variants.length === 1
       ? ""
@@ -184,8 +187,10 @@ export default function CardDetailBody({ card }: { card: Card }) {
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-4">
             <div className="text-xs text-gray-500">État</div>
-            <div className="mt-2">
-              <ConditionBadge condition={variants[0]?.variant.condition ?? card.condition} />
+            <div className="mt-2 flex flex-wrap gap-2">
+              {conditionLabels.map((condition) => (
+                <ConditionBadge key={condition} condition={condition} />
+              ))}
             </div>
           </div>
           <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-4">

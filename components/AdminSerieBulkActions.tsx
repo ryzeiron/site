@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { RARITIES, type Rarity } from "@/lib/catalog";
+import { CONDITIONS, RARITIES, type Condition, type Rarity } from "@/lib/catalog";
 import { formatRarityLabel } from "@/lib/display-variants";
 
 type Props = {
@@ -18,6 +18,7 @@ export default function AdminSerieBulkActions({
 }: Props) {
   const router = useRouter();
   const [rarity, setRarity] = useState<Rarity>(defaultRarity);
+  const [condition, setCondition] = useState<Condition>("Near Mint");
   const [sourceRarity, setSourceRarity] = useState<Rarity | "all">("all");
   const [replacementRarity, setReplacementRarity] =
     useState<Rarity>(defaultRarity);
@@ -39,7 +40,7 @@ export default function AdminSerieBulkActions({
     const formattedPrice = price.toFixed(2).replace(".", ",");
     const protectsHighRarities = rarity === "Commune" || rarity === "Reverse";
     const ok = window.confirm(
-      `Ajouter ou mettre à jour la variante ${formatRarityLabel(rarity)} sur ${serieLabel} à ${formattedPrice} EUR ?` +
+      `Ajouter ou mettre à jour la variante ${formatRarityLabel(rarity)} - ${condition} sur ${serieLabel} à ${formattedPrice} EUR ?` +
         (protectsHighRarities
           ? "\n\nLes cartes Ultra rare et Secrète seront ignorées."
           : ""),
@@ -58,6 +59,7 @@ export default function AdminSerieBulkActions({
         body: JSON.stringify({
           serieId,
           rarity,
+          condition,
           price,
         }),
       });
@@ -165,6 +167,21 @@ export default function AdminSerieBulkActions({
             </label>
 
             <label className="flex flex-col gap-1 text-sm">
+              <span className="text-xs text-gray-400">État</span>
+              <select
+                value={condition}
+                onChange={(e) => setCondition(e.target.value as Condition)}
+                className="rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
+              >
+                {CONDITIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm">
               <span className="text-xs text-gray-400">Prix</span>
               <div className="flex items-center gap-2">
                 <input
@@ -192,6 +209,10 @@ export default function AdminSerieBulkActions({
               {savingPrice ? "Application..." : "Ajouter à toute la série"}
             </button>
           </div>
+
+          <p className="mt-2 text-xs leading-5 text-gray-400">
+            Une même rareté peut exister plusieurs fois si l'état est différent.
+          </p>
         </div>
 
         <div className="rounded-lg border border-violet-300/20 bg-violet-950/20 p-3">
@@ -253,7 +274,7 @@ export default function AdminSerieBulkActions({
 
           <p className="mt-2 text-xs leading-5 text-gray-400">
             Cette action change seulement la rareté des cartes et variantes
-            concernées. Le prix et le stock restent identiques.
+            concernées. Le prix, le stock et l'état restent identiques.
           </p>
         </div>
       </div>

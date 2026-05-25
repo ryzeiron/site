@@ -35,7 +35,17 @@ export default function CardTile({
   const stockByRarity = stockVariants.reduce<
     { rarity: string; stock: number }[]
   >((items, { variant }) => {
-    const label = formatRarityLabel(variant.rarity);
+    const rarityLabel = formatRarityLabel(variant.rarity);
+    const hasSameRarityWithOtherCondition =
+      stockVariants.some(
+        (item) =>
+          item.variant.rarity === variant.rarity &&
+          (item.variant.condition ?? card.condition) !==
+            (variant.condition ?? card.condition),
+      );
+    const label = hasSameRarityWithOtherCondition
+      ? `${rarityLabel} - ${variant.condition ?? card.condition}`
+      : rarityLabel;
     const existing = items.find((item) => item.rarity === label);
     if (existing) {
       existing.stock += variant.stock;

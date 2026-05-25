@@ -38,8 +38,17 @@ function buildVariants(card: Card): VariantSpec[] {
         ])
       : [],
   );
+  const listedVariants = listVariants(card, { includeHidden: true });
+  const conditionsByRarity = new Map<Rarity, Set<Condition>>();
 
-  return listVariants(card, { includeHidden: true }).map(({ key, variant }) => {
+  for (const { variant } of listedVariants) {
+    const condition = variant.condition ?? card.condition;
+    const conditions = conditionsByRarity.get(variant.rarity) ?? new Set<Condition>();
+    conditions.add(condition);
+    conditionsByRarity.set(variant.rarity, conditions);
+  }
+
+  return listedVariants.map(({ key, variant }) => {
     const catalogVariant = catalogVariants.get(key);
     const condition = variant.condition ?? card.condition;
     const catalogCondition =
@@ -57,14 +66,25 @@ function buildVariants(card: Card): VariantSpec[] {
       variant.rarity !== catalogVariant.rarity ||
       condition !== catalogCondition;
 
+    const rarityLabel = formatRarityLabel(variant.rarity);
+    const hasSameRarityWithOtherCondition =
+      (conditionsByRarity.get(variant.rarity)?.size ?? 0) > 1;
+    const detailedLabel = hasSameRarityWithOtherCondition
+      ? `${rarityLabel} - ${condition}`
+      : rarityLabel;
+
     return {
       key,
       label:
         key === "base"
-          ? "Base"
+          ? hasSameRarityWithOtherCondition
+            ? `Base - ${detailedLabel}`
+            : "Base"
           : key === "alt"
-            ? "Alt"
-            : formatRarityLabel(variant.rarity),
+            ? hasSameRarityWithOtherCondition
+              ? `Alt - ${detailedLabel}`
+              : "Alt"
+            : detailedLabel,
       rarity: variant.rarity,
       condition,
       stock: variant.stock,
@@ -76,8 +96,8 @@ function buildVariants(card: Card): VariantSpec[] {
   });
 }
 
-function slugifyRarity(rarity: string): string {
-  return rarity
+function slugifyValue(value: string): string {
+  return value
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -86,8 +106,8 @@ function slugifyRarity(rarity: string): string {
     .slice(0, 24);
 }
 
-function pickUniqueKey(card: Card, rarity: Rarity): string {
-  const base = slugifyRarity(rarity) || "variante";
+function pickUniqueKey(card: Card, rarity: Rarity, condition: Condition): string {
+  const base = slugifyValue(`${rarity}-${condition}`) || "variante";
   const usedKeys = new Set<string>(["base", "alt"]);
 
   if (card.extraVariants) {
@@ -421,7 +441,7 @@ function NewVariantForm({
     setError(null);
 
     try {
-      const key = pickUniqueKey(card, rarityValue as Rarity);
+      const key = pickUniqueKey(card, rarityValue as Rarity, conditionValue);
 
       const res = await fetch("/api/admin/stock", {
         method: "POST",
