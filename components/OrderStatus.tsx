@@ -41,6 +41,10 @@ const STATUS_LABELS: Record<string, { title: string; detail: string }> = {
     title: "Colis expédié",
     detail: "Le colis est en route vers le point relais choisi.",
   },
+  picked_up: {
+    title: "Colis retiré",
+    detail: "Le colis a été récupéré. Merci pour votre commande.",
+  },
 };
 
 const STATUS_STEPS = [
@@ -48,6 +52,7 @@ const STATUS_STEPS = [
   { key: "label_to_create", label: "Préparation" },
   { key: "label_created", label: "Bordereau" },
   { key: "shipped", label: "Expédiée" },
+  { key: "picked_up", label: "Retirée" },
 ];
 
 async function getOrder(sessionId: string): Promise<OrderLookup> {
@@ -192,7 +197,7 @@ export default async function OrderStatus({
 
         <p className="mt-2 text-emerald-100/80">{status.detail}</p>
 
-        <div className="mt-5 grid gap-2 sm:grid-cols-4">
+        <div className="mt-5 grid gap-2 sm:grid-cols-5">
           {STATUS_STEPS.map((step, index) => {
             const done = index <= activeStepIndex && statusKey !== "pending";
             const current = index === activeStepIndex && statusKey !== "pending";

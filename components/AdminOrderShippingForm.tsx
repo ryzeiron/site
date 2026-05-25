@@ -7,12 +7,14 @@ type OrderStatus =
   | "paid"
   | "label_to_create"
   | "label_created"
-  | "shipped";
+  | "shipped"
+  | "picked_up";
 
 const STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
   { value: "paid", label: "Commande payée" },
   { value: "label_created", label: "Étiquette créée" },
   { value: "shipped", label: "Colis expédié" },
+  { value: "picked_up", label: "Colis retiré" },
   { value: "label_to_create", label: "Bordereau à créer" },
 ];
 
@@ -41,7 +43,17 @@ export default function AdminOrderShippingForm({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  async function save(sendShippingEmail = false) {
+  async function save({
+    nextStatus,
+    sendShippingEmail = false,
+    sendReviewEmail = false,
+  }: {
+    nextStatus?: OrderStatus;
+    sendShippingEmail?: boolean;
+    sendReviewEmail?: boolean;
+  } = {}) {
+    const statusToSave = nextStatus ?? status;
+
     setSaving(true);
     setSaved(false);
     setError(null);
@@ -53,10 +65,11 @@ export default function AdminOrderShippingForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderId,
-          status,
+          status: statusToSave,
           expeditionNumber,
           labelUrl,
           sendShippingEmail,
+          sendReviewEmail,
         }),
       });
 
@@ -67,9 +80,12 @@ export default function AdminOrderShippingForm({
       }
 
       setSaved(true);
+      setStatus(statusToSave);
 
       if (data.emailSent) {
         setNotice("Email d'expédition envoyé au client.");
+      } else if (data.reviewEmailSent) {
+        setNotice("Email d'avis envoyé au client.");
       }
 
       setTimeout(() => setSaved(false), 1600);
@@ -147,13 +163,37 @@ export default function AdminOrderShippingForm({
       {status === "shipped" ? (
         <button
           type="button"
-          onClick={() => save(true)}
+          onClick={() => save({ sendShippingEmail: true })}
           disabled={saving || !expeditionNumber.trim()}
           className="mt-3 rounded bg-white/10 border border-white/20 hover:bg-white/20 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Renvoyer le mail d'expédition
         </button>
       ) : null}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {status !== "picked_up" ? (
+          <button
+            type="button"
+            onClick={() =>
+              save({ nextStatus: "picked_up", sendReviewEmail: true })
+            }
+            disabled={saving}
+            className="rounded bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Colis retiré + mail avis
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => save({ sendReviewEmail: true })}
+            disabled={saving}
+            className="rounded bg-white/10 border border-white/20 hover:bg-white/20 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Renvoyer le mail d'avis
+          </button>
+        )}
+      </div>
 
       {error ? <p className="mt-2 text-xs text-red-300">{error}</p> : null}
 

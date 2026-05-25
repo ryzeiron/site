@@ -177,6 +177,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true, ignored: event.type });
   }
 
+  const session = event.data.object as Stripe.Checkout.Session;
+  const metadata = session.metadata ?? {};
+  const reservationId = metadata.reservation_id;
   const db = getDb();
 
   const seen = await db
@@ -186,12 +189,23 @@ export async function POST(request: Request) {
     .returning({ eventId: processedEvents.eventId });
 
   if (seen.length === 0) {
-    return NextResponse.json({ received: true, duplicate: true });
-  }
+    if (event.type === "checkout.session.completed") {
+      const existingOrder = await db
+        .select({ id: orders.id })
+        .from(orders)
+        .where(eq(orders.id, session.id))
+        .limit(1);
 
-  const session = event.data.object as Stripe.Checkout.Session;
-  const metadata = session.metadata ?? {};
-  const reservationId = metadata.reservation_id;
+      if (existingOrder.length === 0) {
+        // A previous webhook attempt marked the event as processed before the
+        // order was saved. Continue so a manual Stripe resend can repair it.
+      } else {
+        return NextResponse.json({ received: true, duplicate: true });
+      }
+    } else {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+  }
 
   if (event.type === "checkout.session.expired") {
     if (reservationId) {
@@ -217,10 +231,6 @@ export async function POST(request: Request) {
   const mondialRelayExpeditionNumber: string | null = null;
   const mondialRelayLabelUrl: string | null = null;
   const mondialRelayError: string | null = null;
-
-  if (reservationId) {
-    await confirmStockReservation(reservationId, session.id);
-  }
 
   const insertedOrders = await db
     .insert(orders)
@@ -256,53 +266,64 @@ export async function POST(request: Request) {
     });
   }
 
-  if (items.length === 0 || reservationId) {
+  let stockUpdateError: string | null = null;
+
+  try {
+    if (reservationId) {
+      await confirmStockReservation(reservationId, session.id);
+    }
+
+    if (items.length === 0 || reservationId) {
+      await decrementSleeveStock(
+        sleeveItems.map(([sleeveId, quantity]) => ({ sleeveId, quantity })),
+      );
+
+      return NextResponse.json({
+        received: true,
+        items: items.length,
+        sleeves: sleeveItems.length,
+        reservationConfirmed: Boolean(reservationId),
+      });
+    }
+
+    for (const [cardId, variant, quantity] of items) {
+      if (!cardId || !variant || !quantity || quantity <= 0) continue;
+
+      const card = getCard(cardId);
+      if (!card) continue;
+
+      const v = resolveVariant(card, variant);
+
+      const existing = await db
+        .select()
+        .from(stockOverrides)
+        .where(
+          and(
+            eq(stockOverrides.cardId, cardId),
+            eq(stockOverrides.variant, variant),
+          ),
+        )
+        .limit(1);
+
+      const currentStock = existing[0]?.stock ?? v.stock;
+      const nextStock = Math.max(0, currentStock - quantity);
+
+      await db
+        .insert(stockOverrides)
+        .values({ cardId, variant, stock: nextStock })
+        .onConflictDoUpdate({
+          target: [stockOverrides.cardId, stockOverrides.variant],
+          set: { stock: nextStock, updatedAt: new Date() },
+        });
+    }
+
     await decrementSleeveStock(
       sleeveItems.map(([sleeveId, quantity]) => ({ sleeveId, quantity })),
     );
-
-    return NextResponse.json({
-      received: true,
-      items: items.length,
-      sleeves: sleeveItems.length,
-      reservationConfirmed: Boolean(reservationId),
-    });
+  } catch (error) {
+    stockUpdateError =
+      error instanceof Error ? error.message : "Erreur mise a jour stock.";
   }
-
-  for (const [cardId, variant, quantity] of items) {
-    if (!cardId || !variant || !quantity || quantity <= 0) continue;
-
-    const card = getCard(cardId);
-    if (!card) continue;
-
-    const v = resolveVariant(card, variant);
-
-    const existing = await db
-      .select()
-      .from(stockOverrides)
-      .where(
-        and(
-          eq(stockOverrides.cardId, cardId),
-          eq(stockOverrides.variant, variant),
-        ),
-      )
-      .limit(1);
-
-    const currentStock = existing[0]?.stock ?? v.stock;
-    const nextStock = Math.max(0, currentStock - quantity);
-
-    await db
-      .insert(stockOverrides)
-      .values({ cardId, variant, stock: nextStock })
-      .onConflictDoUpdate({
-        target: [stockOverrides.cardId, stockOverrides.variant],
-        set: { stock: nextStock, updatedAt: new Date() },
-      });
-  }
-
-  await decrementSleeveStock(
-    sleeveItems.map(([sleeveId, quantity]) => ({ sleeveId, quantity })),
-  );
 
   return NextResponse.json({
     received: true,
@@ -310,5 +331,6 @@ export async function POST(request: Request) {
     sleevesDecremented: sleeveItems.length,
     labelCreated: Boolean(mondialRelayLabelUrl),
     labelError: mondialRelayError,
+    stockUpdateError,
   });
 }

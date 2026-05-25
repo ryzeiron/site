@@ -269,14 +269,18 @@ export default async function ComptePage({
                                   ? "bg-emerald-500/20 text-emerald-200"
                                   : order.status === "shipped"
                                     ? "bg-blue-500/20 text-blue-200"
-                                    : "bg-gray-500/20 text-gray-200"
+                                    : order.status === "picked_up"
+                                      ? "bg-fuchsia-500/20 text-fuchsia-200"
+                                      : "bg-gray-500/20 text-gray-200"
                               }`}
                             >
                               {order.status === "paid"
                                 ? "Payée"
                                 : order.status === "shipped"
                                   ? "Expédiée"
-                                  : order.status}
+                                  : order.status === "picked_up"
+                                    ? "Retirée"
+                                    : order.status}
                             </span>
                           </div>
                         </div>

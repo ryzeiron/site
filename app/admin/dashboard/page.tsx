@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Children, type ReactNode } from "react";
-import { desc, ne } from "drizzle-orm";
+import { and, desc, ne } from "drizzle-orm";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
@@ -26,6 +26,7 @@ const STATUS_LABELS: Record<string, string> = {
   label_to_create: "Bordereau à créer",
   label_created: "Étiquette créée",
   shipped: "Colis expédié",
+  picked_up: "Colis retiré",
 };
 
 function formatDate(value: Date | string | null | undefined) {
@@ -45,6 +46,12 @@ function statusClass(status: string) {
   }
   if (status === "label_created") {
     return "border-violet-400/35 bg-violet-500/15 text-violet-200";
+  }
+  if (status === "shipped") {
+    return "border-emerald-400/35 bg-emerald-500/15 text-emerald-200";
+  }
+  if (status === "picked_up") {
+    return "border-fuchsia-400/35 bg-fuchsia-500/15 text-fuchsia-200";
   }
   return "border-white/15 bg-white/10 text-gray-200";
 }
@@ -151,7 +158,7 @@ export default async function AdminDashboardPage() {
       db
         .select()
         .from(orders)
-        .where(ne(orders.status, "shipped"))
+        .where(and(ne(orders.status, "shipped"), ne(orders.status, "picked_up")))
         .orderBy(desc(orders.createdAt))
         .limit(DASHBOARD_ORDER_LIMIT),
       db

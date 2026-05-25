@@ -14,7 +14,12 @@ type Search = {
   page?: string;
 };
 
-type OrderStatus = "paid" | "label_to_create" | "label_created" | "shipped";
+type OrderStatus =
+  | "paid"
+  | "label_to_create"
+  | "label_created"
+  | "shipped"
+  | "picked_up";
 
 const PAGE_SIZE = 25;
 
@@ -23,6 +28,7 @@ const STATUS_LABELS: Record<string, string> = {
   label_to_create: "Bordereau à créer",
   label_created: "Étiquette créée",
   shipped: "Colis expédié",
+  picked_up: "Colis retiré",
 };
 
 function isOrderStatus(value?: string): value is OrderStatus {
@@ -30,7 +36,8 @@ function isOrderStatus(value?: string): value is OrderStatus {
     value === "paid" ||
     value === "label_to_create" ||
     value === "label_created" ||
-    value === "shipped"
+    value === "shipped" ||
+    value === "picked_up"
   );
 }
 
@@ -57,6 +64,9 @@ function statusClass(status: string) {
   }
   if (status === "shipped") {
     return "border-emerald-400/35 bg-emerald-500/15 text-emerald-200";
+  }
+  if (status === "picked_up") {
+    return "border-fuchsia-400/35 bg-fuchsia-500/15 text-fuchsia-200";
   }
   return "border-white/15 bg-white/10 text-gray-200";
 }
@@ -98,6 +108,7 @@ export default async function AdminOrdersPage({
     labelToCreate: statusRows.filter((order) => order.status === "label_to_create").length,
     labelCreated: statusRows.filter((order) => order.status === "label_created").length,
     shipped: statusRows.filter((order) => order.status === "shipped").length,
+    pickedUp: statusRows.filter((order) => order.status === "picked_up").length,
   };
 
   return (
@@ -157,7 +168,7 @@ export default async function AdminOrdersPage({
         </Link>
       </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-xl border border-sky-400/20 bg-sky-500/10 p-4">
           <div className="text-sm text-sky-200">Payées</div>
           <div className="mt-1 text-3xl font-bold text-white">{stats.paid}</div>
@@ -180,6 +191,12 @@ export default async function AdminOrdersPage({
             {stats.shipped}
           </div>
         </div>
+        <div className="rounded-xl border border-fuchsia-400/20 bg-fuchsia-500/10 p-4">
+          <div className="text-sm text-fuchsia-200">Retirées</div>
+          <div className="mt-1 text-3xl font-bold text-white">
+            {stats.pickedUp}
+          </div>
+        </div>
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-zinc-950/65 p-3">
@@ -189,6 +206,7 @@ export default async function AdminOrdersPage({
           { value: "label_to_create", label: "Bordereau à créer" },
           { value: "label_created", label: "Étiquette créée" },
           { value: "shipped", label: "Expédiées" },
+          { value: "picked_up", label: "Retirées" },
         ].map((item) => (
           <Link
             key={item.value || "all"}

@@ -29,6 +29,7 @@ const STATUS_LABELS: Record<string, string> = {
   label_to_create: "Bordereau à créer",
   label_created: "Étiquette créée",
   shipped: "Colis expédié",
+  picked_up: "Colis retiré",
 };
 
 function formatDate(value: Date | string | null | undefined) {

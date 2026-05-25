@@ -3,13 +3,17 @@ import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/admin/auth";
 import { getDb } from "@/lib/db/client";
 import { orders } from "@/lib/db/schema";
-import { sendOrderShippedEmail } from "@/lib/email";
+import {
+  sendOrderReviewRequestEmail,
+  sendOrderShippedEmail,
+} from "@/lib/email";
 
 type OrderStatus =
   | "paid"
   | "label_to_create"
   | "label_created"
-  | "shipped";
+  | "shipped"
+  | "picked_up";
 
 type Body = {
   orderId?: string;
@@ -17,6 +21,7 @@ type Body = {
   expeditionNumber?: string;
   labelUrl?: string;
   sendShippingEmail?: boolean;
+  sendReviewEmail?: boolean;
 };
 
 const ALLOWED_STATUSES: OrderStatus[] = [
@@ -24,6 +29,7 @@ const ALLOWED_STATUSES: OrderStatus[] = [
   "label_to_create",
   "label_created",
   "shipped",
+  "picked_up",
 ];
 
 export async function POST(request: Request) {
@@ -80,15 +86,20 @@ export async function POST(request: Request) {
     const shouldSendShippingEmail =
       status === "shipped" &&
       (body.sendShippingEmail === true || existingOrder.status !== "shipped");
+    const shouldSendReviewEmail =
+      status === "picked_up" &&
+      (body.sendReviewEmail === true || existingOrder.status !== "picked_up");
 
-    if (shouldSendShippingEmail) {
+    if (shouldSendShippingEmail || shouldSendReviewEmail) {
       if (!existingOrder.customerEmail) {
         return NextResponse.json(
           { error: "Email client introuvable pour cette commande." },
           { status: 400 },
         );
       }
+    }
 
+    if (shouldSendShippingEmail) {
       if (!expeditionNumber) {
         return NextResponse.json(
           { error: "Numéro de suivi obligatoire pour expédier la commande." },
@@ -97,11 +108,19 @@ export async function POST(request: Request) {
       }
 
       await sendOrderShippedEmail({
-        to: existingOrder.customerEmail,
+        to: existingOrder.customerEmail!,
         customerName: existingOrder.customerName,
         orderId: existingOrder.stripeSessionId,
         trackingNumber: expeditionNumber,
         labelUrl,
+      });
+    }
+
+    if (shouldSendReviewEmail) {
+      await sendOrderReviewRequestEmail({
+        to: existingOrder.customerEmail!,
+        customerName: existingOrder.customerName,
+        orderId: existingOrder.stripeSessionId,
       });
     }
 
@@ -118,6 +137,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       emailSent: shouldSendShippingEmail,
+      reviewEmailSent: shouldSendReviewEmail,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur inconnue.";
