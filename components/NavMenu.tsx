@@ -58,7 +58,7 @@ export default function NavMenu() {
       </button>
 
       {open && (
-        <div className="absolute left-0 z-50 mt-3 w-72 overflow-hidden rounded-2xl border border-violet-300/20 bg-zinc-950/95 text-sm text-white shadow-2xl shadow-black/40 backdrop-blur-md">
+        <div className="absolute left-0 z-[210] mt-3 w-72 overflow-hidden rounded-2xl border border-violet-300/20 bg-zinc-950/95 text-sm text-white shadow-2xl shadow-black/40 backdrop-blur-md">
           <div className="border-b border-white/10 bg-violet-600/10 p-4">
             <div className="text-base font-semibold text-white">Menu</div>
             <p className="mt-1 text-xs leading-5 text-gray-400">
