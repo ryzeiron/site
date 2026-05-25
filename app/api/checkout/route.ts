@@ -29,6 +29,7 @@ type Body = {
 };
 
 const META_VALUE_MAX = 450;
+const MIN_STRIPE_TOTAL_CENTS = 50;
 
 const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
   FR: 490,
@@ -261,6 +262,21 @@ export async function POST(request: Request) {
 
     const relayBase = MR_PRICE_BY_COUNTRY[country];
     const relayCents = Math.round(relayBase * shippingMultiplier);
+    const itemsTotalCents = lineItems.reduce(
+      (total, item) => total + item.price_data.unit_amount * item.quantity,
+      0,
+    );
+    const checkoutTotalCents = itemsTotalCents + relayCents;
+
+    if (checkoutTotalCents < MIN_STRIPE_TOTAL_CENTS) {
+      return NextResponse.json(
+        {
+          error:
+            "Stripe demande un minimum de 0,50 € pour payer. Augmente le panier ou retire la réduction.",
+        },
+        { status: 400 },
+      );
+    }
 
     const origin = getRequestOrigin(request);
 

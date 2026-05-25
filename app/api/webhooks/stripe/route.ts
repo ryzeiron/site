@@ -5,6 +5,13 @@ import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { orders, processedEvents, stockOverrides } from "@/lib/db/schema";
+import {
+  customerOrderEmail,
+  orderAdminEmail,
+  sendMail,
+  sendToAdmin,
+} from "@/lib/mail";
+import { normalizeSiteUrl } from "@/lib/site-url";
 import { decrementSleeveStock } from "@/lib/sleeves";
 import {
   confirmStockReservation,
@@ -70,6 +77,72 @@ function decodeSleeves(metadata: Stripe.Metadata | null): CompactSleeveItem[] {
 
 function metadataValue(value: string | null | undefined): string | null {
   return value && value.trim() ? value : null;
+}
+
+function formatAmount(cents: number | null) {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format((cents ?? 0) / 100);
+}
+
+async function sendOrderNotifications({
+  session,
+  customerEmail,
+  customerName,
+  customerPhone,
+  country,
+  metadata,
+}: {
+  session: Stripe.Checkout.Session;
+  customerEmail: string;
+  customerName: string;
+  customerPhone: string;
+  country: string;
+  metadata: Stripe.Metadata;
+}) {
+  const amount = formatAmount(session.amount_total);
+  const siteUrl = normalizeSiteUrl(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  );
+  const trackUrl = `${siteUrl}/suivi-commande/${session.id}`;
+
+  const adminEmail = orderAdminEmail({
+    orderId: session.id,
+    amount,
+    customerEmail,
+    customerName,
+    customerPhone,
+    country,
+    relayName: metadataValue(metadata.relay_name),
+    relayAddress: metadataValue(metadata.relay_address),
+    relayPostcode: metadataValue(metadata.relay_postcode),
+    relayCity: metadataValue(metadata.relay_city),
+    relayCode: metadataValue(metadata.relay_code),
+  });
+
+  await sendToAdmin({
+    subject: `[PokeDel] Nouvelle commande payée - ${amount}`,
+    text: adminEmail.text,
+  }).catch(() => ({ ok: false }));
+
+  if (customerEmail) {
+    const customerEmailContent = customerOrderEmail({
+      orderId: session.id,
+      amount,
+      relayName: metadataValue(metadata.relay_name),
+      relayAddress: metadataValue(metadata.relay_address),
+      relayPostcode: metadataValue(metadata.relay_postcode),
+      relayCity: metadataValue(metadata.relay_city),
+      trackUrl,
+    });
+
+    await sendMail({
+      to: customerEmail,
+      subject: "Merci pour votre commande PokeDel",
+      text: customerEmailContent.text,
+    }).catch(() => ({ ok: false }));
+  }
 }
 
 export async function POST(request: Request) {
@@ -149,7 +222,7 @@ export async function POST(request: Request) {
     await confirmStockReservation(reservationId, session.id);
   }
 
-  await db
+  const insertedOrders = await db
     .insert(orders)
     .values({
       id: session.id,
@@ -169,7 +242,19 @@ export async function POST(request: Request) {
       mondialRelayError,
       status: "paid",
     })
-    .onConflictDoNothing();
+    .onConflictDoNothing()
+    .returning({ id: orders.id });
+
+  if (insertedOrders.length > 0) {
+    await sendOrderNotifications({
+      session,
+      customerEmail,
+      customerName,
+      customerPhone,
+      country,
+      metadata,
+    });
+  }
 
   if (items.length === 0 || reservationId) {
     await decrementSleeveStock(
