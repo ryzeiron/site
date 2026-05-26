@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { getPromo } from "@/lib/promo";
+import { getStripePromoEffect } from "@/lib/stripe-promo";
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { code?: string };
+
+    const stripePromo = await getStripePromoEffect(body.code);
+    if (stripePromo) {
+      return NextResponse.json({ promo: stripePromo });
+    }
+
     const promo = getPromo(body.code);
     if (!promo) {
       return NextResponse.json(
@@ -11,7 +18,8 @@ export async function POST(request: Request) {
         { status: 404 },
       );
     }
-    return NextResponse.json({ promo });
+
+    return NextResponse.json({ promo: { ...promo, source: "local" } });
   } catch {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }

@@ -11,8 +11,19 @@ import { resolveVariant, type Card } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 
 type AppliedPromo =
-  | { code: string; type: "percent_off"; percent: number; label: string }
-  | { code: string; type: "free_shipping"; label: string };
+  | {
+      code: string;
+      source?: "local" | "stripe";
+      type: "percent_off";
+      percent: number;
+      label: string;
+    }
+  | {
+      code: string;
+      source?: "local" | "stripe";
+      type: "free_shipping";
+      label: string;
+    };
 
 type SleeveProduct = {
   id: string;

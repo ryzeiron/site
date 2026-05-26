@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
+import { getStripePromotionCode } from "@/lib/stripe-promo";
 import { getRequestOrigin } from "@/lib/site-url";
 import { getSleevesByIds } from "@/lib/sleeves";
 import {
@@ -119,11 +120,18 @@ export async function POST(request: Request) {
     }
 
     let promo = null;
+    let stripePromotionCodeId: string | null = null;
 
     if (body.promoCode && body.promoCode.trim()) {
-      promo = getPromo(body.promoCode);
+      const stripePromotionCode = await getStripePromotionCode(body.promoCode);
 
-      if (!promo) {
+      if (stripePromotionCode) {
+        stripePromotionCodeId = stripePromotionCode.id;
+      } else {
+        promo = getPromo(body.promoCode);
+      }
+
+      if (!stripePromotionCodeId && !promo) {
         return NextResponse.json(
           { error: "Code promo invalide." },
           { status: 400 },
@@ -352,7 +360,11 @@ export async function POST(request: Request) {
         shipping_address_collection: { allowed_countries: [country] },
         phone_number_collection: { enabled: true },
         shipping_options: [relayShippingOption],
-        allow_promotion_codes: true,
+        ...(stripePromotionCodeId
+          ? { discounts: [{ promotion_code: stripePromotionCodeId }] }
+          : promo
+            ? {}
+            : { allow_promotion_codes: true }),
       });
     } catch (e) {
       await releaseStockReservation(reservationId);
