@@ -3,14 +3,12 @@
 // Si aucune image FR n'est disponible, la carte est signalee en erreur.
 //
 // Usage : node scripts/download-xy-promo-images.mjs
-// Reforcer : node scripts/download-xy-promo-images.mjs --force
+// Ignorer les images deja presentes : node scripts/download-xy-promo-images.mjs --skip-existing
 
 import {
   existsSync,
   mkdirSync,
   readFileSync,
-  readdirSync,
-  unlinkSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -21,14 +19,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const CATALOG_FILE = resolve(ROOT, "lib/catalog/cards/xy.ts");
 
-const FORCE = process.argv.includes("--force");
+const SKIP_EXISTING = process.argv.includes("--skip-existing");
 const CONCURRENCY = 5;
 const TCGDEX_SERIE = "xy";
 const TCGDEX_SET = "xyp";
 const CATALOG_SERIE_ID = "prxy";
 const ALLOWED_SOURCE_PREFIX = `https://assets.tcgdex.net/fr/${TCGDEX_SERIE}/${TCGDEX_SET}/`;
 const REPORT_FILE = resolve(ROOT, "verification-images-fr", "xy-promo-errors.txt");
-const LOCAL_IMAGE_DIR = resolve(ROOT, "public/cartes/PRXY");
 
 function readCardsFromCatalog() {
   const source = readFileSync(CATALOG_FILE, "utf8");
@@ -58,7 +55,7 @@ function getFrenchImageCandidates(card) {
 }
 
 async function downloadImage(card, destPath) {
-  if (!FORCE && existsSync(destPath)) return "skipped";
+  if (SKIP_EXISTING && existsSync(destPath)) return "skipped";
 
   const errors = [];
 
@@ -120,21 +117,6 @@ async function runPool(items, worker, concurrency) {
   await Promise.all(Array.from({ length: concurrency }, () => next()));
 }
 
-function removeOldNumericImages() {
-  if (!existsSync(LOCAL_IMAGE_DIR)) return 0;
-
-  let removed = 0;
-
-  for (const file of readdirSync(LOCAL_IMAGE_DIR)) {
-    if (!/^\d+\.(webp|png|jpg)$/i.test(file)) continue;
-
-    unlinkSync(resolve(LOCAL_IMAGE_DIR, file));
-    removed++;
-  }
-
-  return removed;
-}
-
 async function main() {
   const cards = readCardsFromCatalog();
 
@@ -186,9 +168,6 @@ async function main() {
 
   if (failed > 0) {
     process.exitCode = 1;
-  } else {
-    const removed = removeOldNumericImages();
-    console.log(`Anciennes images numeriques supprimees: ${removed}`);
   }
 }
 
