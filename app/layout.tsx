@@ -11,12 +11,38 @@ import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import GlobalSearchBar from "@/components/GlobalSearchBar";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.pokedel62.fr"),
   title: {
-    default: "PokeDel",
-    template: "%s - PokeDel",
+    default: "Pokedel62 - Boutique Pokemon",
+    template: "%s - Pokedel62",
   },
   description:
-    "PokeDel - vente de cartes Pokémon : blocs, séries, cartes rares et singles à l'unité.",
+    "Pokedel62 est une boutique Pokemon specialisee dans les cartes a l'unite, les blocs, les series, les raretes et les sleeves.",
+  applicationName: "Pokedel62",
+  keywords: [
+    "Pokedel62",
+    "PokeDel",
+    "cartes Pokemon",
+    "cartes Pokemon a l'unite",
+    "boutique Pokemon",
+    "sleeves Pokemon",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Pokedel62 - Boutique Pokemon",
+    description:
+      "Cartes Pokemon a l'unite, blocs, series, cartes rares et sleeves.",
+    url: "https://www.pokedel62.fr",
+    siteName: "Pokedel62",
+    locale: "fr_FR",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
