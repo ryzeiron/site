@@ -352,6 +352,7 @@ export async function POST(request: Request) {
         shipping_address_collection: { allowed_countries: [country] },
         phone_number_collection: { enabled: true },
         shipping_options: [relayShippingOption],
+        allow_promotion_codes: true,
       });
     } catch (e) {
       await releaseStockReservation(reservationId);
