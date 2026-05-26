@@ -3,6 +3,7 @@ import { ECARLATE_ET_VIOLET_CARDS } from "./catalog/cards/ecarlate-et-violet";
 import { EPEE_ET_BOUCLIER_CARDS } from "./catalog/cards/epee-et-bouclier";
 import { SOLEIL_ET_LUNE_CARDS } from "./catalog/cards/soleil-et-lune";
 import { XY_CARDS } from "./catalog/cards/xy";
+import { MCDO_CARDS, MCDO_SERIES } from "./catalog/cards/mcdo";
 import { NOIR_ET_BLANC_CARDS } from "./catalog/cards/noir-et-blanc";
 import { HEARTGOLD_SOULSILVER_CARDS } from "./catalog/cards/heartgold-soulsilver";
 import { PLATINE_CARDS } from "./catalog/cards/platine"; 
@@ -229,6 +230,12 @@ export const BLOCS: Bloc[] = [
     imageFit: "contain",
   },
   {
+    id: "mcdo",
+    name: "McDo",
+    tagline: "2011 - 2024",
+    coverColor: "from-yellow-400 to-red-600",
+  },
+  {
     id: "noir-et-blanc",
     name: "Noir et Blanc",
     tagline: "2011 - 2013",
@@ -363,6 +370,9 @@ export const SERIES: Serie[] = [
   { id: "xy11", blocId: "xy", code: "XY11", name: "Offensive Vapeur", releaseYear: 2016, image: "/series/XY/STS.webp", },
   { id: "xy12", blocId: "xy", code: "XY12", name: "Évolutions", releaseYear: 2016, image: "/series/XY/EVO.webp", },
 
+  // McDo
+  ...MCDO_SERIES,
+
   // Noir et Blanc
   { id: "prbw", blocId: "noir-et-blanc", code: "PRBW", name: "Noir et Blanc", releaseYear: 2011, image: "/series/NB/PRBW.webp", },
   { id: "nb01", blocId: "noir-et-blanc", code: "NB01", name: "Noir et Blanc", releaseYear: 2011, image: "/series/NB/NB.webp", },
@@ -429,6 +439,7 @@ export const CARDS: Card[] = [
   ...EPEE_ET_BOUCLIER_CARDS,
   ...SOLEIL_ET_LUNE_CARDS,
   ...XY_CARDS,
+  ...MCDO_CARDS,
   ...NOIR_ET_BLANC_CARDS,
   ...HEARTGOLD_SOULSILVER_CARDS,
   ...PLATINE_CARDS,

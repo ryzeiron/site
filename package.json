@@ -12,6 +12,7 @@
     "download:nb-images": "node scripts/download-nb-images.mjs",
     "download:hgss-images": "node scripts/download-hgss-images.mjs",
     "download:xy-promo-images": "node scripts/download-xy-promo-images.mjs",
+    "download:mcdo-images": "node scripts/sync-mcdo-cards.mjs",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
