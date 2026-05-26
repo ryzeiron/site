@@ -230,12 +230,6 @@ export const BLOCS: Bloc[] = [
     imageFit: "contain",
   },
   {
-    id: "mcdo",
-    name: "McDo",
-    tagline: "2011 - 2024",
-    coverColor: "from-yellow-400 to-red-600",
-  },
-  {
     id: "noir-et-blanc",
     name: "Noir et Blanc",
     tagline: "2011 - 2013",
@@ -282,6 +276,12 @@ export const BLOCS: Bloc[] = [
     coverColor: "from-slate-600 to-slate-900",
     image: "/blocs/EX.png",
     imageFit: "contain",
+  },
+  {
+    id: "mcdo",
+    name: "McDo",
+    tagline: "2011 - 2024",
+    coverColor: "from-yellow-400 to-red-600",
   },
 ];
 
