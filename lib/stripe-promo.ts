@@ -29,6 +29,7 @@ export async function getStripePromotionCode(
   const promotionCodes = await stripe.promotionCodes.list({
     active: true,
     code: cleaned,
+    expand: ["data.promotion.coupon"],
     limit: 10,
   });
 
