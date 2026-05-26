@@ -11,6 +11,7 @@
     "download:dp-images": "node scripts/download-dp-images.mjs",
     "download:nb-images": "node scripts/download-nb-images.mjs",
     "download:hgss-images": "node scripts/download-hgss-images.mjs",
+    "download:xy-promo-images": "node scripts/download-xy-promo-images.mjs",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
