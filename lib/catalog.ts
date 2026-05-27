@@ -317,7 +317,7 @@ export const SERIES: Serie[] = [
   { id: "foudre-noire", blocId: "ecarlate-et-violet", code: "Foudre Noire", name: "Foudre Noire", releaseYear: 2025, image: "/series/EV/BLK.webp", },
 
   // Épée et Bouclier
-  { id: "promo-eb", blocId: "epee-et-bouclier", code: "Promo", name: "Épée et Bouclier", releaseYear: 2020, image: "/series/EB/PRWSH.webp",},
+  { id: "promo-eb", blocId: "epee-et-bouclier", code: "Promo", name: "Épée et Bouclier", releaseYear: 2020, image: "/series/EB/PRSWSH.webp",},
   { id: "eb01", blocId: "epee-et-bouclier", code: "EB01", name: "Épée et Bouclier", releaseYear: 2020, image: "/series/EB/SWSH1.jpg",},
   { id: "eb02", blocId: "epee-et-bouclier", code: "EB02", name: "Clash des Rebelles", releaseYear: 2020, image: "/series/EB/SWSH2.jpg", },
   { id: "eb03", blocId: "epee-et-bouclier", code: "EB03", name: "Ténèbres Embrasées", releaseYear: 2020, image: "/series/EB/SWSH3.jpg", },
