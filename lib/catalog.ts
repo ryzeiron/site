@@ -10,6 +10,8 @@ import { PLATINE_CARDS } from "./catalog/cards/platine";
 import { ADL_CARDS } from "./catalog/cards/adl"; 
 import { DIAMANT_ET_PERLE_CARDS } from "./catalog/cards/diamant-et-perle";
 import { EX_CARDS } from "./catalog/cards/ex";
+import { MCDO_CARDS } from "./catalog/cards/mcdo";
+
 // Catalogue : blocs > series > cartes 
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
 
@@ -371,8 +373,6 @@ export const SERIES: Serie[] = [
   { id: "xy11", blocId: "xy", code: "XY11", name: "Offensive Vapeur", releaseYear: 2016, image: "/series/XY/STS.webp", },
   { id: "xy12", blocId: "xy", code: "XY12", name: "Évolutions", releaseYear: 2016, image: "/series/XY/EVO.webp", },
 
-  // McDo
-  ...MCDO_SERIES,
 
   // Noir et Blanc
   { id: "prbw", blocId: "noir-et-blanc", code: "PRBW", name: "Noir et Blanc", releaseYear: 2011, image: "/series/NB/PRBW.webp", },
@@ -431,6 +431,20 @@ export const SERIES: Serie[] = [
   { id: "EX013", blocId: "ex", code: "EX13", name: "Gardiens de Cristal", releaseYear: 2007, image: "/series/EX/CG.webp",  },
   { id: "EX014", blocId: "ex", code: "EX14", name: "Île des Dragons", releaseYear: 2007, image: "/series/EX/DF.webp",  },
   { id: "EX015", blocId: "ex", code: "EX15", name: "Gardiens du Pouvoir", releaseYear: 2007, image: "/series/EX/PK.webp",  },
+
+  { id: "2011bw", blocId: "mcdo", code: "McDo 2011", name: "Collection McDonald's 2011", releaseYear: 2011 },
+  { id: "2012bw", blocId: "mcdo", code: "McDo 2012", name: "Collection McDonald's 2012", releaseYear: 2012 },
+  { id: "2013bw", blocId: "mcdo", code: "McDo 2013", name: "Collection McDonald's 2013", releaseYear: 2013 },
+  { id: "2014xy", blocId: "mcdo", code: "McDo 2014", name: "Collection McDonald's 2014", releaseYear: 2014 },
+  { id: "2015xy", blocId: "mcdo", code: "McDo 2015", name: "Collection McDonald's 2015", releaseYear: 2015 },
+  { id: "2016xy", blocId: "mcdo", code: "McDo 2016", name: "Collection McDonald's 2016", releaseYear: 2016 },
+  { id: "2017sm", blocId: "mcdo", code: "McDo 2017", name: "Collection McDonald's 2017", releaseYear: 2017 },
+  { id: "2018sm-fr", blocId: "mcdo", code: "McDo 2018", name: "Collection McDonald's 2018 (France)", releaseYear: 2018 },
+  { id: "2019sm-fr", blocId: "mcdo", code: "McDo 2019", name: "Collection McDonald's 2019 (France)", releaseYear: 2019 },
+  { id: "2021swsh", blocId: "mcdo", code: "McDo 2021", name: "Collection McDonald's 2021", releaseYear: 2021 },
+  { id: "2022swsh", blocId: "mcdo", code: "McDo 2022", name: "Collection McDonald's 2022", releaseYear: 2022 },
+  { id: "2023sv", blocId: "mcdo", code: "McDo 2023", name: "Collection McDonald's 2023", releaseYear: 2023 },
+  { id: "2024sv", blocId: "mcdo", code: "McDo 2024", name: "Collection McDonald's 2024", releaseYear: 2024 },
 
 ];
 
