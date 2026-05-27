@@ -3,7 +3,6 @@ import { ECARLATE_ET_VIOLET_CARDS } from "./catalog/cards/ecarlate-et-violet";
 import { EPEE_ET_BOUCLIER_CARDS } from "./catalog/cards/epee-et-bouclier";
 import { SOLEIL_ET_LUNE_CARDS } from "./catalog/cards/soleil-et-lune";
 import { XY_CARDS } from "./catalog/cards/xy";
-import { MCDO_CARDS, MCDO_SERIES } from "./catalog/cards/mcdo";
 import { NOIR_ET_BLANC_CARDS } from "./catalog/cards/noir-et-blanc";
 import { HEARTGOLD_SOULSILVER_CARDS } from "./catalog/cards/heartgold-soulsilver";
 import { PLATINE_CARDS } from "./catalog/cards/platine"; 
