@@ -17,7 +17,7 @@ type GetSleevesOptions = {
   cache?: boolean;
 };
 
-export const PUBLIC_SLEEVE_CACHE_SECONDS = 300;
+export const PUBLIC_SLEEVE_CACHE_SECONDS = 3600;
 export const PUBLIC_SLEEVE_CACHE_TAG = "public-sleeve-overrides";
 
 export type SleeveProduct = {

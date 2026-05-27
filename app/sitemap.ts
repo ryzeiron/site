@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { BLOCS, CARDS, SERIES } from "@/lib/catalog";
+import { BLOCS, SERIES } from "@/lib/catalog";
 
 const SITE_URL = "https://www.pokedel62.fr";
 
@@ -31,7 +31,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     route(`/blocs/${serie.blocId}/${serie.id}`, 0.8),
   );
 
-  const cardRoutes = CARDS.map((card) => route(`/carte/${card.id}`, 0.6));
-
-  return [...staticRoutes, ...blocRoutes, ...serieRoutes, ...cardRoutes];
+  return [...staticRoutes, ...blocRoutes, ...serieRoutes];
 }

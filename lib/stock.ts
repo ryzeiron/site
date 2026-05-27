@@ -53,7 +53,7 @@ type ApplyStockOverridesOptions = {
   cache?: boolean;
 };
 
-export const PUBLIC_STOCK_CACHE_SECONDS = 300;
+export const PUBLIC_STOCK_CACHE_SECONDS = 3600;
 export const PUBLIC_STOCK_CACHE_TAG = "public-stock-overrides";
 
 const emptyOverrideRows = (): OverrideRows => ({
