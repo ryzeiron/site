@@ -35,7 +35,7 @@ export default async function SeriePage({
   const raw = cardsForSerie(serie.id);
   let cards = raw;
   try {
-    cards = await applyStockOverrides(raw);
+    cards = await applyStockOverrides(raw, { cache: true });
   } catch {
     // fallback sur le catalogue si la DB est indisponible
   }

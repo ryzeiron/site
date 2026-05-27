@@ -16,7 +16,7 @@ const sleeveHighlights = [
 ];
 
 export default async function SleevePage() {
-  const products = await getSleeves({ activeOnly: true });
+  const products = await getSleeves({ activeOnly: true, cache: true });
 
   return (
     <div className="space-y-8">

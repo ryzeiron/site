@@ -29,7 +29,7 @@ export default async function CardPage({
   if (!raw) notFound();
   let card = raw;
   try {
-    const [withStock] = await applyStockOverrides([raw]);
+    const [withStock] = await applyStockOverrides([raw], { cache: true });
     if (withStock) card = withStock;
   } catch {
     // garder la carte du catalogue si la DB est indisponible

@@ -57,7 +57,7 @@ export default async function NouveautesPage({
 
   const [entries, sleeveProducts] = await Promise.all([
     showCards ? getRecentCards(mode === "tout" ? 24 : 48, cardOptions) : [],
-    showSleeves ? getSleeves({ activeOnly: true }) : [],
+    showSleeves ? getSleeves({ activeOnly: true, cache: true }) : [],
   ]);
   const sleeves = sleeveProducts.filter((sleeve) => sleeve.stock > 0).slice(0, 24);
   const hasContent = entries.length > 0 || sleeves.length > 0;

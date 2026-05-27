@@ -85,7 +85,7 @@ export default async function SearchPage({
 
   const sleeveResults =
     terms.length > 0
-      ? (await getSleeves({ activeOnly: true }))
+      ? (await getSleeves({ activeOnly: true, cache: true }))
           .filter((sleeve) => matchesTerms(searchableSleeveText(sleeve), terms))
           .slice(0, MAX_SLEEVE_RESULTS)
       : [];
@@ -93,7 +93,7 @@ export default async function SearchPage({
   const visibleRawCards = rawCardResults.slice(0, MAX_CARD_RESULTS);
   const cards =
     visibleRawCards.length > 0
-      ? await applyStockOverrides(visibleRawCards)
+      ? await applyStockOverrides(visibleRawCards, { cache: true })
       : visibleRawCards;
   const totalResults =
     rawCardResults.length + serieResults.length + sleeveResults.length;
