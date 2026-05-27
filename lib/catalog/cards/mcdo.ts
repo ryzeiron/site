@@ -16,4 +16,4 @@ export const MCDO_CARDS = [
   { id: "2011bw-10", serieId: "2011bw", name: "Tic ", number: "10/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2011/10.webp", },
   { id: "2011bw-11", serieId: "2011bw", name: "Poichigeon ", number: "11/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2011/11.webp", },
   { id: "2011bw-12", serieId: "2011bw", name: "Nanméouïe ", number: "12/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2011/12.webp", },
-] as unknown as Card[]);
+] as unknown as Card[];
