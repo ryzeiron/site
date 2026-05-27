@@ -159,7 +159,6 @@ export const useCart = create<CartState>()(
                 ...state.items,
                 { type: "sleeve" as const, sleeveId, quantity: cap(quantity) },
               ];
-          scheduleSync(state.cartId, nextItems);
           return { items: nextItems };
         }),
       removeSleeve: (sleeveId) =>
@@ -167,7 +166,6 @@ export const useCart = create<CartState>()(
           const nextItems = state.items.filter(
             (i) => !(isSleeveCartItem(i) && i.sleeveId === sleeveId),
           );
-          scheduleSync(state.cartId, nextItems);
           return { items: nextItems };
         }),
       setSleeveQuantity: (sleeveId, quantity, maxStock) =>
@@ -186,12 +184,13 @@ export const useCart = create<CartState>()(
                 : i,
             );
           }
-          scheduleSync(state.cartId, nextItems);
           return { items: nextItems };
         }),
       clear: () => {
-        const { cartId } = get();
-        clearOnServer(cartId);
+        const { cartId, items } = get();
+        if (items.some(isCardCartItem)) {
+          clearOnServer(cartId);
+        }
         set({ items: [] });
       },
       totalItems: () => get().items.reduce((s, i) => s + i.quantity, 0),

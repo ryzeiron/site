@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  isFavoriteSleeveInState,
+  loadFavoriteSleeveState,
+  updateFavoriteSleeveState,
+} from "@/components/favorite-sleeve-state";
 
 type FavoriteSleeveButtonProps = {
   sleeveId: string;
@@ -19,13 +24,11 @@ export default function FavoriteSleeveButton({
 
     async function loadFavorite() {
       try {
-        const params = new URLSearchParams({ sleeveId });
-        const response = await fetch(`/api/favorite-sleeves?${params.toString()}`);
-        const data = await response.json();
+        const state = await loadFavoriteSleeveState();
 
         if (!active) return;
-        setAuthenticated(Boolean(data.authenticated));
-        setFavorite(Boolean(data.favorite));
+        setAuthenticated(state.authenticated);
+        setFavorite(isFavoriteSleeveInState(state, sleeveId));
       } catch {
         if (active) setAuthenticated(false);
       } finally {
@@ -63,6 +66,7 @@ export default function FavoriteSleeveButton({
 
       setAuthenticated(true);
       setFavorite(Boolean(data.favorite));
+      updateFavoriteSleeveState(sleeveId, Boolean(data.favorite));
       setNotice(
         data.favorite
           ? "Sleeve ajouté à tes favoris."

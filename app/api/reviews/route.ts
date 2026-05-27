@@ -4,6 +4,7 @@ import { eq, or } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db/client";
 import { orders, reviews } from "@/lib/db/schema";
+import { revalidatePublicReviewsCache } from "@/lib/public-reviews";
 
 function cleanComment(value: unknown) {
   return String(value ?? "").trim().slice(0, 1200);
@@ -74,6 +75,8 @@ export async function POST(request: Request) {
       })
       .where(eq(reviews.id, existing[0].id));
 
+    revalidatePublicReviewsCache();
+
     return NextResponse.json({ ok: true });
   }
 
@@ -84,6 +87,8 @@ export async function POST(request: Request) {
     comment,
     status: "approved",
   });
+
+  revalidatePublicReviewsCache();
 
   return NextResponse.json({ ok: true });
 }

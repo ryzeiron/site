@@ -1,59 +1,13 @@
 import Link from "next/link";
-import { desc, eq, inArray } from "drizzle-orm";
 import BlocTile from "@/components/BlocTile";
 import CardTile from "@/components/CardTile";
 import { BLOCS, type Rarity } from "@/lib/catalog";
-import { getDb } from "@/lib/db/client";
-import { reviews, users } from "@/lib/db/schema";
+import { getLatestReviews } from "@/lib/public-reviews";
 import { formatRecentDate, getRecentCards } from "@/lib/recent-cards";
 
 export const dynamic = "force-dynamic";
 
-type LatestReview = {
-  id: string;
-  rating: number;
-  comment: string;
-  createdAt: Date;
-  userName: string;
-};
-
 const FEATURED_NEW_RARITIES: Rarity[] = ["Ultra Rare", "Secrete"];
-
-async function getLatestReviews(limit = 3): Promise<LatestReview[]> {
-  try {
-    const db = getDb();
-    const reviewRows = await db
-      .select()
-      .from(reviews)
-      .where(eq(reviews.status, "approved"))
-      .orderBy(desc(reviews.createdAt))
-      .limit(limit);
-
-    if (reviewRows.length === 0) return [];
-
-    const userIds = Array.from(new Set(reviewRows.map((review) => review.userId)));
-
-    const userRows = await db
-      .select({
-        id: users.id,
-        name: users.name,
-      })
-      .from(users)
-      .where(inArray(users.id, userIds));
-
-    const usersById = new Map(userRows.map((user) => [user.id, user]));
-
-    return reviewRows.map((review) => ({
-      id: review.id,
-      rating: review.rating,
-      comment: review.comment,
-      createdAt: review.createdAt,
-      userName: usersById.get(review.userId)?.name || "Client PokeDel",
-    }));
-  } catch {
-    return [];
-  }
-}
 
 function formatReviewDate(value: Date) {
   return new Date(value).toLocaleDateString("fr-FR", {
