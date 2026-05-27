@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import type { VariantKey } from "@/lib/catalog";
+import {
+  isFavoriteInState,
+  loadFavoriteState,
+  updateFavoriteState,
+} from "@/components/favorite-card-state";
 
 type FavoriteCardButtonProps = {
   cardId: string;
@@ -24,13 +29,11 @@ export default function FavoriteCardButton({
 
     async function loadFavorite() {
       try {
-        const params = new URLSearchParams({ cardId, variant });
-        const response = await fetch(`/api/favorites?${params.toString()}`);
-        const data = await response.json();
+        const state = await loadFavoriteState();
 
         if (!active) return;
-        setAuthenticated(Boolean(data.authenticated));
-        setFavorite(Boolean(data.favorite));
+        setAuthenticated(state.authenticated);
+        setFavorite(isFavoriteInState(state, cardId, variant));
       } catch {
         if (active) setAuthenticated(false);
       } finally {
@@ -68,6 +71,7 @@ export default function FavoriteCardButton({
 
       setAuthenticated(true);
       setFavorite(Boolean(data.favorite));
+      updateFavoriteState(cardId, variant, Boolean(data.favorite));
       setNotice(
         data.favorite
           ? outOfStock
