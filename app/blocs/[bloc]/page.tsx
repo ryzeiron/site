@@ -29,6 +29,7 @@ export default async function BlocPage({
   const bloc = getBloc(blocId);
   if (!bloc) notFound();
   const series = seriesForBloc(bloc.id);
+  const imageFit = bloc.imageFit ?? "cover";
 
   return (
     <div>
@@ -37,18 +38,24 @@ export default async function BlocPage({
         <span className="text-gray-200">{bloc.name}</span>
       </nav>
       <div
-        className={`relative mt-4 rounded-2xl bg-gradient-to-br ${bloc.coverColor} text-white p-8 overflow-hidden`}
+        className={`relative mt-4 min-h-[190px] overflow-hidden rounded-2xl bg-gradient-to-br ${bloc.coverColor} p-8 text-white shadow-lg shadow-black/30 md:min-h-[220px]`}
       >
         {bloc.image && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={bloc.image}
-            alt={bloc.name}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={bloc.image}
+              alt={bloc.name}
+              className={
+                imageFit === "contain"
+                  ? "absolute inset-0 h-full w-full object-contain p-6 md:p-10"
+                  : "absolute inset-0 h-full w-full object-cover"
+              }
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
+          </>
         )}
-        {bloc.image && <div className="absolute inset-0 bg-black/50" />}
-        <div className="relative">
+        <div className="relative max-w-2xl">
           <div className="text-xs uppercase opacity-80">Bloc</div>
           <h1 className="text-3xl md:text-4xl font-bold">{bloc.name}</h1>
           <p className="mt-2 opacity-90 max-w-2xl">{bloc.tagline}</p>
