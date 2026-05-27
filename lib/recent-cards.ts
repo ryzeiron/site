@@ -1,6 +1,7 @@
 import "server-only";
 
 import { desc } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import {
   CARDS,
   getCard,
@@ -11,7 +12,11 @@ import {
 } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { stockOverrides } from "@/lib/db/schema";
-import { applyStockOverrides } from "@/lib/stock";
+import {
+  applyStockOverrides,
+  PUBLIC_STOCK_CACHE_SECONDS,
+  PUBLIC_STOCK_CACHE_TAG,
+} from "@/lib/stock";
 
 type RecentRow = {
   cardId: string;
@@ -49,6 +54,15 @@ async function getRecentStockRows(fetchLimit: number): Promise<RecentRow[]> {
   }
 }
 
+const getCachedRecentStockRows = unstable_cache(
+  (fetchLimit: number) => getRecentStockRows(fetchLimit),
+  ["recent-stock-rows-v1"],
+  {
+    revalidate: PUBLIC_STOCK_CACHE_SECONDS,
+    tags: [PUBLIC_STOCK_CACHE_TAG],
+  },
+);
+
 function matchesRarity(rarity: Rarity, allowedRarities?: readonly Rarity[]) {
   return !allowedRarities || allowedRarities.includes(rarity);
 }
@@ -66,7 +80,7 @@ async function getFallbackCards(
   limit: number,
   options: RecentCardsOptions = {},
 ): Promise<RecentCard[]> {
-  const liveCards = await applyStockOverrides(CARDS);
+  const liveCards = await applyStockOverrides(CARDS, { cache: true });
 
   return liveCards
     .flatMap((card) =>
@@ -92,7 +106,7 @@ export async function getRecentCards(
   const fetchLimit = options.rarities
     ? Math.max(limit * 25, 500)
     : Math.max(limit * 4, 60);
-  const rows = await getRecentStockRows(fetchLimit);
+  const rows = await getCachedRecentStockRows(fetchLimit);
 
   if (rows.length === 0) {
     return getFallbackCards(limit, options);
@@ -101,7 +115,7 @@ export async function getRecentCards(
   const baseCards = uniqByCard(
     rows.map((row) => getCard(row.cardId)).filter((card): card is Card => !!card),
   );
-  const liveCards = await applyStockOverrides(baseCards);
+  const liveCards = await applyStockOverrides(baseCards, { cache: true });
   const liveById = new Map(liveCards.map((card) => [card.id, card]));
   const seen = new Set<string>();
   const entries: RecentCard[] = [];

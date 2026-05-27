@@ -12,6 +12,7 @@ import {
 import { getDb } from "@/lib/db/client";
 import { stockOverrides } from "@/lib/db/schema";
 import { notifyRestockSubscribers } from "@/lib/restock-alerts";
+import { revalidatePublicStockCache } from "@/lib/stock";
 import { and, eq, sql } from "drizzle-orm";
 
 type Body = {
@@ -244,6 +245,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
+  revalidatePublicStockCache();
+
   return NextResponse.json({
     ok: true,
     stock: insertStock,
@@ -286,6 +289,8 @@ export async function DELETE(request: Request) {
     const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+
+  revalidatePublicStockCache();
 
   return NextResponse.json({ ok: true });
 }

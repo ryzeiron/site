@@ -1,6 +1,7 @@
 import "server-only";
 
 import { eq, inArray, sql } from "drizzle-orm";
+import { revalidateTag, unstable_cache } from "next/cache";
 import {
   getCatalogSleeve,
   getCatalogSleeves,
@@ -10,6 +11,14 @@ import { getDb } from "@/lib/db/client";
 import { sleeveOverrides } from "@/lib/db/schema";
 
 type SleeveOverride = typeof sleeveOverrides.$inferSelect;
+
+type GetSleevesOptions = {
+  activeOnly?: boolean;
+  cache?: boolean;
+};
+
+export const PUBLIC_SLEEVE_CACHE_SECONDS = 300;
+export const PUBLIC_SLEEVE_CACHE_TAG = "public-sleeve-overrides";
 
 export type SleeveProduct = {
   id: string;
@@ -38,24 +47,46 @@ function toSleeveProduct(
   };
 }
 
-async function getOverrides(ids: string[]) {
-  if (ids.length === 0) return new Map<string, SleeveOverride>();
+async function getOverrideRows(ids?: string[]) {
+  if (ids && ids.length === 0) return [];
 
   try {
-    const rows = await getDb()
-      .select()
-      .from(sleeveOverrides)
-      .where(inArray(sleeveOverrides.sleeveId, ids));
+    if (ids) {
+      return await getDb()
+        .select()
+        .from(sleeveOverrides)
+        .where(inArray(sleeveOverrides.sleeveId, ids));
+    }
 
-    return new Map(rows.map((row) => [row.sleeveId, row]));
+    return await getDb().select().from(sleeveOverrides);
   } catch {
-    return new Map<string, SleeveOverride>();
+    return [];
   }
 }
 
-export async function getSleeves(options: { activeOnly?: boolean } = {}) {
+const getCachedSleeveOverrideRows = unstable_cache(
+  () => getOverrideRows(),
+  ["public-sleeve-overrides-v1"],
+  {
+    revalidate: PUBLIC_SLEEVE_CACHE_SECONDS,
+    tags: [PUBLIC_SLEEVE_CACHE_TAG],
+  },
+);
+
+function rowsToOverrideMap(rows: SleeveOverride[]) {
+  return new Map(rows.map((row) => [row.sleeveId, row]));
+}
+
+export function revalidatePublicSleeveCache() {
+  revalidateTag(PUBLIC_SLEEVE_CACHE_TAG);
+}
+
+export async function getSleeves(options: GetSleevesOptions = {}) {
   const catalog = getCatalogSleeves();
-  const overrides = await getOverrides(catalog.map((sleeve) => sleeve.id));
+  const overrideRows = options.cache
+    ? await getCachedSleeveOverrideRows()
+    : await getOverrideRows(catalog.map((sleeve) => sleeve.id));
+  const overrides = rowsToOverrideMap(overrideRows);
   const products = catalog.map((sleeve) =>
     toSleeveProduct(sleeve, overrides.get(sleeve.id)),
   );
@@ -72,7 +103,7 @@ export async function getSleevesByIds(ids: string[]) {
   const catalogById = new Map(
     getCatalogSleeves().map((sleeve) => [sleeve.id, sleeve]),
   );
-  const overrides = await getOverrides(cleanIds);
+  const overrides = rowsToOverrideMap(await getOverrideRows(cleanIds));
 
   return cleanIds
     .map((id) => {
@@ -88,6 +119,7 @@ export async function decrementSleeveStock(
   if (items.length === 0) return;
 
   const db = getDb();
+  let changed = false;
 
   for (const item of items) {
     if (!item.sleeveId || item.quantity <= 0) continue;
@@ -120,5 +152,11 @@ export async function decrementSleeveStock(
           updatedAt: new Date(),
         },
       });
+
+    changed = true;
+  }
+
+  if (changed) {
+    revalidatePublicSleeveCache();
   }
 }

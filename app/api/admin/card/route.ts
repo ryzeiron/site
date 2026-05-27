@@ -4,6 +4,7 @@ import { isAdmin } from "@/lib/admin/auth";
 import { getCard, isCondition } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { cardOverrides } from "@/lib/db/schema";
+import { revalidatePublicStockCache } from "@/lib/stock";
 
 type Body = {
   cardId?: string;
@@ -115,6 +116,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
+  revalidatePublicStockCache();
+
   return NextResponse.json({
     ok: true,
     name,
@@ -150,6 +153,8 @@ export async function DELETE(request: Request) {
     const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+
+  revalidatePublicStockCache();
 
   return NextResponse.json({ ok: true });
 }

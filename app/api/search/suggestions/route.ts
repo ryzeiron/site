@@ -89,7 +89,7 @@ export async function GET(request: Request) {
       };
     });
 
-  const sleeves = (await getSleeves({ activeOnly: true }))
+  const sleeves = (await getSleeves({ activeOnly: true, cache: true }))
     .filter((sleeve) => {
       const text = normalizeSearch(
         [sleeve.name, sleeve.description].filter(Boolean).join(" "),

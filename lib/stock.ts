@@ -1,5 +1,6 @@
 import "server-only";
 import { inArray } from "drizzle-orm";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { getDb } from "./db/client";
 import { cardOverrides, hiddenVariants, stockOverrides } from "./db/schema";
 import {
@@ -18,92 +19,216 @@ type OverrideData = {
   condition: Condition | null;
 };
 
-export async function applyStockOverrides<T extends Card>(
-  cards: T[],
-): Promise<T[]> {
-  if (cards.length === 0) return cards;
+type StockOverrideRow = {
+  cardId: string;
+  variant: string;
+  stock: number;
+  priceCents: number | null;
+  rarity: string | null;
+  condition: string | null;
+};
 
-  const ids = Array.from(new Set(cards.map((c) => c.id)));
-  let rows: {
-    cardId: string;
-    variant: string;
-    stock: number;
-    priceCents: number | null;
-    rarity: string | null;
-    condition: string | null;
-  }[] = [];
-  let metaRows: {
-    cardId: string;
-    name: string | null;
-    condition: string | null;
-    image: string | null;
-    imageBack: string | null;
-    description: string | null;
-    weightGrams: number | null;
-  }[] = [];
-  let hiddenRows: {
-    cardId: string;
-    variant: string;
-  }[] = [];
+type CardOverrideRow = {
+  cardId: string;
+  name: string | null;
+  condition: string | null;
+  image: string | null;
+  imageBack: string | null;
+  description: string | null;
+  weightGrams: number | null;
+};
+
+type HiddenVariantRow = {
+  cardId: string;
+  variant: string;
+};
+
+type OverrideRows = {
+  rows: StockOverrideRow[];
+  metaRows: CardOverrideRow[];
+  hiddenRows: HiddenVariantRow[];
+};
+
+type ApplyStockOverridesOptions = {
+  cache?: boolean;
+};
+
+export const PUBLIC_STOCK_CACHE_SECONDS = 300;
+export const PUBLIC_STOCK_CACHE_TAG = "public-stock-overrides";
+
+const emptyOverrideRows = (): OverrideRows => ({
+  rows: [],
+  metaRows: [],
+  hiddenRows: [],
+});
+
+async function loadStockRows(ids?: string[]): Promise<StockOverrideRow[]> {
+  const db = getDb();
 
   try {
-    const db = getDb();
-    [rows, metaRows, hiddenRows] = await Promise.all([
-      (async () => {
-        try {
-          return await db
-            .select({
-              cardId: stockOverrides.cardId,
-              variant: stockOverrides.variant,
-              stock: stockOverrides.stock,
-              priceCents: stockOverrides.priceCents,
-              rarity: stockOverrides.rarity,
-              condition: stockOverrides.condition,
-            })
-            .from(stockOverrides)
-            .where(inArray(stockOverrides.cardId, ids));
-        } catch {
-          const fallbackRows = await db
-            .select({
-              cardId: stockOverrides.cardId,
-              variant: stockOverrides.variant,
-              stock: stockOverrides.stock,
-              priceCents: stockOverrides.priceCents,
-              rarity: stockOverrides.rarity,
-            })
-            .from(stockOverrides)
-            .where(inArray(stockOverrides.cardId, ids));
-
-          return fallbackRows.map((row) => ({
-            ...row,
-            condition: null,
-          }));
-        }
-      })(),
-      db
+    if (ids) {
+      return await db
         .select({
-          cardId: cardOverrides.cardId,
-          name: cardOverrides.name,
-          condition: cardOverrides.condition,
-          image: cardOverrides.image,
-          imageBack: cardOverrides.imageBack,
-          description: cardOverrides.description,
-          weightGrams: cardOverrides.weightGrams,
+          cardId: stockOverrides.cardId,
+          variant: stockOverrides.variant,
+          stock: stockOverrides.stock,
+          priceCents: stockOverrides.priceCents,
+          rarity: stockOverrides.rarity,
+          condition: stockOverrides.condition,
         })
-        .from(cardOverrides)
-        .where(inArray(cardOverrides.cardId, ids)),
-      db
+        .from(stockOverrides)
+        .where(inArray(stockOverrides.cardId, ids));
+    }
+
+    return await db
+      .select({
+        cardId: stockOverrides.cardId,
+        variant: stockOverrides.variant,
+        stock: stockOverrides.stock,
+        priceCents: stockOverrides.priceCents,
+        rarity: stockOverrides.rarity,
+        condition: stockOverrides.condition,
+      })
+      .from(stockOverrides);
+  } catch {
+    if (ids) {
+      const fallbackRows = await db
+        .select({
+          cardId: stockOverrides.cardId,
+          variant: stockOverrides.variant,
+          stock: stockOverrides.stock,
+          priceCents: stockOverrides.priceCents,
+          rarity: stockOverrides.rarity,
+        })
+        .from(stockOverrides)
+        .where(inArray(stockOverrides.cardId, ids));
+
+      return fallbackRows.map((row) => ({ ...row, condition: null }));
+    }
+
+    const fallbackRows = await db
+      .select({
+        cardId: stockOverrides.cardId,
+        variant: stockOverrides.variant,
+        stock: stockOverrides.stock,
+        priceCents: stockOverrides.priceCents,
+        rarity: stockOverrides.rarity,
+      })
+      .from(stockOverrides);
+
+    return fallbackRows.map((row) => ({ ...row, condition: null }));
+  }
+}
+
+async function loadMetaRows(ids?: string[]): Promise<CardOverrideRow[]> {
+  const db = getDb();
+
+  if (ids) {
+    return db
+      .select({
+        cardId: cardOverrides.cardId,
+        name: cardOverrides.name,
+        condition: cardOverrides.condition,
+        image: cardOverrides.image,
+        imageBack: cardOverrides.imageBack,
+        description: cardOverrides.description,
+        weightGrams: cardOverrides.weightGrams,
+      })
+      .from(cardOverrides)
+      .where(inArray(cardOverrides.cardId, ids));
+  }
+
+  return db
+    .select({
+      cardId: cardOverrides.cardId,
+      name: cardOverrides.name,
+      condition: cardOverrides.condition,
+      image: cardOverrides.image,
+      imageBack: cardOverrides.imageBack,
+      description: cardOverrides.description,
+      weightGrams: cardOverrides.weightGrams,
+    })
+    .from(cardOverrides);
+}
+
+async function loadHiddenRows(ids?: string[]): Promise<HiddenVariantRow[]> {
+  const db = getDb();
+
+  try {
+    if (ids) {
+      return await db
         .select({
           cardId: hiddenVariants.cardId,
           variant: hiddenVariants.variant,
         })
         .from(hiddenVariants)
-        .where(inArray(hiddenVariants.cardId, ids))
-        .catch(() => [] as typeof hiddenRows),
-    ]);
+        .where(inArray(hiddenVariants.cardId, ids));
+    }
+
+    return await db
+      .select({
+        cardId: hiddenVariants.cardId,
+        variant: hiddenVariants.variant,
+      })
+      .from(hiddenVariants);
+  } catch {
+    return [];
+  }
+}
+
+async function loadOverrideRows(ids?: string[]): Promise<OverrideRows> {
+  if (ids && ids.length === 0) return emptyOverrideRows();
+
+  const [rows, metaRows, hiddenRows] = await Promise.all([
+    loadStockRows(ids),
+    loadMetaRows(ids),
+    loadHiddenRows(ids),
+  ]);
+
+  return { rows, metaRows, hiddenRows };
+}
+
+const loadCachedPublicOverrideRows = unstable_cache(
+  () => loadOverrideRows(),
+  ["public-stock-overrides-v1"],
+  {
+    revalidate: PUBLIC_STOCK_CACHE_SECONDS,
+    tags: [PUBLIC_STOCK_CACHE_TAG],
+  },
+);
+
+function filterOverrideRows(data: OverrideRows, ids: string[]): OverrideRows {
+  const idSet = new Set(ids);
+
+  return {
+    rows: data.rows.filter((row) => idSet.has(row.cardId)),
+    metaRows: data.metaRows.filter((row) => idSet.has(row.cardId)),
+    hiddenRows: data.hiddenRows.filter((row) => idSet.has(row.cardId)),
+  };
+}
+
+export function revalidatePublicStockCache() {
+  revalidateTag(PUBLIC_STOCK_CACHE_TAG);
+}
+
+export async function applyStockOverrides<T extends Card>(
+  cards: T[],
+  options: ApplyStockOverridesOptions = {},
+): Promise<T[]> {
+  if (cards.length === 0) return cards;
+
+  const ids = Array.from(new Set(cards.map((c) => c.id)));
+  let data = emptyOverrideRows();
+
+  try {
+    data = options.cache
+      ? filterOverrideRows(await loadCachedPublicOverrideRows(), ids)
+      : await loadOverrideRows(ids);
   } catch {
     return cards;
   }
+
+  const { rows, metaRows, hiddenRows } = data;
 
   if (rows.length === 0 && metaRows.length === 0 && hiddenRows.length === 0) {
     return cards;

@@ -4,6 +4,7 @@ import { isAdmin } from "@/lib/admin/auth";
 import { getCatalogSleeve } from "@/lib/catalog/sleeves";
 import { getDb } from "@/lib/db/client";
 import { sleeveOverrides } from "@/lib/db/schema";
+import { revalidatePublicSleeveCache } from "@/lib/sleeves";
 
 type Body = {
   id?: string;
@@ -66,6 +67,8 @@ export async function POST(request: Request) {
         },
       });
 
+    revalidatePublicSleeveCache();
+
     return NextResponse.json({ ok: true, id });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur base de données.";
@@ -94,6 +97,8 @@ export async function DELETE(request: Request) {
     await getDb()
       .delete(sleeveOverrides)
       .where(eq(sleeveOverrides.sleeveId, id));
+    revalidatePublicSleeveCache();
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur base de données.";

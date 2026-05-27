@@ -17,6 +17,7 @@ import {
   confirmStockReservation,
   releaseStockReservation,
 } from "@/lib/stock-reservations";
+import { revalidatePublicStockCache } from "@/lib/stock";
 
 export const runtime = "nodejs";
 
@@ -277,6 +278,9 @@ export async function POST(request: Request) {
       await decrementSleeveStock(
         sleeveItems.map(([sleeveId, quantity]) => ({ sleeveId, quantity })),
       );
+      if (items.length > 0) {
+        revalidatePublicStockCache();
+      }
 
       return NextResponse.json({
         received: true,
@@ -320,6 +324,9 @@ export async function POST(request: Request) {
     await decrementSleeveStock(
       sleeveItems.map(([sleeveId, quantity]) => ({ sleeveId, quantity })),
     );
+    if (items.length > 0) {
+      revalidatePublicStockCache();
+    }
   } catch (error) {
     stockUpdateError =
       error instanceof Error ? error.message : "Erreur mise a jour stock.";

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     }
     const set = new Set(ids);
     const cards = CARDS.filter((c) => set.has(c.id));
-    const withStock = await applyStockOverrides(cards);
+    const withStock = await applyStockOverrides(cards, { cache: true });
     return NextResponse.json({ cards: withStock });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur inconnue.";

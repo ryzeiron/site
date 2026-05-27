@@ -9,7 +9,7 @@ import {
 } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { stockOverrides } from "@/lib/db/schema";
-import { applyStockOverrides } from "@/lib/stock";
+import { applyStockOverrides, revalidatePublicStockCache } from "@/lib/stock";
 
 type Body = {
   serieId?: string;
@@ -95,6 +95,8 @@ export async function POST(request: Request) {
     const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+
+  revalidatePublicStockCache();
 
   return NextResponse.json({
     ok: true,
