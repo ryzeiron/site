@@ -17,7 +17,41 @@ export const MCDO_SERIES = [
 ] satisfies Serie[];
 
 export const MCDO_CARDS = [
+  //MCDO 2024
+  { id: "2024sv-01", serieId: "2024sv", name: "Dracaufeu", number: "01/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/1.png", },
+  { id: "2024sv-02", serieId: "2024sv", name: "Pikachu ", number: "02/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/2.png", },
+  { id: "2024sv-03", serieId: "2024sv", name: "Miraidon ", number: "03/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/3.png", },
+  { id: "2024sv-04", serieId: "2024sv", name: "Rondoudou ", number: "04/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/4.png", },
+  { id: "2024sv-05", serieId: "2024sv", name: "Bibichut ", number: "05/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/5.png", },
+  { id: "2024sv-06", serieId: "2024sv", name: "Lanssorien ", number: "06/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/6.png", },
+  { id: "2024sv-07", serieId: "2024sv", name: "Maraiste ", number: "07/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/7.png", },
+  { id: "2024sv-08", serieId: "2024sv", name: "Koraidon  ", number: "08/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/8.png", },
+  { id: "2024sv-09", serieId: "2024sv", name: "Noctali ", number: "09/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/9.png", },
+  { id: "2024sv-10", serieId: "2024sv", name: "Trioxhydre ", number: "10/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/10.png", },
+  { id: "2024sv-11", serieId: "2024sv", name: "Rugit-Lune ", number: "11/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/11.png", },
+  { id: "2024sv-12", serieId: "2024sv", name: "Dracolosse ", number: "12/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/12.png", },
+  { id: "2024sv-13", serieId: "2024sv", name: "Évoli ", number: "13/15", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/13.png", },
+  { id: "2024sv-14", serieId: "2024sv", name: "Rayquaza ", number: "14/15", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/14.png", },
+  { id: "2024sv-15", serieId: "2024sv", name: "Draïeul ", number: "15/15", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2024/15.png", },
 
+  //MCDO 2023
+  { id: "2023sv-01", serieId: "2023sv", name: "Poussacha ", number: "01/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/1.png", },
+  { id: "2023sv-02", serieId: "2023sv", name: "Chochodile  ", number: "02/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/2.png", },
+  { id: "2023sv-03", serieId: "2023sv", name: "Coiffeton  ", number: "03/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/3.png", },
+  { id: "2023sv-04", serieId: "2023sv", name: "Piétacé  ", number: "04/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/4.png", },
+  { id: "2023sv-05", serieId: "2023sv", name: "Balbalèze  ", number: "05/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/5.png", },
+  { id: "2023sv-06", serieId: "2023sv", name: "Pikachu  ", number: "06/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/6.png", },
+  { id: "2023sv-07", serieId: "2023sv", name: "Pohm  ", number: "07/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/7.png", },
+  { id: "2023sv-08", serieId: "2023sv", name: "Fulgulairo   ", number: "08/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/8.png", },
+  { id: "2023sv-09", serieId: "2023sv", name: "Flotillon  ", number: "09/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/9.png", },
+  { id: "2023sv-10", serieId: "2023sv", name: "Dunaconda  ", number: "10/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/10.png", },
+  { id: "2023sv-11", serieId: "2023sv", name: "Craparoi  ", number: "11/12", rarity: "Holo", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/11.png", },
+  { id: "2023sv-12", serieId: "2023sv", name: "Leuphorie  ", number: "12/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/12.png", },
+  { id: "2023sv-13", serieId: "2023sv", name: "Compagnol  ", number: "13/15", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/13.png", },
+  { id: "2023sv-14", serieId: "2023sv", name: "Motorizard  ", number: "14/15", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/14.png", },
+  { id: "2023sv-15", serieId: "2023sv", name: "Kirlia  ", number: "15/15", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2023/15.png", },
+
+  
   //MCDO 2011
   { id: "2011bw-01", serieId: "2011bw", name: "Vipélierre ", number: "01/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2011/1.png", },
   { id: "2011bw-02", serieId: "2011bw", name: "Maracachi ", number: "02/12", rarity: "commune", condition: "Near Mint", language: "FR", price: 0.5, stock: 0, image: "/cartes/2011/2.png", },
