@@ -13,6 +13,7 @@ import {
   MONDIAL_RELAY_MAX_INSURANCE_CENTS,
   getMondialRelayInsurance,
 } from "@/lib/mondial-relay-shipping";
+import { isPromoExcludedCard } from "@/lib/promo-exclusions";
 
 type AppliedPromo =
   | {
@@ -158,9 +159,34 @@ export default function CartPage() {
     return cardsTotal + sleevesTotal;
   }, [cardItems, sleeveItems, cards, sleeves]);
 
+  const promoEligibleSubtotal = useMemo(() => {
+    const cardsTotal = cardItems.reduce((sum, item) => {
+      if (isPromoExcludedCard(item.cardId)) return sum;
+
+      const card = cards[item.cardId];
+      if (!card) return sum;
+
+      const v = resolveVariant(card, item.variant);
+      return sum + v.price * item.quantity;
+    }, 0);
+
+    const sleevesTotal = sleeveItems.reduce((sum, item) => {
+      const sleeve = sleeves[item.sleeveId];
+      if (!sleeve) return sum;
+
+      return sum + (sleeve.priceCents / 100) * item.quantity;
+    }, 0);
+
+    return cardsTotal + sleevesTotal;
+  }, [cardItems, sleeveItems, cards, sleeves]);
+
+  const hasPromoExcludedItems = cardItems.some((item) =>
+    isPromoExcludedCard(item.cardId),
+  );
+
   const discount =
     appliedPromo?.type === "percent_off"
-      ? (subtotal * appliedPromo.percent) / 100
+      ? (promoEligibleSubtotal * appliedPromo.percent) / 100
       : 0;
 
   const total = Math.max(0, subtotal - discount);
@@ -591,6 +617,12 @@ export default function CartPage() {
 
           {promoError && (
             <p className="mt-2 text-xs text-red-300">{promoError}</p>
+          )}
+
+          {appliedPromo?.type === "percent_off" && hasPromoExcludedItems && (
+            <p className="mt-2 text-xs text-amber-200">
+              Certaines cartes du panier sont exclues de cette offre.
+            </p>
           )}
         </div>
 

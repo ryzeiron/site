@@ -7,7 +7,7 @@ export type PromoEffect =
 function buildPromos(): Record<string, PromoEffect> {
   const map: Record<string, PromoEffect> = {};
 
-  const percentCode = (process.env.PROMO_PERCENT_CODE ?? "BIENVENUE10").trim();
+  const percentCode = (process.env.PROMO_PERCENT_CODE ?? "BIENVENUE").trim();
   const percentValue = Number.parseFloat(
     process.env.PROMO_PERCENT_VALUE ?? "10",
   );
@@ -16,7 +16,7 @@ function buildPromos(): Record<string, PromoEffect> {
       code: percentCode,
       type: "percent_off",
       percent: percentValue,
-      label: `-${percentValue}% sur le panier`,
+      label: `-${percentValue}% sur les articles éligibles`,
     };
   }
 

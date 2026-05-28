@@ -12,6 +12,7 @@ import {
   MONDIAL_RELAY_MAX_INSURANCE_CENTS,
   getMondialRelayInsurance,
 } from "@/lib/mondial-relay-shipping";
+import { isPromoExcludedCard } from "@/lib/promo-exclusions";
 import {
   releaseStockReservation,
   reserveStockItems,
@@ -127,12 +128,13 @@ export async function POST(request: Request) {
     let stripePromotionCodeId: string | null = null;
 
     if (body.promoCode && body.promoCode.trim()) {
-      const stripePromotionCode = await getStripePromotionCode(body.promoCode);
+      promo = getPromo(body.promoCode);
 
-      if (stripePromotionCode) {
-        stripePromotionCodeId = stripePromotionCode.id;
-      } else {
-        promo = getPromo(body.promoCode);
+      if (!promo) {
+        const stripePromotionCode = await getStripePromotionCode(body.promoCode);
+        if (stripePromotionCode) {
+          stripePromotionCodeId = stripePromotionCode.id;
+        }
       }
 
       if (!stripePromotionCodeId && !promo) {
@@ -176,6 +178,10 @@ export async function POST(request: Request) {
       }
 
       const v = resolveVariant(card, item.variant);
+      const itemPercentMultiplier =
+        promo?.type === "percent_off" && !isPromoExcludedCard(card.id)
+          ? percentMultiplier
+          : 1;
 
       if (item.quantity > v.stock) {
         throw new Error(`Stock insuffisant pour ${card.name}.`);
@@ -200,7 +206,7 @@ export async function POST(request: Request) {
           currency: "eur",
           unit_amount: Math.max(
             0,
-            Math.round(v.price * 100 * percentMultiplier),
+            Math.round(v.price * 100 * itemPercentMultiplier),
           ),
           product_data: {
             name: `${card.name} (${card.number}) - ${v.rarity}`,

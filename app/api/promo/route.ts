@@ -6,20 +6,20 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { code?: string };
 
+    const promo = getPromo(body.code);
+    if (promo) {
+      return NextResponse.json({ promo: { ...promo, source: "local" } });
+    }
+
     const stripePromo = await getStripePromoEffect(body.code);
     if (stripePromo) {
       return NextResponse.json({ promo: stripePromo });
     }
 
-    const promo = getPromo(body.code);
-    if (!promo) {
-      return NextResponse.json(
-        { error: "Code promo invalide." },
-        { status: 404 },
-      );
-    }
-
-    return NextResponse.json({ promo: { ...promo, source: "local" } });
+    return NextResponse.json(
+      { error: "Code promo invalide." },
+      { status: 404 },
+    );
   } catch {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
