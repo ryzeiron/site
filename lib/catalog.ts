@@ -284,7 +284,6 @@ export const BLOCS: Bloc[] = [
     tagline: "2011 - 2024",
     coverColor: "from-yellow-400 to-red-600",
     image: "/blocs/mcdo.webp",
-    imageFit: "contain",
   },
 ];
 
