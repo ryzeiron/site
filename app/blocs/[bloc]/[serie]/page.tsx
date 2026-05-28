@@ -7,6 +7,7 @@ import {
   getBloc,
   getSerie,
 } from "@/lib/catalog";
+import { shouldUseLivePublicData } from "@/lib/public-live-data";
 import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
@@ -34,10 +35,12 @@ export default async function SeriePage({
   if (!bloc || !serie || serie.blocId !== bloc.id) notFound();
   const raw = cardsForSerie(serie.id);
   let cards = raw;
-  try {
-    cards = await applyStockOverrides(raw, { cache: true });
-  } catch {
-    // fallback sur le catalogue si la DB est indisponible
+  if (await shouldUseLivePublicData()) {
+    try {
+      cards = await applyStockOverrides(raw, { cache: true });
+    } catch {
+      // fallback sur le catalogue si la DB est indisponible
+    }
   }
 
   return (

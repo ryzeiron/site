@@ -1,13 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SleeveCatalogGrid from "@/components/SleeveCatalogGrid";
-import { getSleeves } from "@/lib/sleeves";
+import { getCatalogSleeves } from "@/lib/catalog/sleeves";
+import { shouldUseLivePublicData } from "@/lib/public-live-data";
+import { getSleeves, type SleeveProduct } from "@/lib/sleeves";
 
 export const metadata: Metadata = {
   title: "Sleeves",
 };
 
 export const dynamic = "force-dynamic";
+
+function getCatalogSleeveProducts(): SleeveProduct[] {
+  return getCatalogSleeves()
+    .filter((sleeve) => sleeve.active ?? true)
+    .map((sleeve) => ({
+      id: sleeve.id,
+      name: sleeve.name,
+      description: sleeve.description ?? null,
+      image: sleeve.image ?? null,
+      priceCents: sleeve.defaultPriceCents,
+      stock: sleeve.defaultStock,
+      active: sleeve.active ?? true,
+      hasOverride: false,
+    }));
+}
 
 const sleeveHighlights = [
   "Protection pour cartes Pokémon",
@@ -16,7 +33,9 @@ const sleeveHighlights = [
 ];
 
 export default async function SleevePage() {
-  const products = await getSleeves({ activeOnly: true, cache: true });
+  const products = (await shouldUseLivePublicData())
+    ? await getSleeves({ activeOnly: true, cache: true })
+    : getCatalogSleeveProducts();
 
   return (
     <div className="space-y-8">

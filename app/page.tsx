@@ -2,6 +2,7 @@ import Link from "next/link";
 import BlocTile from "@/components/BlocTile";
 import CardTile from "@/components/CardTile";
 import { BLOCS, type Rarity } from "@/lib/catalog";
+import { shouldUseLivePublicData } from "@/lib/public-live-data";
 import { getLatestReviews } from "@/lib/public-reviews";
 import { formatRecentDate, getRecentCards } from "@/lib/recent-cards";
 
@@ -28,10 +29,13 @@ function ReviewStars({ rating }: { rating: number }) {
 
 export default async function HomePage() {
   const blocsLoop = [...BLOCS, ...BLOCS];
-  const [latestReviews, recentCards] = await Promise.all([
-    getLatestReviews(),
-    getRecentCards(4, { rarities: FEATURED_NEW_RARITIES }),
-  ]);
+  const useLiveData = await shouldUseLivePublicData();
+  const [latestReviews, recentCards] = useLiveData
+    ? await Promise.all([
+        getLatestReviews(),
+        getRecentCards(4, { rarities: FEATURED_NEW_RARITIES }),
+      ])
+    : [[], []];
 
   return (
     <div className="space-y-12">

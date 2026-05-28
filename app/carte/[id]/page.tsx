@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CardDetailBody from "@/components/CardDetailBody";
 import { getBloc, getCard, getSerie } from "@/lib/catalog";
+import { shouldUseLivePublicData } from "@/lib/public-live-data";
 import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
@@ -28,11 +29,13 @@ export default async function CardPage({
   const raw = getCard(id);
   if (!raw) notFound();
   let card = raw;
-  try {
-    const [withStock] = await applyStockOverrides([raw], { cache: true });
-    if (withStock) card = withStock;
-  } catch {
-    // garder la carte du catalogue si la DB est indisponible
+  if (await shouldUseLivePublicData()) {
+    try {
+      const [withStock] = await applyStockOverrides([raw], { cache: true });
+      if (withStock) card = withStock;
+    } catch {
+      // garder la carte du catalogue si la DB est indisponible
+    }
   }
   const serie = getSerie(card.serieId);
   const bloc = serie ? getBloc(serie.blocId) : undefined;

@@ -6,6 +6,7 @@ import SleeveAddToCartButton from "@/components/SleeveAddToCartButton";
 import StockBadge from "@/components/StockBadge";
 import { formatRecentDate, getRecentCards } from "@/lib/recent-cards";
 import { formatPrice } from "@/lib/format";
+import { shouldUseLivePublicData } from "@/lib/public-live-data";
 import { getSleeves } from "@/lib/sleeves";
 
 export const dynamic = "force-dynamic";
@@ -54,11 +55,14 @@ export default async function NouveautesPage({
         : {};
   const showCards = mode !== "sleeves";
   const showSleeves = mode === "tout" || mode === "sleeves";
+  const useLiveData = await shouldUseLivePublicData();
 
-  const [entries, sleeveProducts] = await Promise.all([
-    showCards ? getRecentCards(mode === "tout" ? 24 : 48, cardOptions) : [],
-    showSleeves ? getSleeves({ activeOnly: true, cache: true }) : [],
-  ]);
+  const [entries, sleeveProducts] = useLiveData
+    ? await Promise.all([
+        showCards ? getRecentCards(mode === "tout" ? 24 : 48, cardOptions) : [],
+        showSleeves ? getSleeves({ activeOnly: true, cache: true }) : [],
+      ])
+    : [[], []];
   const sleeves = sleeveProducts.filter((sleeve) => sleeve.stock > 0).slice(0, 24);
   const hasContent = entries.length > 0 || sleeves.length > 0;
 

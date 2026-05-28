@@ -15,6 +15,7 @@ import {
   type Serie,
 } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
+import { shouldUseLivePublicData } from "@/lib/public-live-data";
 import { getSleeves, type SleeveProduct } from "@/lib/sleeves";
 import { applyStockOverrides } from "@/lib/stock";
 
@@ -83,6 +84,7 @@ export default async function SearchPage({
   const query = q.trim();
   const onlyInStock = inStock === "1" || inStock === "on" || inStock === "true";
   const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
+  const useLiveData = await shouldUseLivePublicData();
 
   const rawCardResults =
     terms.length > 0
@@ -98,7 +100,7 @@ export default async function SearchPage({
       : [];
 
   const sleeveResults =
-    terms.length > 0
+    terms.length > 0 && useLiveData
       ? (await getSleeves({ activeOnly: true, cache: true }))
           .filter((sleeve) => matchesTerms(searchableSleeveText(sleeve), terms))
           .filter((sleeve) => !onlyInStock || sleeve.stock > 0)
@@ -106,7 +108,7 @@ export default async function SearchPage({
       : [];
 
   const cardsWithStock =
-    rawCardResults.length > 0
+    rawCardResults.length > 0 && useLiveData
       ? await applyStockOverrides(rawCardResults, { cache: true })
       : rawCardResults;
   const cardResults = onlyInStock

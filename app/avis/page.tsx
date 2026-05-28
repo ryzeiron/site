@@ -4,6 +4,7 @@ import ReviewForm from "@/components/ReviewForm";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db/client";
 import { orders, reviews, users } from "@/lib/db/schema";
+import { shouldUseLivePublicData } from "@/lib/public-live-data";
 
 export const dynamic = "force-dynamic";
 
@@ -26,19 +27,22 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export default async function AvisPage() {
-  const session = await auth();
-  const db = getDb();
+  const useLiveData = await shouldUseLivePublicData();
+  const session = useLiveData ? await auth() : null;
+  const db = useLiveData ? getDb() : null;
 
-  const [reviewRows, userRows] = await Promise.all([
-    db.select().from(reviews).orderBy(desc(reviews.createdAt)),
-    db.select().from(users),
-  ]);
+  const [reviewRows, userRows] = db
+    ? await Promise.all([
+        db.select().from(reviews).orderBy(desc(reviews.createdAt)),
+        db.select().from(users),
+      ])
+    : [[], []];
 
   const usersById = new Map(userRows.map((user) => [user.id, user]));
   let hasBought = false;
   let currentReview: typeof reviews.$inferSelect | null = null;
 
-  if (session?.user?.id && session.user.email) {
+  if (session?.user?.id && session.user.email && db) {
     const [orderRows, reviewForUserRows] = await Promise.all([
       db
         .select({ id: orders.id })
