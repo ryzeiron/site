@@ -4,7 +4,15 @@ import CardTile from "@/components/CardTile";
 import FavoriteSleeveButton from "@/components/FavoriteSleeveButton";
 import SleeveAddToCartButton from "@/components/SleeveAddToCartButton";
 import StockBadge from "@/components/StockBadge";
-import { CARDS, SERIES, getBloc, getSerie, type Card, type Serie } from "@/lib/catalog";
+import {
+  CARDS,
+  SERIES,
+  getBloc,
+  getSerie,
+  listVariants,
+  type Card,
+  type Serie,
+} from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 import { getSleeves, type SleeveProduct } from "@/lib/sleeves";
 import { applyStockOverrides } from "@/lib/stock";
@@ -15,7 +23,7 @@ export const metadata: Metadata = {
   title: "Recherche",
 };
 
-type Search = { q?: string };
+type Search = { q?: string; inStock?: string };
 
 const MAX_CARD_RESULTS = 160;
 const MAX_SERIE_RESULTS = 24;
@@ -61,13 +69,18 @@ function searchableSleeveText(sleeve: SleeveProduct) {
   return [sleeve.name, sleeve.description].filter(Boolean).join(" ");
 }
 
+function hasAvailableVariant(card: Card) {
+  return listVariants(card).some(({ variant }) => variant.stock > 0);
+}
+
 export default async function SearchPage({
   searchParams,
 }: {
   searchParams: Promise<Search>;
 }) {
-  const { q = "" } = await searchParams;
+  const { q = "", inStock } = await searchParams;
   const query = q.trim();
+  const onlyInStock = inStock === "1" || inStock === "on" || inStock === "true";
   const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
 
   const rawCardResults =
@@ -87,16 +100,20 @@ export default async function SearchPage({
     terms.length > 0
       ? (await getSleeves({ activeOnly: true, cache: true }))
           .filter((sleeve) => matchesTerms(searchableSleeveText(sleeve), terms))
+          .filter((sleeve) => !onlyInStock || sleeve.stock > 0)
           .slice(0, MAX_SLEEVE_RESULTS)
       : [];
 
-  const visibleRawCards = rawCardResults.slice(0, MAX_CARD_RESULTS);
-  const cards =
-    visibleRawCards.length > 0
-      ? await applyStockOverrides(visibleRawCards, { cache: true })
-      : visibleRawCards;
+  const cardsWithStock =
+    rawCardResults.length > 0
+      ? await applyStockOverrides(rawCardResults, { cache: true })
+      : rawCardResults;
+  const cardResults = onlyInStock
+    ? cardsWithStock.filter(hasAvailableVariant)
+    : cardsWithStock;
+  const cards = cardResults.slice(0, MAX_CARD_RESULTS);
   const totalResults =
-    rawCardResults.length + serieResults.length + sleeveResults.length;
+    cardResults.length + serieResults.length + sleeveResults.length;
 
   return (
     <div>
@@ -108,20 +125,32 @@ export default async function SearchPage({
           Recherche une carte, une série ou une sleeve dans tout le site.
         </p>
 
-        <form action="/recherche" className="mt-5 flex flex-col gap-3 sm:flex-row">
-          <input
-            name="q"
-            type="search"
-            defaultValue={query}
-            placeholder="Exemple : Pikachu, Dracaufeu, Reverse, sleeves..."
-            className="min-h-11 flex-1 rounded-full border border-white/10 bg-black/45 px-5 text-sm text-white outline-none placeholder:text-gray-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30"
-          />
-          <button
-            type="submit"
-            className="min-h-11 rounded-full bg-violet-600 px-6 text-sm font-bold text-white transition hover:bg-violet-700"
-          >
-            Rechercher
-          </button>
+        <form action="/recherche" className="mt-5 flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              name="q"
+              type="search"
+              defaultValue={query}
+              placeholder="Exemple : Pikachu, Dracaufeu, Reverse, sleeves..."
+              className="min-h-11 flex-1 rounded-full border border-white/10 bg-black/45 px-5 text-sm text-white outline-none placeholder:text-gray-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30"
+            />
+            <button
+              type="submit"
+              className="min-h-11 rounded-full bg-violet-600 px-6 text-sm font-bold text-white transition hover:bg-violet-700"
+            >
+              Rechercher
+            </button>
+          </div>
+          <label className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-gray-200">
+            <input
+              type="checkbox"
+              name="inStock"
+              value="1"
+              defaultChecked={onlyInStock}
+              className="h-4 w-4 accent-violet-500"
+            />
+            En stock uniquement
+          </label>
         </form>
       </div>
 
@@ -144,8 +173,8 @@ export default async function SearchPage({
                 Résultats pour "{query}"
               </h2>
               <p className="mt-1 text-sm text-gray-400">
-                {rawCardResults.length} carte
-                {rawCardResults.length > 1 ? "s" : ""}, {serieResults.length} série
+                {cardResults.length} carte
+                {cardResults.length > 1 ? "s" : ""}, {serieResults.length} série
                 {serieResults.length > 1 ? "s" : ""}, {sleeveResults.length} sleeve
                 {sleeveResults.length > 1 ? "s" : ""}.
               </p>
@@ -217,7 +246,7 @@ export default async function SearchPage({
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                   <h3 className="text-xl font-bold text-white">Cartes</h3>
-                  {rawCardResults.length > MAX_CARD_RESULTS ? (
+                  {cardResults.length > MAX_CARD_RESULTS ? (
                     <p className="mt-1 text-sm text-gray-400">
                       Affichage des {MAX_CARD_RESULTS} premières cartes.
                     </p>

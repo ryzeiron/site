@@ -29,7 +29,6 @@ const RARITY_ORDER: Rarity[] = [
 ];
 
 type SortMode = "number" | "name" | "price-asc" | "price-desc" | "rarity";
-type StockMode = "all" | "in-stock" | "low-stock" | "out";
 type ListedVariant = { key: VariantKey; variant: CardVariant };
 
 const RARITY_RANK = new Map(RARITY_ORDER.map((rarity, index) => [rarity, index]));
@@ -46,7 +45,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   const [selectedRarities, setSelectedRarities] = useState<Rarity[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<Condition[]>([]);
   const [query, setQuery] = useState("");
-  const [stockMode, setStockMode] = useState<StockMode>("all");
+  const [onlyInStock, setOnlyInStock] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("number");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -124,11 +123,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
       const stockToCheck =
         selectedRarities.length > 0 ? variantForFilters?.stock ?? 0 : totalStock;
 
-      if (stockMode === "in-stock" && stockToCheck <= 0) return false;
-      if (stockMode === "low-stock" && !(stockToCheck > 0 && stockToCheck <= 2)) {
-        return false;
-      }
-      if (stockMode === "out" && stockToCheck > 0) return false;
+      if (onlyInStock && stockToCheck <= 0) return false;
 
       const price = variantForFilters?.price ?? 0;
       if (Number.isFinite(min) && price < min) return false;
@@ -182,7 +177,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
     selectedRarities,
     selectedConditions,
     normalizedQuery,
-    stockMode,
+    onlyInStock,
     minPrice,
     maxPrice,
     sortMode,
@@ -212,7 +207,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
     setSelectedRarities([]);
     setSelectedConditions([]);
     setQuery("");
-    setStockMode("all");
+    setOnlyInStock(false);
     setMinPrice("");
     setMaxPrice("");
     setSortMode("number");
@@ -261,16 +256,15 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <select
-              value={stockMode}
-              onChange={(e) => setStockMode(e.target.value as StockMode)}
-              className="min-h-10 rounded-lg border border-white/10 bg-zinc-900 px-3 text-sm text-white"
-            >
-              <option value="all">Tout stock</option>
-              <option value="in-stock">En stock</option>
-              <option value="low-stock">Stock faible</option>
-              <option value="out">Rupture</option>
-            </select>
+            <label className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-3 text-sm text-white">
+              <input
+                type="checkbox"
+                checked={onlyInStock}
+                onChange={(e) => setOnlyInStock(e.target.checked)}
+                className="h-4 w-4 accent-violet-500"
+              />
+              En stock uniquement
+            </label>
 
             <select
               value={sortMode}
