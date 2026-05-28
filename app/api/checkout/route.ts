@@ -9,6 +9,10 @@ import { getStripePromotionCode } from "@/lib/stripe-promo";
 import { getRequestOrigin } from "@/lib/site-url";
 import { getSleevesByIds } from "@/lib/sleeves";
 import {
+  MONDIAL_RELAY_MAX_INSURANCE_CENTS,
+  getMondialRelayInsurance,
+} from "@/lib/mondial-relay-shipping";
+import {
   releaseStockReservation,
   reserveStockItems,
 } from "@/lib/stock-reservations";
@@ -274,7 +278,24 @@ export async function POST(request: Request) {
       (total, item) => total + item.price_data.unit_amount * item.quantity,
       0,
     );
-    const checkoutTotalCents = itemsTotalCents + relayCents;
+    const insurance = getMondialRelayInsurance(itemsTotalCents);
+    const insuranceFeeCents = insurance?.feeCents ?? 0;
+
+    if (itemsTotalCents > MONDIAL_RELAY_MAX_INSURANCE_CENTS) {
+      return NextResponse.json(
+        {
+          error:
+            "Pour une commande supérieure à 500 €, contacte-nous afin d'organiser une livraison assurée adaptée.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const chargedInsuranceFeeCents = Math.round(
+      insuranceFeeCents * shippingMultiplier,
+    );
+    const checkoutTotalCents =
+      itemsTotalCents + relayCents + chargedInsuranceFeeCents;
 
     if (checkoutTotalCents < MIN_STRIPE_TOTAL_CENTS) {
       return NextResponse.json(
@@ -311,14 +332,23 @@ export async function POST(request: Request) {
       relayMeta.relay_city = body.relay.city.slice(0, 100);
     }
 
+    if (insurance) {
+      relayMeta.mr_insurance_coverage_cents = String(insurance.coverageCents);
+      relayMeta.mr_insurance_fee_cents = String(insurance.feeCents);
+      relayMeta.mr_insurance_charged_cents = String(chargedInsuranceFeeCents);
+    }
+
     const relayDisplayName = body.relay.name
-      ? `Mondial Relay - ${body.relay.name}`
-      : `Mondial Relay (${country})`;
+      ? `Mondial Relay${insurance ? " assure" : ""} - ${body.relay.name}`
+      : `Mondial Relay${insurance ? " assure" : ""} (${country})`;
 
     const relayShippingOption = {
       shipping_rate_data: {
         type: "fixed_amount" as const,
-        fixed_amount: { amount: relayCents, currency: "eur" },
+        fixed_amount: {
+          amount: relayCents + chargedInsuranceFeeCents,
+          currency: "eur",
+        },
         display_name: relayDisplayName.slice(0, 100),
         delivery_estimate: {
           minimum: { unit: "business_day" as const, value: 3 },

@@ -9,6 +9,10 @@ import MondialRelayPicker, {
 import { isCardCartItem, isSleeveCartItem, useCart } from "@/lib/cart";
 import { resolveVariant, type Card } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
+import {
+  MONDIAL_RELAY_MAX_INSURANCE_CENTS,
+  getMondialRelayInsurance,
+} from "@/lib/mondial-relay-shipping";
 
 type AppliedPromo =
   | {
@@ -160,6 +164,11 @@ export default function CartPage() {
       : 0;
 
   const total = Math.max(0, subtotal - discount);
+  const totalCents = Math.round(total * 100);
+  const mondialRelayInsurance = getMondialRelayInsurance(
+    totalCents,
+  );
+  const requiresManualShipping = totalCents > MONDIAL_RELAY_MAX_INSURANCE_CENTS;
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   async function applyPromo() {
@@ -603,6 +612,27 @@ export default function CartPage() {
           <p className="text-xs text-gray-500 mt-1">
             Livraison via Mondial Relay uniquement.
           </p>
+
+          {requiresManualShipping ? (
+            <p className="mt-2 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs text-red-100">
+              Pour une commande supérieure à 500 €, contacte-nous afin
+              d'organiser une livraison assurée adaptée.
+            </p>
+          ) : mondialRelayInsurance ? (
+            <p className="mt-2 rounded-lg border border-violet-400/25 bg-violet-500/10 px-3 py-2 text-xs text-violet-100">
+              Assurance Mondial Relay automatique jusqu'à{" "}
+              {formatPrice(mondialRelayInsurance.coverageCents / 100)} à
+              l'étape de paiement
+              {appliedPromo?.type === "free_shipping"
+                ? " (incluse dans la livraison offerte)."
+                : ` (+${formatPrice(mondialRelayInsurance.feeCents / 100)}).`}
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-gray-500">
+              À partir de 50 € de panier, une assurance Mondial Relay est
+              ajoutée automatiquement.
+            </p>
+          )}
         </div>
 
         <div className="mb-3 border-t border-white/10 pt-3">
@@ -713,6 +743,15 @@ export default function CartPage() {
               <span>Offerte</span>
             </div>
           )}
+
+          {mondialRelayInsurance && appliedPromo?.type !== "free_shipping" && (
+            <div className="flex items-center justify-between text-violet-200">
+              <span>Assurance Mondial Relay</span>
+              <span>
+                + {formatPrice(mondialRelayInsurance.feeCents / 100)}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="mt-4 border-t border-white/10 pt-3">
@@ -765,12 +804,16 @@ export default function CartPage() {
           <button
             type="button"
             onClick={handleCheckout}
-            disabled={loading || !selectedRelay || !acceptedCgv}
+            disabled={
+              loading || !selectedRelay || !acceptedCgv || requiresManualShipping
+            }
             className="rounded-full bg-brand-500 hover:bg-brand-600 disabled:opacity-60 text-white px-6 py-3 font-medium"
           >
             {loading
               ? "Redirection..."
-              : selectedRelay
+              : requiresManualShipping
+                ? "Nous contacter"
+                : selectedRelay
                 ? acceptedCgv
                   ? "Passer au paiement"
                   : "Accepter les CGV"
