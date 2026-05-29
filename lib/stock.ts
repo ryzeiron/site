@@ -55,6 +55,7 @@ type ApplyStockOverridesOptions = {
 
 export const PUBLIC_STOCK_CACHE_SECONDS = 3600;
 export const PUBLIC_STOCK_CACHE_TAG = "public-stock-overrides";
+const PUBLIC_STOCK_CACHE_CHUNK_SIZE = 200;
 
 const emptyOverrideRows = (): OverrideRows => ({
   rows: [],
@@ -188,23 +189,35 @@ async function loadOverrideRows(ids?: string[]): Promise<OverrideRows> {
   return { rows, metaRows, hiddenRows };
 }
 
-const loadCachedPublicOverrideRows = unstable_cache(
-  () => loadOverrideRows(),
-  ["public-stock-overrides-v1"],
+const loadCachedPublicOverrideRowsByIds = unstable_cache(
+  (cacheKey: string) => loadOverrideRows(cacheKey.split("|").filter(Boolean)),
+  ["public-stock-overrides-by-id-v1"],
   {
     revalidate: PUBLIC_STOCK_CACHE_SECONDS,
     tags: [PUBLIC_STOCK_CACHE_TAG],
   },
 );
 
-function filterOverrideRows(data: OverrideRows, ids: string[]): OverrideRows {
-  const idSet = new Set(ids);
-
+function mergeOverrideRows(chunks: OverrideRows[]): OverrideRows {
   return {
-    rows: data.rows.filter((row) => idSet.has(row.cardId)),
-    metaRows: data.metaRows.filter((row) => idSet.has(row.cardId)),
-    hiddenRows: data.hiddenRows.filter((row) => idSet.has(row.cardId)),
+    rows: chunks.flatMap((chunk) => chunk.rows),
+    metaRows: chunks.flatMap((chunk) => chunk.metaRows),
+    hiddenRows: chunks.flatMap((chunk) => chunk.hiddenRows),
   };
+}
+
+async function loadCachedOverrideRows(ids: string[]) {
+  const cleanIds = Array.from(new Set(ids)).sort();
+  if (cleanIds.length === 0) return emptyOverrideRows();
+
+  const chunks: string[] = [];
+  for (let i = 0; i < cleanIds.length; i += PUBLIC_STOCK_CACHE_CHUNK_SIZE) {
+    chunks.push(cleanIds.slice(i, i + PUBLIC_STOCK_CACHE_CHUNK_SIZE).join("|"));
+  }
+
+  return mergeOverrideRows(
+    await Promise.all(chunks.map((chunk) => loadCachedPublicOverrideRowsByIds(chunk))),
+  );
 }
 
 export function revalidatePublicStockCache() {
@@ -221,9 +234,7 @@ export async function applyStockOverrides<T extends Card>(
   let data = emptyOverrideRows();
 
   try {
-    data = options.cache
-      ? filterOverrideRows(await loadCachedPublicOverrideRows(), ids)
-      : await loadOverrideRows(ids);
+    data = options.cache ? await loadCachedOverrideRows(ids) : await loadOverrideRows(ids);
   } catch {
     return cards;
   }
