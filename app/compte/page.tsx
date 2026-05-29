@@ -1,9 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { desc, eq, or } from "drizzle-orm";
+import DeliveryProfileForm from "@/components/DeliveryProfileForm";
 import { auth, signOut } from "@/lib/auth";
 import { getDb } from "@/lib/db/client";
-import { favoriteCards, favoriteSleeves, orders } from "@/lib/db/schema";
+import {
+  favoriteCards,
+  favoriteSleeves,
+  orders,
+  userDeliveryProfiles,
+} from "@/lib/db/schema";
+import {
+  type DeliveryProfileData,
+  isDeliveryCountry,
+} from "@/lib/delivery-profile";
 
 export const dynamic = "force-dynamic";
 
@@ -58,26 +68,52 @@ export default async function ComptePage({
 
   const db = getDb();
 
-  const [userOrders, userCardFavorites, userSleeveFavorites] = await Promise.all([
-    db
-      .select()
-      .from(orders)
-      .where(
-        or(
-          eq(orders.userId, session.user.id),
-          eq(orders.customerEmail, session.user.email),
-        ),
-      )
-      .orderBy(desc(orders.createdAt)),
-    db
-      .select()
-      .from(favoriteCards)
-      .where(eq(favoriteCards.userId, session.user.id)),
-    db
-      .select()
-      .from(favoriteSleeves)
-      .where(eq(favoriteSleeves.userId, session.user.id)),
-  ]);
+  const [userOrders, userCardFavorites, userSleeveFavorites, deliveryProfile] =
+    await Promise.all([
+      db
+        .select()
+        .from(orders)
+        .where(
+          or(
+            eq(orders.userId, session.user.id),
+            eq(orders.customerEmail, session.user.email),
+          ),
+        )
+        .orderBy(desc(orders.createdAt)),
+      db
+        .select()
+        .from(favoriteCards)
+        .where(eq(favoriteCards.userId, session.user.id)),
+      db
+        .select()
+        .from(favoriteSleeves)
+        .where(eq(favoriteSleeves.userId, session.user.id)),
+      db
+        .select()
+        .from(userDeliveryProfiles)
+        .where(eq(userDeliveryProfiles.userId, session.user.id))
+        .limit(1)
+        .then((rows): DeliveryProfileData | null => {
+          const profile = rows[0];
+          if (!profile) return null;
+
+          return {
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            phone: profile.phone,
+            address: profile.address,
+            postcode: profile.postcode,
+            city: profile.city,
+            country: isDeliveryCountry(profile.country) ? profile.country : "FR",
+            relayCode: profile.relayCode,
+            relayName: profile.relayName,
+            relayAddress: profile.relayAddress,
+            relayPostcode: profile.relayPostcode,
+            relayCity: profile.relayCity,
+          };
+        })
+        .catch(() => null),
+    ]);
   const favoriteCount = userCardFavorites.length + userSleeveFavorites.length;
 
   return (
@@ -144,18 +180,22 @@ export default async function ComptePage({
               <h2 className="mb-3 text-xl font-bold text-white">
                 Mes informations
               </h2>
-              <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
-                {session.user.name && (
-                  <div className="text-sm">
-                    <span className="text-gray-400">Nom :</span>{" "}
-                    {session.user.name}
-                  </div>
-                )}
+              <div className="space-y-4">
+                <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200">
+                  {session.user.name && (
+                    <div className="text-sm">
+                      <span className="text-gray-400">Nom :</span>{" "}
+                      {session.user.name}
+                    </div>
+                  )}
 
-                <div className="text-sm">
-                  <span className="text-gray-400">Email :</span>{" "}
-                  {session.user.email}
+                  <div className="text-sm">
+                    <span className="text-gray-400">Email :</span>{" "}
+                    {session.user.email}
+                  </div>
                 </div>
+
+                <DeliveryProfileForm initialProfile={deliveryProfile} />
               </div>
             </section>
           )}

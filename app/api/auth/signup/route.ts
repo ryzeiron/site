@@ -3,12 +3,21 @@ import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { users } from "@/lib/db/schema";
+import { userDeliveryProfiles, users } from "@/lib/db/schema";
+import {
+  hasDeliveryProfileData,
+  normalizeDeliveryProfileInput,
+} from "@/lib/delivery-profile";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
-  let body: { email?: string; password?: string; name?: string };
+  let body: {
+    email?: string;
+    password?: string;
+    name?: string;
+    deliveryProfile?: unknown;
+  };
   try {
     body = await request.json();
   } catch {
@@ -52,6 +61,23 @@ export async function POST(request: Request) {
     passwordHash,
     name,
   });
+
+  const deliveryProfile = normalizeDeliveryProfileInput(
+    typeof body.deliveryProfile === "object" && body.deliveryProfile !== null
+      ? body.deliveryProfile
+      : {},
+  );
+
+  if (hasDeliveryProfileData(deliveryProfile)) {
+    try {
+      await db.insert(userDeliveryProfiles).values({
+        userId: id,
+        ...deliveryProfile,
+      });
+    } catch {
+      // Le compte reste créé même si le profil livraison n'est pas disponible.
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

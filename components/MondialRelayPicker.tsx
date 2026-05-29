@@ -81,14 +81,17 @@ type MondialRelayJQuery = (sel: HTMLElement) => {
 
 export default function MondialRelayPicker({
   postcode,
+  country = "FR",
   onSelect,
 }: {
   postcode: string;
+  country?: string;
   onSelect: (relay: SelectedRelay | null) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const targetId = `mr-relay-target-${useId().replace(/:/g, "")}`;
   const normalizedPostcode = postcode.trim();
+  const normalizedCountry = country.trim().toUpperCase() || "FR";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,7 +121,7 @@ export default function MondialRelayPicker({
         $(containerRef.current).MR_ParcelShopPicker({
           Target: `#${targetId}`,
           Brand: getMondialRelayBrand(),
-          Country: "FR",
+          Country: normalizedCountry,
           PostCode: normalizedPostcode,
           ColLivMod: "24R",
           NbResults: "10",
@@ -163,7 +166,7 @@ export default function MondialRelayPicker({
     return () => {
       cancelled = true;
     };
-  }, [normalizedPostcode, onSelect, targetId]);
+  }, [normalizedCountry, normalizedPostcode, onSelect, targetId]);
 
   return (
     <div className="rounded-lg border border-white/10 bg-white p-3">

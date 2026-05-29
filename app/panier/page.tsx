@@ -40,6 +40,20 @@ type SleeveProduct = {
   active: boolean;
 };
 
+type DeliveryProfileResponse = {
+  authenticated?: boolean;
+  profile?: {
+    postcode?: string | null;
+    city?: string | null;
+    country?: string | null;
+    relayCode?: string | null;
+    relayName?: string | null;
+    relayAddress?: string | null;
+    relayPostcode?: string | null;
+    relayCity?: string | null;
+  } | null;
+};
+
 type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
 
 const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
@@ -53,6 +67,13 @@ const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
   IT: 990,
   AT: 1190,
 };
+
+function isCountry(value: unknown): value is Country {
+  return (
+    typeof value === "string" &&
+    Object.prototype.hasOwnProperty.call(MR_PRICE_BY_COUNTRY, value)
+  );
+}
 
 export default function CartPage() {
   const items = useCart((s) => s.items);
@@ -96,6 +117,49 @@ export default function CartPage() {
   ];
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    let cancelled = false;
+
+    fetch("/api/account/delivery-profile")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: DeliveryProfileResponse | null) => {
+        if (cancelled) return;
+
+        const profile = data?.profile;
+        if (!profile) return;
+
+        if (isCountry(profile.country)) {
+          setCountry(profile.country);
+        }
+
+        const preferredPostcode =
+          profile.relayPostcode ?? profile.postcode ?? "";
+        if (preferredPostcode) {
+          setRelayPostcode(
+            preferredPostcode.replace(/[^0-9]/g, "").slice(0, 5),
+          );
+        }
+
+        if (profile.relayCode) {
+          setSelectedRelay({
+            code: profile.relayCode,
+            name: profile.relayName ?? "Point relais favori",
+            address: profile.relayAddress ?? "",
+            postcode: profile.relayPostcode ?? profile.postcode ?? "",
+            city: profile.relayCity ?? profile.city ?? "",
+          });
+          setShowRelayPicker(false);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mounted]);
 
   const cardItems = useMemo(() => items.filter(isCardCartItem), [items]);
   const sleeveItems = useMemo(() => items.filter(isSleeveCartItem), [items]);
@@ -755,6 +819,7 @@ export default function CartPage() {
               {relayPostcode.length === 5 && (
                 <MondialRelayPicker
                   postcode={relayPostcode}
+                  country={country}
                   onSelect={(r) => {
                     if (r) setSelectedRelay(r);
                   }}

@@ -13,7 +13,7 @@ export default function PolitiqueConfidentialitePage() {
       </h1>
 
       <p className="text-sm text-gray-400">
-        Dernière mise à jour : 12 mai 2026
+        Dernière mise à jour : 29 mai 2026
       </p>
 
       <p className="text-gray-300">
@@ -43,7 +43,10 @@ export default function PolitiqueConfidentialitePage() {
         suivantes :
       </p>
       <ul className="mt-2 space-y-1 text-gray-300">
-        <li>informations de compte : nom, adresse email, mot de passe chiffré ;</li>
+        <li>
+          informations de compte et de livraison : nom, prénom, adresse email,
+          téléphone, adresse, point relais favori et mot de passe chiffré ;
+        </li>
         <li>
           informations de commande : nom, email, téléphone, adresse de livraison,
           point relais, produits commandés et statut de commande ;

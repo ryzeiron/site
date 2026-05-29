@@ -8,6 +8,24 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const userDeliveryProfiles = pgTable("user_delivery_profiles", {
+  userId: text("user_id").primaryKey(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  phone: text("phone"),
+  address: text("address"),
+  postcode: text("postcode"),
+  city: text("city"),
+  country: text("country").notNull().default("FR"),
+  relayCode: text("relay_code"),
+  relayName: text("relay_name"),
+  relayAddress: text("relay_address"),
+  relayPostcode: text("relay_postcode"),
+  relayCity: text("relay_city"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const passwordResets = pgTable("password_resets", {
   token: text("token").primaryKey(),
   userId: text("user_id").notNull(),
