@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import ContactBanner from "@/components/ContactBanner";
 import Header from "@/components/Header";
@@ -70,6 +71,7 @@ export default function RootLayout({
           <Footer />
           <ScrollToTop />
         </SessionProviderWrapper>
+        <Analytics />
       </body>
     </html>
   );
