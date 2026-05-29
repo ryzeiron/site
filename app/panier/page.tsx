@@ -40,6 +40,20 @@ type SleeveProduct = {
   active: boolean;
 };
 
+type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
+
+const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
+  FR: 490,
+  BE: 690,
+  LU: 690,
+  NL: 850,
+  ES: 690,
+  PT: 790,
+  DE: 990,
+  IT: 990,
+  AT: 1190,
+};
+
 export default function CartPage() {
   const items = useCart((s) => s.items);
   const cartId = useCart((s) => s.cartId);
@@ -67,11 +81,9 @@ export default function CartPage() {
     null,
   );
   const [acceptedCgv, setAcceptedCgv] = useState(false);
-  const [country, setCountry] = useState<
-    "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT"
-  >("FR");
+  const [country, setCountry] = useState<Country>("FR");
 
-  const COUNTRIES: { code: typeof country; label: string; price: string }[] = [
+  const COUNTRIES: { code: Country; label: string; price: string }[] = [
     { code: "FR", label: "France", price: "4,90 €" },
     { code: "BE", label: "Belgique", price: "6,90 €" },
     { code: "LU", label: "Luxembourg", price: "6,90 €" },
@@ -189,11 +201,21 @@ export default function CartPage() {
       ? (promoEligibleSubtotal * appliedPromo.percent) / 100
       : 0;
 
-  const total = Math.max(0, subtotal - discount);
-  const totalCents = Math.round(total * 100);
+  const subtotalCents = Math.round(subtotal * 100);
+  const discountCents = Math.round(discount * 100);
+  const totalCents = Math.max(0, subtotalCents - discountCents);
+  const shippingBaseCents = MR_PRICE_BY_COUNTRY[country];
+  const shippingCents =
+    appliedPromo?.type === "free_shipping" ? 0 : shippingBaseCents;
   const mondialRelayInsurance = getMondialRelayInsurance(
     totalCents,
   );
+  const insuranceFeeCents =
+    appliedPromo?.type === "free_shipping"
+      ? 0
+      : (mondialRelayInsurance?.feeCents ?? 0);
+  const estimatedTotalCents = totalCents + shippingCents + insuranceFeeCents;
+  const estimatedTotal = estimatedTotalCents / 100;
   const requiresManualShipping = totalCents > MONDIAL_RELAY_MAX_INSURANCE_CENTS;
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -577,6 +599,15 @@ export default function CartPage() {
           </div>
         </div>
 
+        <div className="mb-4 rounded-xl border border-violet-300/15 bg-violet-500/10 p-3 text-xs text-violet-100">
+          <div className="font-semibold text-white">Paiement en 3 etapes</div>
+          <div className="mt-2 grid gap-2">
+            <div>1. Choisir le pays et le point relais.</div>
+            <div>2. Verifier le total, l'assurance et les CGV.</div>
+            <div>3. Payer sur Stripe, puis suivre la commande.</div>
+          </div>
+        </div>
+
         <div className="mb-3">
           <label className="text-sm text-gray-300">Code promo</label>
 
@@ -769,18 +800,28 @@ export default function CartPage() {
             </div>
           )}
 
-          {appliedPromo?.type === "free_shipping" && (
-            <div className="flex items-center justify-between text-emerald-300">
-              <span>Livraison</span>
-              <span>Offerte</span>
-            </div>
-          )}
+          <div className="flex items-center justify-between text-gray-300">
+            <span>Livraison Mondial Relay</span>
+            <span
+              className={
+                appliedPromo?.type === "free_shipping"
+                  ? "text-emerald-300"
+                  : "text-gray-200"
+              }
+            >
+              {appliedPromo?.type === "free_shipping"
+                ? "Offerte"
+                : formatPrice(shippingBaseCents / 100)}
+            </span>
+          </div>
 
-          {mondialRelayInsurance && appliedPromo?.type !== "free_shipping" && (
+          {mondialRelayInsurance && (
             <div className="flex items-center justify-between text-violet-200">
               <span>Assurance Mondial Relay</span>
               <span>
-                + {formatPrice(mondialRelayInsurance.feeCents / 100)}
+                {appliedPromo?.type === "free_shipping"
+                  ? "Offerte"
+                  : `+ ${formatPrice(mondialRelayInsurance.feeCents / 100)}`}
               </span>
             </div>
           )}
@@ -816,14 +857,14 @@ export default function CartPage() {
         </div>
 
         <div className="mt-2 flex items-center justify-between text-lg">
-          <span>Total</span>
-          <strong className="text-white">{formatPrice(total)}</strong>
+          <span>Total estime</span>
+          <strong className="text-white">{formatPrice(estimatedTotal)}</strong>
         </div>
 
         <p className="text-xs text-gray-400 mt-1">
           {appliedPromo?.type === "free_shipping"
-            ? "Frais de livraison offerts à l'étape de paiement."
-            : "Les frais de livraison sont calculés à l'étape de paiement."}
+            ? "Livraison et assurance offertes par le code promo."
+            : "Total indicatif avec la livraison et l'assurance applicable."}
         </p>
 
         {error && (

@@ -47,30 +47,13 @@ function makeCartId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-let syncTimer: ReturnType<typeof setTimeout> | null = null;
-function scheduleSync(cartId: string, items: CartItem[]) {
-  if (typeof window === "undefined") return;
-  if (syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
-    const cardItems = items.filter(isCardCartItem);
-
-    void fetch("/api/cart/sync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cartId, items: cardItems }),
-    }).catch(() => {
-      // best-effort, le checkout re-validera de toute facon
-    });
-  }, 250);
+function scheduleSync(_cartId: string, _items: CartItem[]) {
+  // Le checkout reserve et valide le stock. On evite de reveiller Neon
+  // pendant que le client construit simplement son panier.
 }
 
-function clearOnServer(cartId: string) {
-  if (typeof window === "undefined") return;
-  void fetch("/api/cart/sync", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ cartId }),
-  }).catch(() => {});
+function clearOnServer(_cartId: string) {
+  // Voir scheduleSync : aucune reservation n'est gardee avant le paiement.
 }
 
 export const useCart = create<CartState>()(
