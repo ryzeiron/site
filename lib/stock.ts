@@ -56,6 +56,8 @@ type ApplyStockOverridesOptions = {
 export const PUBLIC_STOCK_CACHE_SECONDS = 3600;
 export const PUBLIC_STOCK_CACHE_TAG = "public-stock-overrides";
 const PUBLIC_STOCK_CACHE_CHUNK_SIZE = 200;
+const MAX_CACHED_IMAGE_TEXT_LENGTH = 2048;
+const MAX_CACHED_DESCRIPTION_LENGTH = 4000;
 
 const emptyOverrideRows = (): OverrideRows => ({
   rows: [],
@@ -189,8 +191,31 @@ async function loadOverrideRows(ids?: string[]): Promise<OverrideRows> {
   return { rows, metaRows, hiddenRows };
 }
 
+function cleanCachedText(value: string | null, maxLength: number) {
+  if (!value) return value;
+  if (value.startsWith("data:")) return null;
+  if (value.length > maxLength) return null;
+  return value;
+}
+
+function sanitizeOverrideRowsForCache(data: OverrideRows): OverrideRows {
+  return {
+    rows: data.rows,
+    hiddenRows: data.hiddenRows,
+    metaRows: data.metaRows.map((row) => ({
+      ...row,
+      image: cleanCachedText(row.image, MAX_CACHED_IMAGE_TEXT_LENGTH),
+      imageBack: cleanCachedText(row.imageBack, MAX_CACHED_IMAGE_TEXT_LENGTH),
+      description: cleanCachedText(row.description, MAX_CACHED_DESCRIPTION_LENGTH),
+    })),
+  };
+}
+
 const loadCachedPublicOverrideRowsByIds = unstable_cache(
-  (cacheKey: string) => loadOverrideRows(cacheKey.split("|").filter(Boolean)),
+  async (cacheKey: string) =>
+    sanitizeOverrideRowsForCache(
+      await loadOverrideRows(cacheKey.split("|").filter(Boolean)),
+    ),
   ["public-stock-overrides-by-id-v1"],
   {
     revalidate: PUBLIC_STOCK_CACHE_SECONDS,
