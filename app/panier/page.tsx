@@ -13,7 +13,7 @@ import {
   MONDIAL_RELAY_MAX_INSURANCE_CENTS,
   getMondialRelayInsurance,
 } from "@/lib/mondial-relay-shipping";
-//import { isPromoExcludedCard } from "@/lib/promo-exclusions";
+import { isPromoExcludedCard } from "@/lib/promo-exclusions";
 
 type AppliedPromo =
   | {
