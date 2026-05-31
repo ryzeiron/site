@@ -28,6 +28,7 @@ type AdminStockBatchContextValue = {
   pendingUpdates: PendingStockUpdate[];
   pendingCount: number;
   saving: boolean;
+  syncingAfterSave: boolean;
   message: string | null;
   error: string | null;
   getPendingUpdate: (cardId: string, variant: VariantKey) => PendingStockUpdate | undefined;
@@ -61,6 +62,7 @@ export function AdminStockBatchProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [pending, setPending] = useState<Map<string, PendingStockUpdate>>(() => new Map());
   const [saving, setSaving] = useState(false);
+  const [syncingAfterSave, setSyncingAfterSave] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -119,10 +121,13 @@ export function AdminStockBatchProvider({ children }: { children: ReactNode }) {
         throw new Error(data?.error ?? "Impossible d'enregistrer les modifications.");
       }
       setPending(new Map());
+      setSyncingAfterSave(true);
       setMessage(`${pendingUpdates.length} modification${pendingUpdates.length > 1 ? "s" : ""} envoyee${pendingUpdates.length > 1 ? "s" : ""}.`);
       router.refresh();
+      window.setTimeout(() => setSyncingAfterSave(false), 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'enregistrer les modifications.");
+      setSyncingAfterSave(false);
     } finally {
       setSaving(false);
     }
@@ -143,6 +148,7 @@ export function AdminStockBatchProvider({ children }: { children: ReactNode }) {
       pendingUpdates,
       pendingCount,
       saving,
+      syncingAfterSave,
       message,
       error,
       getPendingUpdate,
@@ -161,6 +167,7 @@ export function AdminStockBatchProvider({ children }: { children: ReactNode }) {
       pendingUpdates,
       saveAll,
       saving,
+      syncingAfterSave,
       setPendingUpdate,
     ],
   );

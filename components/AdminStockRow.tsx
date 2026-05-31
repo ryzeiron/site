@@ -570,7 +570,7 @@ function VariantRow({
   showCardCell: boolean;
   cardRowSpan: number;
 }) {
-  const { getPendingUpdate, setPendingUpdate, clearPendingUpdate } =
+  const { getPendingUpdate, setPendingUpdate, clearPendingUpdate, syncingAfterSave } =
     useAdminStockBatch();
   const pendingUpdate = getPendingUpdate(card.id, variant.key);
   const [rarityValue, setRarityValue] = useState<string>(variant.rarity);
@@ -581,11 +581,20 @@ function VariantRow({
   const [priceValue, setPriceValue] = useState<string>(String(variant.price));
 
   useEffect(() => {
+    if (syncingAfterSave) {
+      setRarityValue(variant.rarity);
+      setConditionValue(variant.condition);
+      setStockValue(String(variant.stock));
+      setPriceValue(String(variant.price));
+      return;
+    }
+
     setRarityValue(pendingUpdate?.rarity ?? variant.rarity);
     setConditionValue(pendingUpdate?.condition ?? variant.condition);
     setStockValue(String(pendingUpdate?.stock ?? variant.stock));
     setPriceValue(String(pendingUpdate?.price ?? variant.price));
   }, [
+    syncingAfterSave,
     pendingUpdate?.rarity,
     pendingUpdate?.condition,
     pendingUpdate?.stock,
@@ -610,6 +619,8 @@ function VariantRow({
   const pendingValid = hasChanges && stockValid && priceValid;
 
   useEffect(() => {
+    if (syncingAfterSave) return;
+
     if (!pendingValid) {
       clearPendingUpdate(card.id, variant.key);
       return;
@@ -644,6 +655,7 @@ function VariantRow({
     rarityValue,
     setPendingUpdate,
     stockChanged,
+    syncingAfterSave,
     variant.key,
     variant.label,
   ]);

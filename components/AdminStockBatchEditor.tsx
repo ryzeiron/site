@@ -21,7 +21,7 @@ export default function AdminStockBatchEditor({ cards }: { cards: Card[] }) {
 }
 
 function AdminStockBatchToolbar() {
-  const { pendingUpdates, pendingCount, saving, message, error, discardAll, saveAll } =
+  const { pendingUpdates, pendingCount, saving, syncingAfterSave, message, error, discardAll, saveAll } =
     useAdminStockBatch();
   const preview = pendingUpdates.slice(0, 3);
   const hiddenCount = Math.max(0, pendingCount - preview.length);
@@ -31,7 +31,9 @@ function AdminStockBatchToolbar() {
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-sm font-semibold text-white">
-            {pendingCount > 0
+            {syncingAfterSave
+              ? "Synchronisation des lignes..."
+              : pendingCount > 0
               ? `${pendingCount} modification${pendingCount > 1 ? "s" : ""} en attente`
               : "Aucune modification en attente"}
           </p>
