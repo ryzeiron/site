@@ -12,7 +12,7 @@ import {
   MONDIAL_RELAY_MAX_INSURANCE_CENTS,
   getMondialRelayInsurance,
 } from "@/lib/mondial-relay-shipping";
-//import { isPromoExcludedCard } from "@/lib/promo-exclusions";
+import { isPromoExcludedCard } from "@/lib/promo-exclusions";
 import {
   releaseStockReservation,
   reserveStockItems,
@@ -177,7 +177,45 @@ export async function POST(request: Request) {
         throw new Error("Quantite invalide.");
       }
 
-     
+      const v = resolveVariant(card, item.variant);
+      const itemPercentMultiplier =
+        promo?.type === "percent_off" && !isPromoExcludedCard(card.id)
+          ? percentMultiplier
+          : 1;
+
+      if (item.quantity > v.stock) {
+        throw new Error(`Stock insuffisant pour ${card.name}.`);
+      }
+
+      const reservationKey = `${item.cardId}:${item.variant}`;
+      const existingReservation = reservationItemsByKey.get(reservationKey);
+
+      if (existingReservation) {
+        existingReservation.quantity += item.quantity;
+      } else {
+        reservationItemsByKey.set(reservationKey, {
+          cardId: item.cardId,
+          variant: item.variant,
+          quantity: item.quantity,
+          initialStock: v.stock,
+        });
+      }
+
+      return {
+        price_data: {
+          currency: "eur",
+          unit_amount: Math.max(
+            0,
+            Math.round(v.price * 100 * itemPercentMultiplier),
+          ),
+          product_data: {
+            name: `${card.name} (${card.number}) - ${v.rarity}`,
+            description: `${v.rarity} - État : ${v.condition ?? card.condition} - ${card.language}`,
+          },
+        },
+        quantity: item.quantity,
+      };
+    });
 
     const sleeveItemsById = new Map<
       string,
