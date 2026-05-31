@@ -177,11 +177,11 @@ export async function POST(request: Request) {
         throw new Error("Quantite invalide.");
       }
 
-      const v = resolveVariant(card, item.variant);
-      const itemPercentMultiplier =
-        promo?.type === "percent_off" && !isPromoExcludedCard(card.id)
-          ? percentMultiplier
-          : 1;
+     // const v = resolveVariant(card, item.variant);
+    //  const itemPercentMultiplier =
+      //  promo?.type === "percent_off" && !isPromoExcludedCard(card.id)
+       //   ? percentMultiplier
+       //   : 1;
 
       if (item.quantity > v.stock) {
         throw new Error(`Stock insuffisant pour ${card.name}.`);
