@@ -15,6 +15,7 @@ import {
   type VariantKey,
 } from "@/lib/catalog";
 import { formatRarityLabel } from "@/lib/display-variants";
+import { useAdminStockBatch, type PendingStockUpdate } from "@/components/AdminStockBatchContext";
 
 type VariantSpec = {
   key: VariantKey;
@@ -569,24 +570,31 @@ function VariantRow({
   showCardCell: boolean;
   cardRowSpan: number;
 }) {
-  const router = useRouter();
+  const { getPendingUpdate, setPendingUpdate, clearPendingUpdate } =
+    useAdminStockBatch();
+  const pendingUpdate = getPendingUpdate(card.id, variant.key);
   const [rarityValue, setRarityValue] = useState<string>(variant.rarity);
   const [conditionValue, setConditionValue] = useState<Condition>(
     variant.condition,
   );
   const [stockValue, setStockValue] = useState<string>(String(variant.stock));
   const [priceValue, setPriceValue] = useState<string>(String(variant.price));
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setRarityValue(variant.rarity);
-    setConditionValue(variant.condition);
-    setStockValue(String(variant.stock));
-    setPriceValue(String(variant.price));
-    setError(null);
-  }, [variant.rarity, variant.condition, variant.stock, variant.price]);
+    setRarityValue(pendingUpdate?.rarity ?? variant.rarity);
+    setConditionValue(pendingUpdate?.condition ?? variant.condition);
+    setStockValue(String(pendingUpdate?.stock ?? variant.stock));
+    setPriceValue(String(pendingUpdate?.price ?? variant.price));
+  }, [
+    pendingUpdate?.rarity,
+    pendingUpdate?.condition,
+    pendingUpdate?.stock,
+    pendingUpdate?.price,
+    variant.rarity,
+    variant.condition,
+    variant.stock,
+    variant.price,
+  ]);
 
   const currentStock = Number.parseInt(stockValue, 10);
   const currentPrice = Number.parseFloat(priceValue.replace(",", "."));
@@ -599,43 +607,46 @@ function VariantRow({
   const conditionChanged = conditionValue !== variant.condition;
   const hasChanges =
     stockChanged || priceChanged || rarityChanged || conditionChanged;
-  const canSave = hasChanges && stockValid && priceValid;
+  const pendingValid = hasChanges && stockValid && priceValid;
 
-  async function save() {
-    if (!canSave) return;
-
-    setSaving(true);
-    setError(null);
-
-    try {
-      const body: Record<string, unknown> = {
-        cardId: card.id,
-        variant: variant.key,
-      };
-
-      if (stockChanged) body.stock = currentStock;
-      if (priceChanged) body.price = currentPrice;
-      if (rarityChanged) body.rarity = rarityValue;
-      if (conditionChanged) body.condition = conditionValue;
-
-      const res = await fetch("/api/admin/stock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error ?? "Erreur");
-
-      setSaved(true);
-      setTimeout(() => setSaved(false), 1500);
-      router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
-    } finally {
-      setSaving(false);
+  useEffect(() => {
+    if (!pendingValid) {
+      clearPendingUpdate(card.id, variant.key);
+      return;
     }
-  }
+
+    const update: PendingStockUpdate = {
+      cardId: card.id,
+      cardName: card.name,
+      cardNumber: card.number,
+      variant: variant.key,
+      label: variant.label,
+    };
+
+    if (stockChanged) update.stock = currentStock;
+    if (priceChanged) update.price = currentPrice;
+    if (rarityChanged) update.rarity = rarityValue as Rarity;
+    if (conditionChanged) update.condition = conditionValue;
+
+    setPendingUpdate(update);
+  }, [
+    card.id,
+    card.name,
+    card.number,
+    clearPendingUpdate,
+    conditionChanged,
+    conditionValue,
+    currentPrice,
+    currentStock,
+    pendingValid,
+    priceChanged,
+    rarityChanged,
+    rarityValue,
+    setPendingUpdate,
+    stockChanged,
+    variant.key,
+    variant.label,
+  ]);
 
   return (
     <tr className={`${variant.hidden ? "bg-amber-950/10" : ""} align-top`}>
@@ -722,20 +733,17 @@ function VariantRow({
 
       <td className="px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={save}
-            disabled={!canSave || saving}
-            className={`rounded px-3 py-1.5 text-xs font-medium transition ${
-              saved
-                ? "bg-emerald-500 text-white"
-                : canSave
-                  ? "bg-brand-500 text-white hover:bg-brand-600"
-                  : "cursor-not-allowed bg-white/10 text-gray-400"
-            }`}
-          >
-            {saved ? "OK" : saving ? "..." : "Enregistrer"}
-          </button>
+          {pendingValid ? (
+            <span className="rounded bg-violet-600/90 px-3 py-1.5 text-xs font-medium text-white">
+              En attente
+            </span>
+          ) : null}
+
+          {hasChanges && !pendingValid ? (
+            <span className="rounded bg-red-500/20 px-3 py-1.5 text-xs font-medium text-red-200">
+              Corrige avant envoi
+            </span>
+          ) : null}
 
           {hasChanges ? (
             <button
@@ -745,7 +753,7 @@ function VariantRow({
                 setConditionValue(variant.condition);
                 setStockValue(String(variant.stock));
                 setPriceValue(String(variant.price));
-                setError(null);
+                clearPendingUpdate(card.id, variant.key);
               }}
               className="rounded bg-white/10 px-3 py-1.5 text-xs text-white hover:bg-white/20"
             >
@@ -761,7 +769,6 @@ function VariantRow({
             fromCatalog={variant.fromCatalog}
           />
         </div>
-        {error && <div className="mt-2 text-xs text-red-400">{error}</div>}
       </td>
     </tr>
   );

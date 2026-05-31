@@ -4,7 +4,7 @@ import { lte } from "drizzle-orm";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import AdminSerieBulkActions from "@/components/AdminSerieBulkActions";
 import { formatRarityLabel } from "@/lib/display-variants";
-import AdminStockRow from "@/components/AdminStockRow";
+import AdminStockBatchEditor from "@/components/AdminStockBatchEditor";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
 import { getDb } from "@/lib/db/client";
@@ -743,11 +743,7 @@ export default async function AdminPage({
             ) : null}
           </div>
 
-          <div className="space-y-3">
-            {paginatedCards.map((c) => (
-              <AdminStockRow key={c.id} card={c} />
-            ))}
-          </div>
+          <AdminStockBatchEditor cards={paginatedCards} />
 
           {totalPages > 1 ? (
             <div className="flex justify-center rounded-2xl border border-white/10 bg-zinc-950/65 p-4">

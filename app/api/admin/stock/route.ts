@@ -24,271 +24,265 @@ type Body = {
   condition?: string;
 };
 
-function validateVariantKey(variant: string | undefined): string | null {
-  if (!variant || typeof variant !== "string") return null;
-  if (variant === "base" || variant === "alt") return variant;
-  if (!isValidVariantKey(variant)) return null;
-  return variant;
+class AdminStockError extends Error {
+  status: number;
+
+  constructor(message: string, status = 400) {
+    super(message);
+    this.status = status;
+  }
 }
 
-export async function POST(request: Request) {
-  if (!(await isAdmin())) {
-    return NextResponse.json({ error: "Non autorise." }, { status: 401 });
+function validateVariantKey(value: unknown) {
+  if (typeof value !== "string" || !isValidVariantKey(value)) {
+    throw new AdminStockError("Variante invalide");
+  }
+  return value;
+}
+
+async function saveStockUpdate(body: Body) {
+  if (!body.cardId) {
+    throw new AdminStockError("Carte manquante");
   }
 
-  let body: Body;
-  try {
-    body = (await request.json()) as Body;
-  } catch {
-    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
-  }
+  const variant = validateVariantKey(body.variant);
 
-  const { cardId, variant, stock, price, rarity, condition } = body;
-  const variantKey = validateVariantKey(variant);
-  if (!cardId || !variantKey) {
-    return NextResponse.json(
-      { error: "Cle de variante invalide (lettres minuscules, chiffres, tirets)." },
-      { status: 400 },
-    );
-  }
-
-  const card = getCard(cardId);
-  if (!card) {
-    return NextResponse.json({ error: "Carte introuvable." }, { status: 404 });
-  }
-
-  const hasStock = typeof stock === "number";
-  const hasPrice = typeof price === "number";
-  const hasRarity = typeof rarity === "string" && rarity.length > 0;
-  const hasCondition = typeof condition === "string" && condition.length > 0;
+  const stockInput = body.stock;
+  const priceInput = body.price;
+  const rarityInput = body.rarity;
+  const conditionInput = body.condition;
+  const hasStock = typeof stockInput !== "undefined";
+  const hasPrice = typeof priceInput !== "undefined";
+  const hasRarity = typeof rarityInput !== "undefined";
+  const hasCondition = typeof conditionInput !== "undefined";
 
   if (!hasStock && !hasPrice && !hasRarity && !hasCondition) {
-    return NextResponse.json(
-      { error: "Aucune modification à enregistrer." },
-      { status: 400 },
-    );
+    throw new AdminStockError("Aucune modification");
   }
 
-  if (hasStock && (!Number.isInteger(stock) || stock < 0)) {
-    return NextResponse.json(
-      { error: "Stock invalide (entier >= 0)." },
-      { status: 400 },
-    );
+  if (hasStock && (!Number.isInteger(stockInput) || Number(stockInput) < 0)) {
+    throw new AdminStockError("Stock invalide");
   }
 
-  if (hasPrice && (!Number.isFinite(price) || price < 0)) {
-    return NextResponse.json({ error: "Prix invalide." }, { status: 400 });
+  if (hasPrice && (typeof priceInput !== "number" || !Number.isFinite(priceInput) || priceInput < 0)) {
+    throw new AdminStockError("Prix invalide");
   }
 
-  let rarityValue: Rarity | undefined;
-  if (hasRarity) {
-    if (!isRarity(rarity)) {
-      return NextResponse.json(
-        { error: "Rareté inconnue." },
-        { status: 400 },
-      );
-    }
-    rarityValue = rarity;
+  if (hasRarity && !isRarity(rarityInput)) {
+    throw new AdminStockError("Rarete invalide");
   }
 
-  let conditionValue: Condition | undefined;
-  if (hasCondition) {
-    if (!isCondition(condition)) {
-      return NextResponse.json(
-        { error: "État inconnu." },
-        { status: 400 },
-      );
-    }
-    conditionValue = condition;
+  if (hasCondition && !isCondition(conditionInput)) {
+    throw new AdminStockError("Etat invalide");
   }
 
-  const priceCentsValue = hasPrice ? Math.round(price * 100) : undefined;
+  const card = getCard(body.cardId);
+  if (!card) {
+    throw new AdminStockError("Carte introuvable", 404);
+  }
 
-  const isAltCreatingNew = variantKey === "alt" && !card.altVariant;
-  const isExtraCreatingNew =
-    variantKey !== "base" &&
-    variantKey !== "alt" &&
-    !(card.extraVariants ?? []).some((v) => v.key === variantKey);
-  let creatingNew = isAltCreatingNew || isExtraCreatingNew;
+  const resolvedVariant = resolveVariant(card, variant);
+  let creatingNew = !resolvedVariant;
 
   if (creatingNew) {
     try {
       const existing = await getDb()
         .select({ variant: stockOverrides.variant })
         .from(stockOverrides)
-        .where(
-          and(
-            eq(stockOverrides.cardId, cardId),
-            eq(stockOverrides.variant, variantKey),
-          ),
-        )
+        .where(and(eq(stockOverrides.cardId, card.id), eq(stockOverrides.variant, variant)))
         .limit(1);
       if (existing.length > 0) {
         creatingNew = false;
       }
     } catch {
-      // On garde la valeur calculee si la verification echoue.
+      // If this check fails, keep the catalog-based value.
     }
   }
 
   if (creatingNew && !hasRarity) {
-    return NextResponse.json(
-      { error: "Rareté obligatoire pour créer une nouvelle variante." },
-      { status: 400 },
-    );
+    throw new AdminStockError("Rarete obligatoire pour creer une variante");
   }
 
-  let currentStock = 0;
-  let currentPrice = card.price;
-  let currentCondition = card.condition;
+  const previousStock = resolvedVariant?.stock ?? 0;
+  const currentStock = resolvedVariant?.stock ?? card.stock;
+  const currentPrice = resolvedVariant?.price ?? card.price;
+  const currentRarity = resolvedVariant?.rarity ?? card.rarity;
+  const currentCondition = resolvedVariant?.condition ?? card.condition;
 
-  if (variantKey === "base") {
-    currentStock = card.stock;
-    currentPrice = card.price;
-    currentCondition = card.condition;
-  } else if (variantKey === "alt" && card.altVariant) {
-    currentStock = card.altVariant.stock;
-    currentPrice = card.altVariant.price;
-    currentCondition = card.altVariant.condition ?? card.condition;
-  } else if (variantKey !== "alt" && variantKey !== "base") {
-    const v = card.extraVariants?.find((x) => x.key === variantKey);
-    if (v) {
-      currentStock = v.stock;
-      currentPrice = v.price;
-      currentCondition = v.condition ?? card.condition;
-    }
-  } else {
-    const r = resolveVariant(card, variantKey);
-    currentStock = r.stock;
-    currentPrice = r.price;
-    currentCondition = r.condition ?? card.condition;
-  }
-
-  const insertStock = hasStock ? stock : currentStock;
+  const stockValue: number = hasStock ? Number(stockInput) : creatingNew ? 0 : currentStock;
+  const priceCentsValue = hasPrice ? Math.round(Number(priceInput) * 100) : undefined;
   const insertPriceCents = hasPrice
-    ? Math.round(price * 100)
+    ? Math.round(Number(priceInput) * 100)
     : creatingNew
       ? Math.round(currentPrice * 100)
       : null;
-  const insertRarity = rarityValue ?? null;
-  const insertCondition = conditionValue ?? (creatingNew ? currentCondition : null);
-
-  let restockNotifications: { sent: number; failed: number } | null = null;
+  const rarityValue = (hasRarity ? rarityInput : currentRarity) as Rarity;
+  const conditionValue = (hasCondition ? conditionInput : currentCondition) as Condition;
 
   try {
-    const db = getDb();
-    const saveOverrideWithoutConditionColumn = () =>
-      db.execute(sql`
-        insert into stock_overrides
-          (card_id, variant, stock, price_cents, rarity, updated_at)
-        values
-          (${cardId}, ${variantKey}, ${insertStock}, ${insertPriceCents}, ${insertRarity}, ${new Date()})
-        on conflict (card_id, variant) do update set
-          stock = case
-            when ${hasStock} then excluded.stock
-            else stock_overrides.stock
-          end,
-          price_cents = case
-            when ${hasPrice} then excluded.price_cents
-            else stock_overrides.price_cents
-          end,
-          rarity = case
-            when ${hasRarity} then excluded.rarity
-            else stock_overrides.rarity
-          end,
-          updated_at = ${new Date()}
-      `);
-
-    const saveOverride = (includeCondition: boolean) =>
-      db
-        .insert(stockOverrides)
-        .values({
-          cardId,
-          variant: variantKey,
-          stock: insertStock,
-          priceCents: insertPriceCents,
-          rarity: insertRarity,
-          ...(includeCondition ? { condition: insertCondition } : {}),
-        })
-        .onConflictDoUpdate({
-          target: [stockOverrides.cardId, stockOverrides.variant],
-          set: {
-            ...(hasStock ? { stock } : {}),
-            ...(hasPrice ? { priceCents: priceCentsValue } : {}),
-            ...(hasRarity ? { rarity: rarityValue } : {}),
-            ...(includeCondition && hasCondition
-              ? { condition: conditionValue }
-              : {}),
-            updatedAt: new Date(),
-          },
-        });
-
-    try {
-      await saveOverride(true);
-    } catch {
-      if (hasCondition) {
-        throw new Error(
-          "La colonne SQL condition manque dans stock_overrides. Ajoute le SQL avant de modifier l'état d'une variante.",
-        );
-      }
-      await saveOverrideWithoutConditionColumn();
-    }
-
-    if (hasStock && currentStock <= 0 && stock > 0) {
-      restockNotifications = await notifyRestockSubscribers({
-        cardId,
-        variant: variantKey,
+    await getDb()
+      .insert(stockOverrides)
+      .values({
+        cardId: card.id,
+        variant,
+        stock: stockValue,
+        priceCents: insertPriceCents,
+        rarity: rarityValue,
+        condition: conditionValue,
+      })
+      .onConflictDoUpdate({
+        target: [stockOverrides.cardId, stockOverrides.variant],
+        set: {
+          stock: hasStock ? stockValue : sql`${stockOverrides.stock}`,
+          priceCents: hasPrice ? priceCentsValue : sql`${stockOverrides.priceCents}`,
+          rarity: hasRarity ? rarityValue : sql`${stockOverrides.rarity}`,
+          condition: hasCondition ? conditionValue : sql`${stockOverrides.condition}`,
+          updatedAt: new Date(),
+        },
       });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+
+    if (message.includes("condition") || message.includes("stock_overrides_condition")) {
+      await getDb()
+        .execute(sql`
+          INSERT INTO stock_overrides (
+            card_id,
+            variant,
+            stock,
+            price_cents,
+            rarity,
+            updated_at
+          )
+          VALUES (
+            ${card.id},
+            ${variant},
+            ${stockValue},
+            ${insertPriceCents},
+            ${rarityValue},
+            ${new Date()}
+          )
+          ON CONFLICT (card_id, variant) DO UPDATE SET
+            stock = CASE WHEN ${hasStock} THEN EXCLUDED.stock ELSE stock_overrides.stock END,
+            price_cents = CASE WHEN ${hasPrice} THEN EXCLUDED.price_cents ELSE stock_overrides.price_cents END,
+            rarity = CASE WHEN ${hasRarity} THEN EXCLUDED.rarity ELSE stock_overrides.rarity END,
+            updated_at = ${new Date()}
+        `);
+    } else {
+      throw new AdminStockError(message || "Erreur base de donnees", 500);
     }
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur base de données.";
-    return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  revalidatePublicStockCache();
+  const nextStock = hasStock ? stockValue : currentStock;
+  let restockNotifications = 0;
 
-  return NextResponse.json({
-    ok: true,
-    stock: insertStock,
-    price: priceCentsValue !== undefined ? priceCentsValue / 100 : undefined,
-    rarity: rarityValue,
-    condition: conditionValue,
+  if (previousStock <= 0 && nextStock > 0) {
+    const result = await notifyRestockSubscribers({ cardId: card.id, variant });
+    restockNotifications = result.sent;
+  }
+
+  return {
+    cardId: card.id,
+    variant,
     restockNotifications,
-  });
+  };
+}
+
+export async function POST(request: Request) {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: "Non autorise" }, { status: 401 });
+  }
+
+  let body: Body & { updates?: Body[] };
+  try {
+    body = (await request.json()) as Body & { updates?: Body[] };
+  } catch {
+    return NextResponse.json({ error: "Requete invalide" }, { status: 400 });
+  }
+
+  try {
+    if (Array.isArray(body.updates)) {
+      if (body.updates.length === 0) {
+        throw new AdminStockError("Aucune modification");
+      }
+
+      if (body.updates.length > 500) {
+        throw new AdminStockError("Trop de modifications a envoyer d'un coup");
+      }
+
+      const results = [];
+      try {
+        for (const update of body.updates) {
+          results.push(await saveStockUpdate(update));
+        }
+      } catch (error) {
+        if (results.length > 0) {
+          revalidatePublicStockCache();
+        }
+        throw error;
+      }
+
+      revalidatePublicStockCache();
+
+      return NextResponse.json({
+        ok: true,
+        count: results.length,
+        restockNotifications: results.reduce(
+          (total, result) => total + result.restockNotifications,
+          0,
+        ),
+        results,
+      });
+    }
+
+    const result = await saveStockUpdate(body);
+    revalidatePublicStockCache();
+
+    return NextResponse.json({
+      ok: true,
+      restockNotifications: result.restockNotifications,
+    });
+  } catch (error) {
+    if (error instanceof AdminStockError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: Request) {
   if (!(await isAdmin())) {
-    return NextResponse.json({ error: "Non autorise." }, { status: 401 });
+    return NextResponse.json({ error: "Non autorise" }, { status: 401 });
   }
 
-  let body: Body;
+  let body: Pick<Body, "cardId" | "variant">;
   try {
-    body = (await request.json()) as Body;
+    body = (await request.json()) as Pick<Body, "cardId" | "variant">;
   } catch {
-    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
+    return NextResponse.json({ error: "Requete invalide" }, { status: 400 });
   }
 
-  const { cardId, variant } = body;
-  const variantKey = validateVariantKey(variant);
-  if (!cardId || !variantKey) {
-    return NextResponse.json({ error: "Champs invalides." }, { status: 400 });
+  if (!body.cardId) {
+    return NextResponse.json({ error: "Carte manquante" }, { status: 400 });
   }
 
+  let variant: string;
   try {
-    const db = getDb();
-    await db
-      .delete(stockOverrides)
-      .where(
-        and(
-          eq(stockOverrides.cardId, cardId),
-          eq(stockOverrides.variant, variantKey),
-        ),
-      );
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur base de données.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    variant = validateVariantKey(body.variant);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Variante invalide";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
+
+  const card = getCard(body.cardId);
+  if (!card) {
+    return NextResponse.json({ error: "Carte introuvable" }, { status: 404 });
+  }
+
+  await getDb()
+    .delete(stockOverrides)
+    .where(and(eq(stockOverrides.cardId, card.id), eq(stockOverrides.variant, variant)));
 
   revalidatePublicStockCache();
 
