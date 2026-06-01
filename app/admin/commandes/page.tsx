@@ -19,6 +19,7 @@ import { getDb } from "@/lib/db/client";
 import { orders } from "@/lib/db/schema";
 import { formatRarityLabel } from "@/lib/display-variants";
 import { getSleevesByIds, type SleeveProduct } from "@/lib/sleeves";
+import { applyStockOverrides } from "@/lib/stock";
 import { getStripe } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
@@ -265,6 +266,14 @@ async function buildOrderContents(rows: OrderRow[]) {
       sleeveItems: mergeSleeveItems(decodeSleeveItems(stripeData?.metadata ?? null)),
     };
   });
+  const cardIds = Array.from(
+    new Set(decoded.flatMap((entry) => entry.cardItems.map(([cardId]) => cardId))),
+  );
+  const rawCards = cardIds
+    .map((cardId) => getCard(cardId))
+    .filter((card): card is Card => Boolean(card));
+  const liveCards = await applyStockOverrides(rawCards).catch(() => rawCards);
+  const cardMap = new Map(liveCards.map((card) => [card.id, card]));
 
   const sleeveIds = Array.from(
     new Set(decoded.flatMap((entry) => entry.sleeveItems.map(([id]) => id))),
@@ -275,7 +284,13 @@ async function buildOrderContents(rows: OrderRow[]) {
   return new Map(
     decoded.map((entry) => [
       entry.orderId,
-      buildOrderContent(entry.cardItems, entry.sleeveItems, sleeveMap, entry.error),
+      buildOrderContent(
+        entry.cardItems,
+        entry.sleeveItems,
+        sleeveMap,
+        cardMap,
+        entry.error,
+      ),
     ]),
   );
 }
@@ -284,10 +299,11 @@ function buildOrderContent(
   cardItems: CompactItem[],
   sleeveItems: CompactSleeveItem[],
   sleeveMap: Map<string, SleeveProduct>,
+  cardMap: Map<string, Card>,
   error?: string,
 ): OrderContent {
   const cardLines: CardOrderLine[] = cardItems.map(([cardId, variant, quantity]) => {
-    const card = getCard(cardId);
+    const card = cardMap.get(cardId) ?? getCard(cardId);
     const serie = card ? getSerie(card.serieId) : undefined;
     const bloc = serie ? getBloc(serie.blocId) : undefined;
     const resolved = card ? resolveVariant(card, variant) : undefined;
