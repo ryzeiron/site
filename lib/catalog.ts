@@ -122,7 +122,7 @@ export function resolveVariant(card: Card, key: VariantKey = "base"): CardVarian
   } else if (key !== "base" && key !== "alt" && card.extraVariants) {
     const v = card.extraVariants.find((x) => x.key === key);
     variant = v
-      ? { rarity: v.rarity, price: v.price, stock: v.stock }
+      ? { rarity: v.rarity, condition: v.condition, price: v.price, stock: v.stock }
       : { rarity: card.rarity, price: card.price, stock: card.stock };
   } else {
     variant = {

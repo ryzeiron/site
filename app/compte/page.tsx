@@ -14,6 +14,10 @@ import {
   type DeliveryProfileData,
   isDeliveryCountry,
 } from "@/lib/delivery-profile";
+import {
+  buildOrderContents,
+  type OrderContent,
+} from "@/lib/order-contents";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +54,144 @@ function formatDate(d: Date): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function AccountOrderContentDetails({ content }: { content?: OrderContent }) {
+  if (!content) {
+    return (
+      <div className="px-4 pb-4 text-sm text-gray-400">
+        Contenu de commande indisponible pour le moment.
+      </div>
+    );
+  }
+
+  if (content.error) {
+    return (
+      <div className="mx-4 mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
+        Contenu de commande indisponible : {content.error}
+      </div>
+    );
+  }
+
+  if (content.cardGroups.length === 0 && content.sleeveLines.length === 0) {
+    return (
+      <div className="mx-4 mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">
+        Aucun article trouve dans cette commande.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 border-t border-white/10 px-4 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="text-sm font-semibold text-white">
+          Contenu de la commande
+        </div>
+        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-300">
+          {content.totalQuantity} article{content.totalQuantity > 1 ? "s" : ""}
+        </span>
+      </div>
+
+      {content.cardGroups.map((group) => (
+        <div
+          key={group.key}
+          className="rounded-xl border border-white/10 bg-black/20"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
+            <div>
+              <div className="text-xs uppercase tracking-[0.14em] text-gray-500">
+                {group.blocName}
+              </div>
+              <div className="font-semibold text-white">
+                {group.serieName}{" "}
+                <span className="text-xs font-normal text-gray-500">
+                  {group.serieCode}
+                </span>
+              </div>
+            </div>
+            <span className="rounded-full bg-violet-500/15 px-2 py-1 text-xs text-violet-200">
+              {group.lines.reduce((total, line) => total + line.quantity, 0)} carte
+              {group.lines.reduce((total, line) => total + line.quantity, 0) > 1
+                ? "s"
+                : ""}
+            </span>
+          </div>
+
+          <div className="divide-y divide-white/10">
+            {group.lines.map((line) => (
+              <div
+                key={line.key}
+                className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_auto] sm:items-center"
+              >
+                <div className="flex h-16 w-12 items-center justify-center overflow-hidden rounded border border-white/10 bg-zinc-900 text-[10px] text-gray-500">
+                  {line.image ? (
+                    <img
+                      src={line.image}
+                      alt={line.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    "Image"
+                  )}
+                </div>
+
+                <div>
+                  <div className="font-semibold text-white">
+                    {line.name}{" "}
+                    <span className="font-mono text-xs text-gray-500">
+                      {line.number}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-1.5 text-xs text-gray-300">
+                    <span className="rounded-full bg-white/10 px-2 py-1">
+                      {line.rarity}
+                    </span>
+                    <span className="rounded-full bg-white/10 px-2 py-1">
+                      {line.condition}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-sm font-bold text-white">
+                  x{line.quantity}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {content.sleeveLines.length > 0 ? (
+        <div className="rounded-xl border border-white/10 bg-black/20">
+          <div className="border-b border-white/10 px-3 py-2 font-semibold text-white">
+            Sleeves
+          </div>
+          <div className="divide-y divide-white/10">
+            {content.sleeveLines.map((line) => (
+              <div
+                key={line.key}
+                className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_auto] sm:items-center"
+              >
+                <div className="flex h-16 w-12 items-center justify-center overflow-hidden rounded border border-white/10 bg-zinc-900 text-[10px] text-gray-500">
+                  {line.image ? (
+                    <img
+                      src={line.image}
+                      alt={line.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    "Sleeve"
+                  )}
+                </div>
+                <div className="font-semibold text-white">{line.name}</div>
+                <div className="text-sm font-bold text-white">x{line.quantity}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export default async function ComptePage({
@@ -115,6 +257,10 @@ export default async function ComptePage({
         .catch(() => null),
     ]);
   const favoriteCount = userCardFavorites.length + userSleeveFavorites.length;
+  const orderContents =
+    activeSection === "commandes" && userOrders.length > 0
+      ? await buildOrderContents(userOrders)
+      : new Map<string, OrderContent>();
 
   return (
     <div className="space-y-6 py-6">
@@ -288,10 +434,11 @@ export default async function ComptePage({
               ) : (
                 <div className="space-y-3">
                   {userOrders.map((order) => (
-                    <div
+                    <details
                       key={order.id}
-                      className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200"
+                      className="group rounded-lg border border-white/10 bg-zinc-900/70 text-gray-200"
                     >
+                      <summary className="cursor-pointer list-none p-4 [&::-webkit-details-marker]:hidden">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <div className="text-xs text-gray-400">
@@ -302,7 +449,7 @@ export default async function ComptePage({
                             N {order.id.slice(-12)}
                           </div>
 
-                          <div className="mt-2 text-sm">
+                          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
                             <span
                               className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
                                 order.status === "paid"
@@ -322,20 +469,28 @@ export default async function ComptePage({
                                     ? "Retirée"
                                     : order.status}
                             </span>
+                            <span className="text-xs font-semibold text-violet-200">
+                              Cliquer pour voir le contenu
+                            </span>
                           </div>
                         </div>
 
-                        {order.relayName && (
-                          <div className="text-right text-xs text-gray-300">
-                            <div className="font-semibold text-white">
-                              {order.relayName}
+                        <div className="flex items-start gap-3">
+                          {order.relayName && (
+                            <div className="text-right text-xs text-gray-300">
+                              <div className="font-semibold text-white">
+                                {order.relayName}
+                              </div>
+                              <div>{order.relayAddress}</div>
+                              <div>
+                                {order.relayPostcode} {order.relayCity}
+                              </div>
                             </div>
-                            <div>{order.relayAddress}</div>
-                            <div>
-                              {order.relayPostcode} {order.relayCity}
-                            </div>
-                          </div>
-                        )}
+                          )}
+                          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs text-gray-300 transition group-open:rotate-180">
+                            v
+                          </span>
+                        </div>
                       </div>
 
                       {order.mondialRelayExpeditionNumber && (
@@ -346,7 +501,21 @@ export default async function ComptePage({
                           </span>
                         </div>
                       )}
-                    </div>
+                      </summary>
+
+                      <AccountOrderContentDetails
+                        content={orderContents.get(order.id)}
+                      />
+
+                      <div className="border-t border-white/10 px-4 pb-4 pt-3">
+                        <Link
+                          href={`/suivi-commande/${order.stripeSessionId}`}
+                          className="text-xs font-semibold text-violet-200 transition hover:text-violet-100"
+                        >
+                          Voir le suivi de commande
+                        </Link>
+                      </div>
+                    </details>
                   ))}
                 </div>
               )}
