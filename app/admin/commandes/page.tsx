@@ -4,6 +4,10 @@ import type Stripe from "stripe";
 import { desc, eq } from "drizzle-orm";
 import LogoutButton from "@/components/LogoutButton";
 import AdminOrderShippingForm from "@/components/AdminOrderShippingForm";
+import {
+  AdminOrderPreparationProgress,
+  AdminOrderPreparedCheckboxes,
+} from "@/components/AdminOrderPreparationChecklist";
 import { isAdmin } from "@/lib/admin/auth";
 import {
   BLOCS,
@@ -374,7 +378,31 @@ function buildOrderContent(
   };
 }
 
-function OrderContentDetails({ content }: { content?: OrderContent }) {
+function preparationUnitIds(itemKey: string, quantity: number) {
+  const count = Math.max(0, Math.floor(quantity));
+  return Array.from({ length: count }, (_, index) => `${itemKey}:${index + 1}`);
+}
+
+function preparationItemIds(content: OrderContent) {
+  return [
+    ...content.cardGroups.flatMap((group) =>
+      group.lines.flatMap((line) =>
+        preparationUnitIds(`card:${line.key}`, line.quantity),
+      ),
+    ),
+    ...content.sleeveLines.flatMap((line) =>
+      preparationUnitIds(`sleeve:${line.key}`, line.quantity),
+    ),
+  ];
+}
+
+function OrderContentDetails({
+  orderId,
+  content,
+}: {
+  orderId: string;
+  content?: OrderContent;
+}) {
   if (!content) return null;
 
   if (content.error) {
@@ -406,6 +434,11 @@ function OrderContentDetails({ content }: { content?: OrderContent }) {
           {content.totalQuantity} article{content.totalQuantity > 1 ? "s" : ""}
         </span>
       </div>
+
+      <AdminOrderPreparationProgress
+        orderId={orderId}
+        items={preparationItemIds(content)}
+      />
 
       <div className="space-y-4">
         {content.cardGroups.map((group) => (
@@ -466,6 +499,11 @@ function OrderContentDetails({ content }: { content?: OrderContent }) {
                         Variante : {line.variant}
                       </span>
                     </div>
+                    <AdminOrderPreparedCheckboxes
+                      orderId={orderId}
+                      itemKey={`card:${line.key}`}
+                      quantity={line.quantity}
+                    />
                   </div>
 
                   <div className="text-sm font-bold text-white">
@@ -499,7 +537,14 @@ function OrderContentDetails({ content }: { content?: OrderContent }) {
                       "Sleeve"
                     )}
                   </div>
-                  <div className="font-semibold text-white">{line.name}</div>
+                  <div>
+                    <div className="font-semibold text-white">{line.name}</div>
+                    <AdminOrderPreparedCheckboxes
+                      orderId={orderId}
+                      itemKey={`sleeve:${line.key}`}
+                      quantity={line.quantity}
+                    />
+                  </div>
                   <div className="text-sm font-bold text-white">x{line.quantity}</div>
                 </div>
               ))}
@@ -727,7 +772,10 @@ export default async function AdminOrdersPage({
                 </div>
               </div>
 
-              <OrderContentDetails content={orderContents.get(order.id)} />
+              <OrderContentDetails
+                orderId={order.id}
+                content={orderContents.get(order.id)}
+              />
 
               {order.mondialRelayExpeditionNumber && (
                 <div className="mt-3 text-sm text-emerald-300">
