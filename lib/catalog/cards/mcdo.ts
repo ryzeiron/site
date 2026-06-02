@@ -1550,7 +1550,7 @@ export const MCDO_CARDS = [
   {
     "id": "mcdo-2018sm-fr-38",
     "serieId": "2018sm-fr",
-    "name": "Passerouge",
+    "name": "Ponchiot",
     "number": "38/40",
     "rarity": "Commune",
     "condition": "Near Mint",
@@ -1979,17 +1979,6 @@ export const MCDO_CARDS = [
     "image": "/cartes/mcdo/2019sm-fr/33.png"
   },
   {
-    "id": "mcdo-2019sm-fr-33b",
-    "serieId": "2019sm-fr",
-    "name": "Taupiqueur d'Alola",
-    "number": "33b",
-    "rarity": "Commune",
-    "condition": "Near Mint",
-    "language": "FR",
-    "price": 0.5,
-    "stock": 0
-  },
-  {
     "id": "mcdo-2019sm-fr-34",
     "serieId": "2019sm-fr",
     "name": "Triopikeur d'Alola",
@@ -2208,7 +2197,7 @@ export const MCDO_CARDS = [
   {
     "id": "mcdo-2021swsh-12",
     "serieId": "2021swsh",
-    "name": "Chimpenfeu",
+    "name": "Ouisticram",
     "number": "12/25",
     "rarity": "Commune",
     "condition": "Near Mint",
@@ -2381,7 +2370,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/1.png"
   },
   {
     "id": "mcdo-2022swsh-2",
@@ -2392,7 +2382,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/2.png"
   },
   {
     "id": "mcdo-2022swsh-3",
@@ -2403,7 +2394,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/3.png"
   },
   {
     "id": "mcdo-2022swsh-4",
@@ -2414,7 +2406,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/4.png"
   },
   {
     "id": "mcdo-2022swsh-5",
@@ -2425,7 +2418,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/5.png"
   },
   {
     "id": "mcdo-2022swsh-6",
@@ -2436,7 +2430,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/6.png"
   },
   {
     "id": "mcdo-2022swsh-7",
@@ -2447,7 +2442,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/7.png"
   },
   {
     "id": "mcdo-2022swsh-8",
@@ -2458,7 +2454,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/8.png"
   },
   {
     "id": "mcdo-2022swsh-9",
@@ -2469,7 +2466,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/9.png"
   },
   {
     "id": "mcdo-2022swsh-10",
@@ -2480,7 +2478,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/10.png"
   },
   {
     "id": "mcdo-2022swsh-11",
@@ -2491,7 +2490,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/11.png"
   },
   {
     "id": "mcdo-2022swsh-12",
@@ -2502,7 +2502,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/12.png"
   },
   {
     "id": "mcdo-2022swsh-13",
@@ -2513,7 +2514,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/13.png"
   },
   {
     "id": "mcdo-2022swsh-14",
@@ -2524,7 +2526,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/14.png"
   },
   {
     "id": "mcdo-2022swsh-15",
@@ -2535,7 +2538,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2022swsh/15.png"
   },
   {
     "id": "mcdo-2023sv-1",
@@ -2546,7 +2550,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/1.png"
   },
   {
     "id": "mcdo-2023sv-2",
@@ -2557,7 +2562,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/2.png"
   },
   {
     "id": "mcdo-2023sv-3",
@@ -2568,7 +2574,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/3.png"
   },
   {
     "id": "mcdo-2023sv-4",
@@ -2579,7 +2586,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/4.png"
   },
   {
     "id": "mcdo-2023sv-5",
@@ -2590,7 +2598,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/5.png"
   },
   {
     "id": "mcdo-2023sv-6",
@@ -2601,7 +2610,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/6.png"
   },
   {
     "id": "mcdo-2023sv-7",
@@ -2612,7 +2622,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/7.png"
   },
   {
     "id": "mcdo-2023sv-8",
@@ -2623,7 +2634,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/8.png"
   },
   {
     "id": "mcdo-2023sv-9",
@@ -2634,7 +2646,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/9.png"
   },
   {
     "id": "mcdo-2023sv-10",
@@ -2645,7 +2658,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/10.png"
   },
   {
     "id": "mcdo-2023sv-11",
@@ -2656,7 +2670,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/11.png"
   },
   {
     "id": "mcdo-2023sv-12",
@@ -2667,7 +2682,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/12.png"
   },
   {
     "id": "mcdo-2023sv-13",
@@ -2678,7 +2694,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/13.png"
   },
   {
     "id": "mcdo-2023sv-14",
@@ -2689,7 +2706,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/14.png"
   },
   {
     "id": "mcdo-2023sv-15",
@@ -2700,7 +2718,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2023sv/15.png"
   },
   {
     "id": "mcdo-2024sv-1",
