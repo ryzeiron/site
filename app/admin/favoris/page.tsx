@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { desc } from "drizzle-orm";
+import AdminFavoriteDeleteButton from "@/components/AdminFavoriteDeleteButton";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
 import { getCard, getSerie, resolveVariant, type Card } from "@/lib/catalog";
@@ -626,7 +627,24 @@ function FavoriteGroupCard({ group }: { group: FavoriteGroup }) {
             ) : null}
           </div>
 
-          <ClientDetails clients={group.clients} itemKey={group.key} />
+          <div className="mt-3">
+            <AdminFavoriteDeleteButton
+              type="card"
+              cardId={group.cardId}
+              variant={group.variant}
+              label="Supprimer les favoris"
+              confirmLabel={`Supprimer tous les favoris pour ${card?.name ?? group.cardId} (${variantLabel(group.variant)}) ?`}
+            />
+          </div>
+
+          <ClientDetails
+            clients={group.clients}
+            itemKey={group.key}
+            favoriteType="card"
+            cardId={group.cardId}
+            variant={group.variant}
+            itemName={card?.name ?? group.cardId}
+          />
         </div>
       </div>
     </article>
@@ -728,7 +746,22 @@ function SleeveFavoriteGroupCard({ group }: { group: SleeveFavoriteGroup }) {
             ) : null}
           </div>
 
-          <ClientDetails clients={group.clients} itemKey={group.key} />
+          <div className="mt-3">
+            <AdminFavoriteDeleteButton
+              type="sleeve"
+              sleeveId={group.sleeveId}
+              label="Supprimer les favoris"
+              confirmLabel={`Supprimer tous les favoris pour ${sleeve?.name ?? group.sleeveId} ?`}
+            />
+          </div>
+
+          <ClientDetails
+            clients={group.clients}
+            itemKey={group.key}
+            favoriteType="sleeve"
+            sleeveId={group.sleeveId}
+            itemName={sleeve?.name ?? group.sleeveId}
+          />
         </div>
       </div>
     </article>
@@ -738,9 +771,19 @@ function SleeveFavoriteGroupCard({ group }: { group: SleeveFavoriteGroup }) {
 function ClientDetails({
   clients,
   itemKey,
+  favoriteType,
+  cardId,
+  variant,
+  sleeveId,
+  itemName,
 }: {
   clients: FavoriteClient[];
   itemKey: string;
+  favoriteType: "card" | "sleeve";
+  cardId?: string;
+  variant?: string;
+  sleeveId?: string;
+  itemName: string;
 }) {
   return (
     <details className="group mt-4 rounded border border-white/10 bg-black/20">
@@ -756,6 +799,28 @@ function ClientDetails({
               {client.name || "Client sans nom"}
             </div>
             <div className="text-xs text-gray-400">{client.email}</div>
+            <div className="mt-2">
+              {favoriteType === "card" && cardId && variant ? (
+                <AdminFavoriteDeleteButton
+                  type="card"
+                  userId={client.id}
+                  cardId={cardId}
+                  variant={variant}
+                  label="Supprimer ce favori"
+                  confirmLabel={`Supprimer le favori de ${client.email} pour ${itemName} ?`}
+                />
+              ) : null}
+
+              {favoriteType === "sleeve" && sleeveId ? (
+                <AdminFavoriteDeleteButton
+                  type="sleeve"
+                  userId={client.id}
+                  sleeveId={sleeveId}
+                  label="Supprimer ce favori"
+                  confirmLabel={`Supprimer le favori de ${client.email} pour ${itemName} ?`}
+                />
+              ) : null}
+            </div>
             <div className="mt-1 text-xs text-gray-500">
               Ajouté le {formatDate(client.createdAt)}
             </div>

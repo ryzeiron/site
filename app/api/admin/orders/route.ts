@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/admin/auth";
 import { getDb } from "@/lib/db/client";
-import { orders } from "@/lib/db/schema";
+import { orderPreparationItems, orders, stockReservations } from "@/lib/db/schema";
 import {
   sendOrderReviewRequestEmail,
   sendOrderShippedEmail,
@@ -139,6 +139,60 @@ export async function POST(request: Request) {
       emailSent: shouldSendShippingEmail,
       reviewEmailSent: shouldSendReviewEmail,
     });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Erreur inconnue.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: "Non autorise." }, { status: 401 });
+  }
+
+  let body: Pick<Body, "orderId">;
+
+  try {
+    body = (await request.json()) as Pick<Body, "orderId">;
+  } catch {
+    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+  }
+
+  const orderId = body.orderId?.trim();
+
+  if (!orderId) {
+    return NextResponse.json({ error: "Commande invalide." }, { status: 400 });
+  }
+
+  try {
+    const db = getDb();
+    const existingRows = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+    const existingOrder = existingRows[0];
+
+    if (!existingOrder) {
+      return NextResponse.json(
+        { error: "Commande introuvable." },
+        { status: 404 },
+      );
+    }
+
+    await db
+      .delete(orderPreparationItems)
+      .where(eq(orderPreparationItems.orderId, orderId))
+      .catch(() => undefined);
+
+    await db
+      .delete(stockReservations)
+      .where(eq(stockReservations.stripeSessionId, existingOrder.stripeSessionId))
+      .catch(() => undefined);
+
+    await db.delete(orders).where(eq(orders.id, orderId));
+
+    return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur inconnue.";
     return NextResponse.json({ error: message }, { status: 500 });

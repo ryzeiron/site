@@ -4,6 +4,7 @@ import type Stripe from "stripe";
 import { desc, eq } from "drizzle-orm";
 import LogoutButton from "@/components/LogoutButton";
 import AdminOrderShippingForm from "@/components/AdminOrderShippingForm";
+import AdminOrderDeleteButton from "@/components/AdminOrderDeleteButton";
 import {
   AdminOrderPreparationProgress,
   AdminOrderPreparedCheckboxes,
@@ -810,6 +811,11 @@ export default async function AdminOrdersPage({
                 initialStatus={order.status}
                 initialExpeditionNumber={order.mondialRelayExpeditionNumber}
                 initialLabelUrl={order.mondialRelayLabelUrl}
+              />
+
+              <AdminOrderDeleteButton
+                orderId={order.id}
+                customerLabel={`${order.customerName ?? "Client"} - ${order.customerEmail ?? "email inconnu"}`}
               />
             </div>
           ))}
