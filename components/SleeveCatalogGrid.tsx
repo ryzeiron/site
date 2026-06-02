@@ -137,6 +137,8 @@ function SleeveCard({ product }: { product: SleeveProduct }) {
           <img
             src={product.image}
             alt={product.name}
+            loading="lazy"
+            decoding="async"
             className={`h-full w-full object-contain p-2 ${
               product.stock <= 0 ? "opacity-40 grayscale" : ""
             }`}

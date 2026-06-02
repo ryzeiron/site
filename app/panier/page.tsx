@@ -282,6 +282,17 @@ export default function CartPage() {
   const estimatedTotal = estimatedTotalCents / 100;
   const requiresManualShipping = totalCents > MONDIAL_RELAY_MAX_INSURANCE_CENTS;
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const checkoutDisabled =
+    loading || !selectedRelay || !acceptedCgv || requiresManualShipping;
+  const checkoutLabel = loading
+    ? "Redirection..."
+    : requiresManualShipping
+      ? "Nous contacter"
+      : selectedRelay
+        ? acceptedCgv
+          ? "Passer au paiement"
+          : "Accepter les CGV"
+        : "Choisir un point relais";
 
   async function applyPromo() {
     if (!promoInput.trim()) return;
@@ -388,7 +399,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="space-y-6 py-2">
+    <div className="space-y-6 py-2 pb-28 lg:pb-2">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-white">Votre panier</h1>
@@ -433,9 +444,9 @@ export default function CartPage() {
           return (
             <div
               key={`${item.cardId}-${item.variant}`}
-              className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-zinc-900/70 p-4 text-gray-200 backdrop-blur-sm sm:flex-row sm:items-center"
+              className="flex flex-col gap-3 rounded-xl border border-white/10 bg-zinc-900/70 p-3 text-gray-200 backdrop-blur-sm sm:flex-row sm:items-center sm:gap-4 sm:rounded-2xl sm:p-4"
             >
-              <div className="relative w-16 h-20 bg-gradient-to-br from-zinc-800 to-zinc-950 rounded flex items-center justify-center text-xs font-semibold text-gray-300 text-center px-1 overflow-hidden">
+              <div className="relative flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded bg-gradient-to-br from-zinc-800 to-zinc-950 px-1 text-center text-xs font-semibold text-gray-300 sm:h-20 sm:w-16">
                 {card.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -542,9 +553,9 @@ export default function CartPage() {
           return (
             <div
               key={`sleeve-${item.sleeveId}`}
-              className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-zinc-900/70 p-4 text-gray-200 backdrop-blur-sm sm:flex-row sm:items-center"
+              className="flex flex-col gap-3 rounded-xl border border-white/10 bg-zinc-900/70 p-3 text-gray-200 backdrop-blur-sm sm:flex-row sm:items-center sm:gap-4 sm:rounded-2xl sm:p-4"
             >
-              <div className="relative flex h-20 w-16 items-center justify-center overflow-hidden rounded bg-gradient-to-br from-violet-950 to-zinc-950 px-1 text-center text-xs font-semibold text-violet-200">
+              <div className="relative flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded bg-gradient-to-br from-violet-950 to-zinc-950 px-1 text-center text-xs font-semibold text-violet-200 sm:h-20 sm:w-16">
                 {sleeve.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -942,20 +953,10 @@ export default function CartPage() {
           <button
             type="button"
             onClick={handleCheckout}
-            disabled={
-              loading || !selectedRelay || !acceptedCgv || requiresManualShipping
-            }
+            disabled={checkoutDisabled}
             className="rounded-full bg-brand-500 hover:bg-brand-600 disabled:opacity-60 text-white px-6 py-3 font-medium"
           >
-            {loading
-              ? "Redirection..."
-              : requiresManualShipping
-                ? "Nous contacter"
-                : selectedRelay
-                ? acceptedCgv
-                  ? "Passer au paiement"
-                  : "Accepter les CGV"
-                : "Choisir un point relais"}
+            {checkoutLabel}
           </button>
 
           <button
@@ -967,6 +968,28 @@ export default function CartPage() {
           </button>
         </div>
         </aside>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-[420] border-t border-violet-300/20 bg-zinc-950/95 px-4 py-3 shadow-2xl shadow-black/60 backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-xs text-gray-400">
+              Total estime
+            </div>
+            <div className="truncate text-lg font-extrabold text-white">
+              {formatPrice(estimatedTotal)}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCheckout}
+            disabled={checkoutDisabled}
+            className="min-h-11 rounded-full bg-brand-500 px-5 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:opacity-60"
+          >
+            {checkoutLabel}
+          </button>
+        </div>
       </div>
     </div>
   );

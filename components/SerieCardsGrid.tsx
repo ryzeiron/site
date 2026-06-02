@@ -49,6 +49,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   const [sortMode, setSortMode] = useState<SortMode>("number");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const availableRarities = useMemo(() => {
     const present = new Set<Rarity>();
@@ -217,10 +218,17 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
     "rounded-full border px-3 py-1.5 text-xs font-medium transition";
   const pillIdle = "border-white/20 bg-white/5 text-gray-300 hover:bg-white/10";
   const pillActive = "border-violet-400 bg-violet-600 text-white";
+  const activeFilterCount =
+    selectedRarities.length +
+    selectedConditions.length +
+    (onlyInStock ? 1 : 0) +
+    (minPrice ? 1 : 0) +
+    (maxPrice ? 1 : 0) +
+    (sortMode !== "number" ? 1 : 0);
 
   return (
     <div>
-      <div className="mt-6 rounded-2xl border border-white/10 bg-zinc-950/60 p-4">
+      <div className="mt-4 rounded-2xl border border-white/10 bg-zinc-950/60 p-3 md:mt-6 md:p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative flex-1">
             <input
@@ -228,7 +236,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Nom, numéro, rareté ou état"
-              className="w-full rounded-lg border border-white/10 bg-zinc-900 py-2 pl-9 pr-9 text-sm text-white placeholder-gray-500 focus:border-violet-400 focus:outline-none"
+              className="h-11 w-full rounded-lg border border-white/10 bg-zinc-900 py-2 pl-9 pr-9 text-sm text-white placeholder-gray-500 focus:border-violet-400 focus:outline-none"
             />
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -255,7 +263,24 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
             ) : null}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((open) => !open)}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-violet-300/25 bg-violet-600/20 px-4 text-sm font-semibold text-violet-100 transition hover:bg-violet-600/30 lg:hidden"
+          >
+            Filtres
+            {activeFilterCount > 0 ? (
+              <span className="ml-2 rounded-full bg-violet-500 px-2 py-0.5 text-xs text-white">
+                {activeFilterCount}
+              </span>
+            ) : null}
+          </button>
+
+          <div
+            className={`flex-wrap items-center gap-3 ${
+              filtersOpen ? "flex" : "hidden lg:flex"
+            }`}
+          >
             <label className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-3 text-sm text-white">
               <input
                 type="checkbox"
@@ -284,7 +309,11 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div
+          className={`mt-3 flex-wrap gap-2 ${
+            filtersOpen ? "flex" : "hidden lg:flex"
+          }`}
+        >
           <button
             type="button"
             onClick={showPremiumCards}
@@ -321,7 +350,11 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
           ))}
         </div>
 
-        <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div
+          className={`mt-3 gap-3 lg:grid-cols-[1fr_auto] lg:items-center ${
+            filtersOpen ? "grid" : "hidden lg:grid"
+          }`}
+        >
           <div className="flex flex-wrap gap-2">
             <span className="self-center text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
               État
@@ -377,7 +410,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
             : "Aucune carte pour ces filtres."}
         </p>
       ) : (
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:mt-6 md:gap-4 lg:grid-cols-4">
           {filtered.map((card) => (
             <CardTile
               key={card.id}

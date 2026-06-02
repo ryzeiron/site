@@ -67,7 +67,7 @@ export default function QuickAddCardButton({
         <button
           type="button"
           disabled
-          className="h-9 w-full cursor-not-allowed rounded-full bg-gray-200 px-3 text-xs font-semibold text-gray-500"
+          className="h-10 w-full cursor-not-allowed rounded-full bg-gray-200 px-3 text-xs font-semibold text-gray-500"
         >
           Rupture
         </button>
@@ -81,7 +81,7 @@ export default function QuickAddCardButton({
         <button
           type="button"
           onClick={addToCart}
-          className={`h-9 w-full rounded-full px-3 text-xs font-semibold text-white transition ${
+          className={`h-10 w-full rounded-full px-3 text-xs font-semibold text-white transition ${
             added ? "bg-emerald-500" : "bg-violet-600 hover:bg-violet-700"
           }`}
         >
@@ -97,7 +97,7 @@ export default function QuickAddCardButton({
         <select
           value={selectedVariant.key}
           onChange={(event) => setSelectedKey(event.target.value)}
-          className="h-9 min-w-0 flex-1 rounded-full border border-white/10 bg-zinc-950 px-2 text-xs text-white outline-none focus:border-violet-400"
+          className="h-10 min-w-0 flex-1 rounded-full border border-white/10 bg-zinc-950 px-2 text-xs text-white outline-none focus:border-violet-400"
           aria-label="Choisir la variante"
         >
           {availableVariants.map((variant) => (
@@ -111,7 +111,7 @@ export default function QuickAddCardButton({
         <button
           type="button"
           onClick={addToCart}
-          className={`h-9 rounded-full px-3 text-xs font-semibold text-white transition ${
+          className={`h-10 rounded-full px-3 text-xs font-semibold text-white transition ${
             added ? "bg-emerald-500" : "bg-violet-600 hover:bg-violet-700"
           }`}
         >

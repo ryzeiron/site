@@ -57,7 +57,7 @@ export default function AuthButton() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-[210] mt-3 w-72 overflow-hidden rounded-2xl border border-violet-300/20 bg-zinc-950/95 text-sm text-white shadow-2xl shadow-black/40 backdrop-blur-md">
+        <div className="absolute right-0 z-[650] mt-2 max-h-[min(72svh,34rem)] w-[min(18rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-violet-300/20 bg-zinc-950/95 text-sm text-white shadow-2xl shadow-black/40 backdrop-blur-md">
           {isConnected ? (
             <>
               <div className="border-b border-white/10 bg-violet-600/10 p-4">

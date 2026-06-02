@@ -110,7 +110,7 @@ export default function GlobalSearchBar() {
   }, [trimmedQuery]);
 
   return (
-    <div className="relative z-[100] border-b border-white/10 bg-black/35 backdrop-blur-sm">
+    <div className="relative z-[500] border-b border-white/10 bg-black/35 backdrop-blur-sm">
       <div className="mx-auto max-w-6xl px-4 py-3">
         <div ref={containerRef} className="relative">
           <form action="/recherche" className="relative">
@@ -124,33 +124,34 @@ export default function GlobalSearchBar() {
               }}
               onFocus={() => setOpen(true)}
               placeholder="Rechercher une carte, une série ou une sleeve"
-              className="h-11 w-full rounded-full border border-white/10 bg-zinc-950/80 pl-11 pr-28 text-sm text-white outline-none placeholder:text-gray-500 transition focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30"
+              className="h-11 w-full rounded-full border border-white/10 bg-zinc-950/80 pl-11 pr-20 text-sm text-white outline-none placeholder:text-gray-500 transition focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30 sm:pr-28"
             />
             <SearchIcon />
             <button
               type="submit"
-              className="absolute right-1.5 top-1/2 h-8 -translate-y-1/2 rounded-full bg-violet-600 px-4 text-xs font-bold text-white transition hover:bg-violet-700"
+              className="absolute right-1.5 top-1/2 h-8 -translate-y-1/2 rounded-full bg-violet-600 px-3 text-xs font-bold text-white transition hover:bg-violet-700 sm:px-4"
             >
-              Rechercher
+              <span className="sm:hidden">OK</span>
+              <span className="hidden sm:inline">Rechercher</span>
             </button>
           </form>
 
           {open && trimmedQuery.length >= 2 ? (
-            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[110] overflow-hidden rounded-2xl border border-violet-300/20 bg-zinc-950/95 shadow-2xl shadow-black/60 backdrop-blur">
-              <div className="max-h-[70vh] overflow-y-auto p-3">
+            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[560] overflow-hidden rounded-2xl border border-violet-300/20 bg-zinc-950/95 shadow-2xl shadow-black/60 backdrop-blur">
+              <div className="max-h-[min(65svh,30rem)] overflow-y-auto p-2 sm:p-3">
                 {loading ? (
                   <div className="rounded-xl bg-white/[0.04] px-4 py-3 text-sm text-gray-300">
                     Recherche en cours...
                   </div>
                 ) : hasSuggestions ? (
-                  <div className="grid gap-3 lg:grid-cols-3">
+                  <div className="grid gap-2 lg:grid-cols-3 lg:gap-3">
                     <SuggestionSection title="Cartes">
                       {suggestions.cards.map((card) => (
                         <Link
                           key={card.id}
                           href={`/carte/${card.id}`}
                           onClick={() => setOpen(false)}
-                          className="flex gap-3 rounded-xl p-2 transition hover:bg-white/[0.06]"
+                          className="flex gap-2 rounded-xl p-1.5 transition hover:bg-white/[0.06] sm:gap-3 sm:p-2"
                         >
                           <SuggestionImage
                             src={card.image}
@@ -177,7 +178,7 @@ export default function GlobalSearchBar() {
                           key={serie.id}
                           href={`/blocs/${serie.blocId}/${serie.id}`}
                           onClick={() => setOpen(false)}
-                          className="flex gap-3 rounded-xl p-2 transition hover:bg-white/[0.06]"
+                          className="flex gap-2 rounded-xl p-1.5 transition hover:bg-white/[0.06] sm:gap-3 sm:p-2"
                         >
                           <SuggestionImage
                             src={serie.image}
@@ -203,7 +204,7 @@ export default function GlobalSearchBar() {
                           key={sleeve.id}
                           href="/sleeve"
                           onClick={() => setOpen(false)}
-                          className="flex gap-3 rounded-xl p-2 transition hover:bg-white/[0.06]"
+                          className="flex gap-2 rounded-xl p-1.5 transition hover:bg-white/[0.06] sm:gap-3 sm:p-2"
                         >
                           <SuggestionImage
                             src={sleeve.image}
@@ -286,7 +287,7 @@ function SuggestionImage({
 }) {
   return (
     <span
-      className={`flex w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-zinc-900 ${ratio}`}
+      className={`flex w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-zinc-900 sm:w-12 ${ratio}`}
     >
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element

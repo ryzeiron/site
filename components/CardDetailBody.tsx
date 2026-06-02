@@ -24,7 +24,7 @@ function VariantBlock({
 
   return (
     <div
-      className={`rounded-xl border p-4 text-gray-200 ${
+      className={`rounded-xl border p-3 text-gray-200 md:p-4 ${
         outOfStock
           ? "border-red-400/25 bg-red-950/10"
           : "border-white/10 bg-zinc-900/70"
@@ -37,7 +37,7 @@ function VariantBlock({
           </span>
           <ConditionBadge condition={v.condition ?? card.condition} />
         </div>
-        <span className="text-xl font-extrabold text-brand-500">
+        <span className="text-lg font-extrabold text-brand-500 md:text-xl">
           {formatPrice(v.price)}
         </span>
       </div>
@@ -67,7 +67,7 @@ function VariantBlock({
           setAdded(true);
           setTimeout(() => setAdded(false), 1200);
         }}
-        className={`mt-4 flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition ${
+        className={`mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition md:mt-4 ${
           outOfStock
             ? "bg-gray-200 text-gray-500 cursor-not-allowed"
             : added
@@ -112,9 +112,9 @@ export default function CardDetailBody({ card }: { card: Card }) {
   const currentImage = images[imageIndex] ?? card.image;
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(18rem,26rem)_1fr] lg:items-start">
+    <div className="mt-4 grid grid-cols-1 gap-5 lg:mt-6 lg:grid-cols-[minmax(18rem,26rem)_1fr] lg:items-start lg:gap-8">
       <div className="lg:sticky lg:top-24">
-        <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-800 to-zinc-950 text-2xl font-bold text-gray-300 shadow-2xl shadow-black/30">
+        <div className="relative mx-auto aspect-[3/4] max-h-[62svh] max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-800 to-zinc-950 text-2xl font-bold text-gray-300 shadow-2xl shadow-black/30 lg:max-h-none lg:max-w-none">
           {currentImage ? (
             <CardImage
               src={currentImage}
@@ -162,7 +162,7 @@ export default function CardDetailBody({ card }: { card: Card }) {
 
       <div className="min-w-0">
         <div className="text-sm text-gray-400">{card.number}</div>
-        <h1 className="mt-1 text-3xl font-bold text-white md:text-4xl">
+        <h1 className="mt-1 text-2xl font-bold text-white md:text-4xl">
           {card.name}
         </h1>
 
@@ -184,8 +184,8 @@ export default function CardDetailBody({ card }: { card: Card }) {
           <p className="mt-4 text-gray-300">{card.description}</p>
         )}
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 md:mt-5">
+          <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-3 md:p-4">
             <div className="text-xs text-gray-500">État</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {conditionLabels.map((condition) => (
@@ -193,7 +193,7 @@ export default function CardDetailBody({ card }: { card: Card }) {
               ))}
             </div>
           </div>
-          <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-4">
+          <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-3 md:p-4">
             <div className="text-xs text-gray-500">Envoi</div>
             <div className="mt-1 text-sm font-semibold text-white">
               Protégée pour l’expédition
@@ -207,7 +207,7 @@ export default function CardDetailBody({ card }: { card: Card }) {
           </p>
         ) : (
           <>
-            <div className="mt-6 flex items-center justify-between gap-3">
+            <div className="mt-5 flex items-center justify-between gap-3 md:mt-6">
               <h2 className="text-xl font-bold text-white">
                 Choisir une variante
               </h2>
@@ -215,7 +215,7 @@ export default function CardDetailBody({ card }: { card: Card }) {
                 Prix et stock par rareté
               </span>
             </div>
-            <div className={`mt-3 grid gap-4 ${gridCols}`}>
+            <div className={`mt-3 grid gap-3 md:gap-4 ${gridCols}`}>
               {variants.map(({ key }) => (
                 <VariantBlock key={key} card={card} variant={key} />
               ))}

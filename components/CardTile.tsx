@@ -57,7 +57,7 @@ export default function CardTile({
   const price = displayVariant.price;
 
   return (
-    <div className="card-hover relative overflow-hidden rounded-xl border border-white/10 bg-zinc-900/70 text-gray-200 backdrop-blur-sm">
+    <div className="card-hover relative overflow-hidden rounded-lg border border-white/10 bg-zinc-900/70 text-gray-200 backdrop-blur-sm md:rounded-xl">
       <FavoriteHeartButton
         cardId={card.id}
         variant={preferredDisplay.key}
@@ -89,14 +89,14 @@ export default function CardTile({
           )}
         </div>
 
-        <div className="p-3">
+        <div className="p-2.5 md:p-3">
           <div className="text-xs text-gray-500 truncate">{card.number}</div>
 
-          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+          <div className="mt-1 flex flex-wrap items-center gap-1 md:gap-1.5">
             {stockByRarity.map((item) => (
               <span
                 key={item.rarity}
-                className={`inline-flex items-center rounded-full px-2 py-1 text-[11px] font-medium ${
+                className={`inline-flex max-w-full items-center truncate rounded-full px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${
                   item.stock > 0
                     ? "bg-emerald-500/15 text-emerald-300"
                     : "bg-red-500/15 text-red-300"
@@ -108,10 +108,12 @@ export default function CardTile({
             <ConditionBadge condition={displayVariant.condition ?? card.condition} />
           </div>
 
-          <div className="mt-2 truncate font-semibold text-white">{card.name}</div>
+          <div className="mt-1.5 truncate text-sm font-semibold text-white md:mt-2 md:text-base">
+            {card.name}
+          </div>
 
-          <div className="mt-2 flex items-center justify-between">
-            <span className="font-bold text-brand-500">
+          <div className="mt-1.5 flex items-center justify-between md:mt-2">
+            <span className="text-sm font-bold text-brand-500 md:text-base">
               {formatPrice(price)}
             </span>
           </div>
