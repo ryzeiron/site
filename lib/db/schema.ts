@@ -139,6 +139,16 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const orderPreparationItems = pgTable(
+  "order_preparation_items",
+  {
+    orderId: text("order_id").notNull(),
+    itemKey: text("item_key").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.orderId, t.itemKey] })],
+);
+
 export const sleeveOverrides = pgTable("sleeve_overrides", {
   sleeveId: text("sleeve_id").primaryKey(),
   priceCents: integer("price_cents").notNull().default(0),

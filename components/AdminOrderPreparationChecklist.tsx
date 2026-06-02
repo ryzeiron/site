@@ -2,75 +2,133 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const STORAGE_PREFIX = "pokedel-admin-order-preparation:";
 const CHANGE_EVENT = "pokedel-admin-order-preparation-change";
+const preparedCache = new Map<string, string[]>();
+const inflightLoads = new Map<string, Promise<string[]>>();
 
-function getStorageKey(orderId: string) {
-  return `${STORAGE_PREFIX}${orderId}`;
-}
+type PreparationChangeDetail = {
+  orderId: string;
+  items: string[];
+};
 
 function unitIds(itemKey: string, quantity: number) {
   const count = Math.max(0, Math.floor(quantity));
   return Array.from({ length: count }, (_, index) => `${itemKey}:${index + 1}`);
 }
 
-function readPrepared(orderId: string, validItems?: Set<string>) {
-  if (typeof window === "undefined") return new Set<string>();
-
-  try {
-    const raw = window.localStorage.getItem(getStorageKey(orderId));
-    const parsed = raw ? (JSON.parse(raw) as unknown) : [];
-    if (!Array.isArray(parsed)) return new Set<string>();
-
-    return new Set(
-      parsed.filter(
-        (item): item is string =>
-          typeof item === "string" && (!validItems || validItems.has(item)),
-      ),
-    );
-  } catch {
-    return new Set<string>();
-  }
+function normalizePrepared(items: string[], validItems?: Set<string>) {
+  return new Set(
+    items.filter((item) => typeof item === "string" && (!validItems || validItems.has(item))),
+  );
 }
 
-function writePrepared(orderId: string, prepared: Set<string>) {
-  if (typeof window === "undefined") return;
-
-  window.localStorage.setItem(
-    getStorageKey(orderId),
-    JSON.stringify(Array.from(prepared)),
-  );
+function dispatchPrepared(orderId: string, items: string[]) {
+  preparedCache.set(orderId, items);
   window.dispatchEvent(
-    new CustomEvent(CHANGE_EVENT, {
-      detail: { orderId },
+    new CustomEvent<PreparationChangeDetail>(CHANGE_EVENT, {
+      detail: { orderId, items },
     }),
   );
 }
 
+async function loadPrepared(orderId: string) {
+  const cached = preparedCache.get(orderId);
+  if (cached) return cached;
+
+  const existingLoad = inflightLoads.get(orderId);
+  if (existingLoad) return existingLoad;
+
+  const load = fetch(
+    `/api/admin/order-preparation?orderId=${encodeURIComponent(orderId)}`,
+    { cache: "no-store" },
+  )
+    .then(async (response) => {
+      const data = (await response.json()) as { items?: string[]; error?: string };
+      if (!response.ok) {
+        throw new Error(data.error ?? "Impossible de charger la preparation.");
+      }
+      const items = Array.isArray(data.items) ? data.items : [];
+      preparedCache.set(orderId, items);
+      return items;
+    })
+    .finally(() => {
+      inflightLoads.delete(orderId);
+    });
+
+  inflightLoads.set(orderId, load);
+  return load;
+}
+
+async function replacePrepared(orderId: string, items: string[]) {
+  const response = await fetch("/api/admin/order-preparation", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId, mode: "replace", items }),
+  });
+  const data = (await response.json()) as { items?: string[]; error?: string };
+  if (!response.ok) {
+    throw new Error(data.error ?? "Sauvegarde impossible.");
+  }
+  return Array.isArray(data.items) ? data.items : items;
+}
+
+async function setPreparedItem(orderId: string, itemKey: string, prepared: boolean) {
+  const response = await fetch("/api/admin/order-preparation", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId, itemKey, prepared }),
+  });
+  const data = (await response.json()) as { items?: string[]; error?: string };
+  if (!response.ok) {
+    throw new Error(data.error ?? "Sauvegarde impossible.");
+  }
+  return Array.isArray(data.items) ? data.items : [];
+}
+
 function usePreparedState(orderId: string, validItems?: Set<string>) {
-  const [prepared, setPrepared] = useState<Set<string>>(new Set());
+  const [prepared, setPrepared] = useState<Set<string>>(() =>
+    normalizePrepared(preparedCache.get(orderId) ?? [], validItems),
+  );
+  const [loading, setLoading] = useState(!preparedCache.has(orderId));
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const sync = () => setPrepared(readPrepared(orderId, validItems));
-    sync();
-
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === getStorageKey(orderId)) sync();
+    let active = true;
+    const syncFromItems = (items: string[]) => {
+      if (!active) return;
+      setPrepared(normalizePrepared(items, validItems));
+      setLoading(false);
     };
+
+    const cached = preparedCache.get(orderId);
+    if (cached) {
+      syncFromItems(cached);
+    } else {
+      setLoading(true);
+      loadPrepared(orderId)
+        .then(syncFromItems)
+        .catch((err) => {
+          if (!active) return;
+          setError(err instanceof Error ? err.message : "Chargement impossible.");
+          setLoading(false);
+        });
+    }
+
     const onChange = (event: Event) => {
-      const detail = (event as CustomEvent<{ orderId?: string }>).detail;
-      if (detail?.orderId === orderId) sync();
+      const detail = (event as CustomEvent<PreparationChangeDetail>).detail;
+      if (detail?.orderId === orderId) {
+        syncFromItems(detail.items);
+      }
     };
 
-    window.addEventListener("storage", onStorage);
     window.addEventListener(CHANGE_EVENT, onChange);
     return () => {
-      window.removeEventListener("storage", onStorage);
+      active = false;
       window.removeEventListener(CHANGE_EVENT, onChange);
     };
   }, [orderId, validItems]);
 
-  return prepared;
+  return { prepared, loading, error, setError };
 }
 
 export function AdminOrderPreparationProgress({
@@ -82,17 +140,29 @@ export function AdminOrderPreparationProgress({
 }) {
   const validItems = useMemo(() => Array.from(new Set(items)), [items]);
   const validSet = useMemo(() => new Set(validItems), [validItems]);
-  const prepared = usePreparedState(orderId, validSet);
+  const { prepared, loading, error, setError } = usePreparedState(orderId, validSet);
   const preparedCount = validItems.filter((item) => prepared.has(item)).length;
   const total = validItems.length;
   const percent = total > 0 ? Math.round((preparedCount / total) * 100) : 0;
 
-  function markAllPrepared() {
-    writePrepared(orderId, new Set(validItems));
+  async function markAllPrepared() {
+    setError(null);
+    dispatchPrepared(orderId, validItems);
+    try {
+      dispatchPrepared(orderId, await replacePrepared(orderId, validItems));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sauvegarde impossible.");
+    }
   }
 
-  function resetPrepared() {
-    writePrepared(orderId, new Set());
+  async function resetPrepared() {
+    setError(null);
+    dispatchPrepared(orderId, []);
+    try {
+      dispatchPrepared(orderId, await replacePrepared(orderId, []));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sauvegarde impossible.");
+    }
   }
 
   return (
@@ -103,7 +173,9 @@ export function AdminOrderPreparationProgress({
             Préparation : {preparedCount}/{total}
           </div>
           <div className="mt-1 text-xs text-violet-100/70">
-            Les cases sont sauvegardées sur ce navigateur.
+            {loading
+              ? "Chargement de la checklist..."
+              : "Les cases sont synchronisées entre tes ordinateurs."}
           </div>
         </div>
 
@@ -125,6 +197,8 @@ export function AdminOrderPreparationProgress({
         </div>
       </div>
 
+      {error ? <div className="mt-2 text-xs text-red-200">{error}</div> : null}
+
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
         <div
           className="h-full rounded-full bg-violet-500 transition-all"
@@ -145,17 +219,29 @@ export function AdminOrderPreparedCheckboxes({
   quantity: number;
 }) {
   const ids = useMemo(() => unitIds(itemKey, quantity), [itemKey, quantity]);
-  const prepared = usePreparedState(orderId);
+  const { prepared, error, setError } = usePreparedState(orderId);
   const checkedCount = ids.filter((id) => prepared.has(id)).length;
 
-  function toggle(id: string) {
-    const next = readPrepared(orderId);
-    if (next.has(id)) {
-      next.delete(id);
+  async function toggle(id: string) {
+    const nextPrepared = !prepared.has(id);
+    const currentItems = preparedCache.get(orderId) ?? Array.from(prepared);
+    const optimistic = new Set(currentItems);
+
+    if (nextPrepared) {
+      optimistic.add(id);
     } else {
-      next.add(id);
+      optimistic.delete(id);
     }
-    writePrepared(orderId, next);
+
+    setError(null);
+    dispatchPrepared(orderId, Array.from(optimistic));
+
+    try {
+      dispatchPrepared(orderId, await setPreparedItem(orderId, id, nextPrepared));
+    } catch (err) {
+      dispatchPrepared(orderId, currentItems);
+      setError(err instanceof Error ? err.message : "Sauvegarde impossible.");
+    }
   }
 
   if (ids.length === 0) return null;
@@ -182,6 +268,7 @@ export function AdminOrderPreparedCheckboxes({
           </label>
         ))}
       </div>
+      {error ? <div className="basis-full text-red-200">{error}</div> : null}
     </div>
   );
 }
