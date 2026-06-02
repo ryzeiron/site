@@ -4,6 +4,8 @@
 // Usage : node scripts/sync-mcdo-cards.mjs
 // Relancer sans retoucher les images deja presentes :
 // node scripts/sync-mcdo-cards.mjs --skip-existing
+// Ecrire le catalogue meme si certaines images FR restent introuvables :
+// node scripts/sync-mcdo-cards.mjs --skip-existing --write-partial
 
 import { Buffer } from "node:buffer";
 import {
@@ -28,6 +30,7 @@ const FETCH_HEADERS = {
   accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/png,image/jpeg,*/*;q=0.8",
 };
 const SKIP_EXISTING = process.argv.includes("--skip-existing");
+const WRITE_PARTIAL = process.argv.includes("--write-partial");
 const CONCURRENCY = 6;
 
 // Secours si l'endpoint de serie ne repond pas.
@@ -341,6 +344,18 @@ function writeCatalog(series, cards) {
   writeFileSync(OUTPUT_FILE, source);
 }
 
+function removeMissingImages(cards) {
+  return cards.map((card) => {
+    if (!card.image) return card;
+
+    const imagePath = resolve(ROOT, "public", card.image.replace(/^\//, ""));
+    if (existsSync(imagePath)) return card;
+
+    const { image, ...cardWithoutMissingImage } = card;
+    return cardWithoutMissingImage;
+  });
+}
+
 function writeReport(errors) {
   mkdirSync(dirname(REPORT_FILE), { recursive: true });
   writeFileSync(
@@ -427,7 +442,18 @@ async function main() {
 
   if (errors.length > 0) {
     console.log("");
-    console.log("Le catalogue McDo n'a pas ete modifie tant qu'il reste des erreurs.");
+    if (WRITE_PARTIAL) {
+      writeCatalog(series, removeMissingImages(cards));
+      console.log(
+        "Catalogue ecrit en mode partiel: les images manquantes restent vides, aucune image non FR n'est ajoutee.",
+      );
+      console.log(`Catalogue ecrit: ${OUTPUT_FILE}`);
+    } else {
+      console.log("Le catalogue McDo n'a pas ete modifie tant qu'il reste des erreurs.");
+      console.log(
+        "Pour utiliser les images FR trouvees malgre les erreurs: node scripts/sync-mcdo-cards.mjs --skip-existing --write-partial",
+      );
+    }
     process.exitCode = 1;
     return;
   }
