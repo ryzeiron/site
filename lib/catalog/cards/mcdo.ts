@@ -1556,7 +1556,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2018sm-fr/38.png"
   },
   {
     "id": "mcdo-2018sm-fr-39",
@@ -2203,7 +2204,8 @@ export const MCDO_CARDS = [
     "condition": "Near Mint",
     "language": "FR",
     "price": 0.5,
-    "stock": 0
+    "stock": 0,
+    "image": "/cartes/mcdo/2021swsh/12.png"
   },
   {
     "id": "mcdo-2021swsh-13",

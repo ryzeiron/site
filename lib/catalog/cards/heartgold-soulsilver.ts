@@ -151,7 +151,7 @@ export const HEARTGOLD_SOULSILVER_CARDS = [
 { id: "hgss01-121", serieId: "HGSS01", name: "Énergie Obscurité", number: "121/123", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS01/121.webp", },
 { id: "hgss01-122", serieId: "HGSS01", name: "Énergie Métal", number: "122/123", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS01/122.webp", },
 { id: "hgss01-123", serieId: "HGSS01", name: "Léviator", number: "123/123", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS01/123.webp", },
-{ id: "hgss01-un", serieId: "HGSS01", name: "Lithographie d'Alpha", number: "UN", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS01/un.webp", },
+{ id: "hgss01-un", serieId: "HGSS01", name: "Lithographie d'Alpha", number: "UN", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/HS/HS_ONE_R_FR_LG.png", },
 
 //HGSS02
 { id: "hgss02-001", serieId: "HGSS02", name: "Jirachi", number: "001/95", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS02/1.webp", },
@@ -249,7 +249,7 @@ export const HEARTGOLD_SOULSILVER_CARDS = [
 { id: "hgss02-093", serieId: "HGSS02", name: "Raikou & Suicune", number: "093/95", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS02/93.webp", },
 { id: "hgss02-094", serieId: "HGSS02", name: "Suicune & Entei", number: "094/95", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS02/94.webp", },
 { id: "hgss02-095", serieId: "HGSS02", name: "Suicune & Entei", number: "095/95", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS02/95.webp", },
-{ id: "hgss02-deux", serieId: "HGSS02", name: "Lithographie d'Alpha", number: "DEUX", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS02/deux.webp", },
+{ id: "hgss02-deux", serieId: "HGSS02", name: "Lithographie d'Alpha", number: "DEUX", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/UL/UL_TWO_R_FR_LG.png", },
 
 
 // HGSS03 - Indomptable
@@ -343,7 +343,7 @@ export const HEARTGOLD_SOULSILVER_CARDS = [
 { id: "hgss03-088", serieId: "HGSS03", name: "Kyogre & Groudon", number: "088/90", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS03/88.webp", },
 { id: "hgss03-089", serieId: "HGSS03", name: "Rayquaza & Deoxys", number: "089/90", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS03/89.webp", },
 { id: "hgss03-090", serieId: "HGSS03", name: "Rayquaza & Deoxys", number: "090/90", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS03/90.webp", },
-{ id: "hgss03-trois", serieId: "HGSS03", name: "Lithographie d'Alpha", number: "TROIS", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS03/trois.webp", },
+{ id: "hgss03-trois", serieId: "HGSS03", name: "Lithographie d'Alpha", number: "TROIS", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/UD/UD_THREE_R_FR_LG.png", },
 
 // HGSS04 - Triomphe
 { id: "hgss04-001", serieId: "HGSS04", name: "Galeking", number: "001/102", rarity: "Reverse", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS04/1.webp", },
@@ -448,5 +448,5 @@ export const HEARTGOLD_SOULSILVER_CARDS = [
 { id: "hgss04-100", serieId: "HGSS04", name: "Darkrai & Cresselia", number: "100/102", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS04/100.webp", },
 { id: "hgss04-101", serieId: "HGSS04", name: "Palkia & Dialga", number: "101/102", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS04/101.webp", },
 { id: "hgss04-102", serieId: "HGSS04", name: "Palkia & Dialga", number: "102/102", rarity: "Ultra rare", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS04/102.webp", },
-{ id: "hgss04-quatre", serieId: "HGSS04", name: "Lithographie d'Alpha", number: "QUATRE", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "/cartes/HGSS04/quatre.webp", },
+{ id: "hgss04-quatre", serieId: "HGSS04", name: "Lithographie d'Alpha", number: "QUATRE", rarity: "Secrete", condition: "Near Mint", language: "FR", price: 1, stock: 0, image: "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/TM/TM_FOUR_R_FR_LG.png", },
 ] as unknown as Card[];
