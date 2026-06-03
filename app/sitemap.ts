@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { BLOCS, SERIES } from "@/lib/catalog";
+import { BLOCS, CARDS, SERIES } from "@/lib/catalog";
 
 const SITE_URL = "https://www.pokedel62.fr";
 
@@ -19,6 +19,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     route("/nouveautes", 0.8),
     route("/sleeve", 0.8),
     route("/avis", 0.7),
+    route("/cartes-pokemon-a-l-unite", 0.8),
+    route("/cartes-pokemon-francaises", 0.8),
+    route("/cartes-pokemon-pas-cheres", 0.75),
+    route("/cartes-pokemon-ultra-rares", 0.75),
+    route("/cartes-pokemon-secretes", 0.75),
+    route("/preparation-commandes", 0.65),
     route("/contact", 0.5),
     route("/cgv", 0.4),
     route("/mentions-legales", 0.4),
@@ -31,5 +37,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     route(`/blocs/${serie.blocId}/${serie.id}`, 0.8),
   );
 
-  return [...staticRoutes, ...blocRoutes, ...serieRoutes];
+  const cardRoutes = CARDS.map((card) =>
+    route(
+      `/carte/${card.id}`,
+      card.rarity === "Ultra Rare" || card.rarity === "Secrete" ? 0.7 : 0.55,
+    ),
+  );
+
+  return [...staticRoutes, ...blocRoutes, ...serieRoutes, ...cardRoutes];
 }

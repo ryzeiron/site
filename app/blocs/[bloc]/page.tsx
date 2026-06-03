@@ -17,7 +17,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { bloc: blocId } = await params;
   const bloc = getBloc(blocId);
-  return { title: bloc ? bloc.name : "Bloc" };
+  if (!bloc) return { title: "Bloc" };
+
+  return {
+    title: bloc.name,
+    description: `Retrouvez les cartes Pokémon françaises du bloc ${bloc.name} à l'unité sur PokeDel62.`,
+    alternates: { canonical: `/blocs/${bloc.id}` },
+  };
 }
 
 export default async function BlocPage({
@@ -61,6 +67,12 @@ export default async function BlocPage({
           <p className="mt-2 opacity-90 max-w-2xl">{bloc.tagline}</p>
         </div>
       </div>
+
+      <p className="mt-4 max-w-3xl text-sm leading-6 text-gray-300">
+        Retrouvez les cartes Pokémon françaises du bloc {bloc.name} à l'unité :
+        séries, raretés, reverses, promos et cartes de collection disponibles
+        selon le stock.
+      </p>
 
       <h2 className="mt-8 text-xl font-bold text-white">Séries</h2>
       {series.length === 0 ? (

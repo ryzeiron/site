@@ -1,0 +1,331 @@
+Total cartes catalogue: 17942
+Images locales OK: 17643
+Cartes sans image: 2
+Fichiers locaux manquants: 175
+Images externes non stockees en local: 122
+Images dos manquantes: 0
+
+## Épée et Bouclier / EB04.5 - Destinées Radieuses (122)
+- [Fichier manquant] Brindibou SV001 (destinees-radieuses-sv001) -> /cartes/eb04.5/sv1.webp
+- [Fichier manquant] Efflèche SV002 (destinees-radieuses-sv002) -> /cartes/eb04.5/sv2.webp
+- [Fichier manquant] Archéduc SV003 (destinees-radieuses-sv003) -> /cartes/eb04.5/sv3.webp
+- [Fichier manquant] Ouistempo SV004 (destinees-radieuses-sv004) -> /cartes/eb04.5/sv4.webp
+- [Fichier manquant] Badabouin SV005 (destinees-radieuses-sv005) -> /cartes/eb04.5/sv5.webp
+- [Fichier manquant] Gorythmic SV006 (destinees-radieuses-sv006) -> /cartes/eb04.5/sv6.webp
+- [Fichier manquant] Larvadar SV007 (destinees-radieuses-sv007) -> /cartes/eb04.5/sv7.webp
+- [Fichier manquant] Coléodôme SV008 (destinees-radieuses-sv008) -> /cartes/eb04.5/sv8.webp
+- [Fichier manquant] Astronelle SV009 (destinees-radieuses-sv009) -> /cartes/eb04.5/sv9.webp
+- [Fichier manquant] Tournicoton SV010 (destinees-radieuses-sv010) -> /cartes/eb04.5/sv10.webp
+- [Fichier manquant] Blancoton SV011 (destinees-radieuses-sv011) -> /cartes/eb04.5/sv11.webp
+- [Fichier manquant] Verpom SV012 (destinees-radieuses-sv012) -> /cartes/eb04.5/sv12.webp
+- [Fichier manquant] Pomdrapi SV013 (destinees-radieuses-sv013) -> /cartes/eb04.5/sv13.webp
+- [Fichier manquant] Dratatin SV014 (destinees-radieuses-sv014) -> /cartes/eb04.5/sv14.webp
+- [Fichier manquant] Flambino SV015 (destinees-radieuses-sv015) -> /cartes/eb04.5/sv15.webp
+- [Fichier manquant] Lapyro SV016 (destinees-radieuses-sv016) -> /cartes/eb04.5/sv16.webp
+- [Fichier manquant] Pyrobut SV017 (destinees-radieuses-sv017) -> /cartes/eb04.5/sv17.webp
+- [Fichier manquant] Grillepattes SV018 (destinees-radieuses-sv018) -> /cartes/eb04.5/sv18.webp
+- [Fichier manquant] Scolocendre SV019 (destinees-radieuses-sv019) -> /cartes/eb04.5/sv19.webp
+- [Fichier manquant] M. Mime de Galar SV020 (destinees-radieuses-sv020) -> /cartes/eb04.5/sv20.webp
+- [Fichier manquant] M. Glaquette de Galar SV021 (destinees-radieuses-sv021) -> /cartes/eb04.5/sv21.webp
+- [Fichier manquant] Suicune SV022 (destinees-radieuses-sv022) -> /cartes/eb04.5/sv22.webp
+- [Fichier manquant] Darumarond de Galar SV023 (destinees-radieuses-sv023) -> /cartes/eb04.5/sv23.webp
+- [Fichier manquant] Darumacho de Galar SV024 (destinees-radieuses-sv024) -> /cartes/eb04.5/sv24.webp
+- [Fichier manquant] Larméléon SV025 (destinees-radieuses-sv025) -> /cartes/eb04.5/sv25.webp
+- [Fichier manquant] Arrozard SV026 (destinees-radieuses-sv026) -> /cartes/eb04.5/sv26.webp
+- [Fichier manquant] Lézargus SV027 (destinees-radieuses-sv027) -> /cartes/eb04.5/sv27.webp
+- [Fichier manquant] Khélocrok SV028 (destinees-radieuses-sv028) -> /cartes/eb04.5/sv28.webp
+- [Fichier manquant] Torgamord SV029 (destinees-radieuses-sv029) -> /cartes/eb04.5/sv29.webp
+- [Fichier manquant] Nigosier SV030 (destinees-radieuses-sv030) -> /cartes/eb04.5/sv30.webp
+- [Fichier manquant] Embrochet SV031 (destinees-radieuses-sv031) -> /cartes/eb04.5/sv31.webp
+- [Fichier manquant] Hastacuda SV032 (destinees-radieuses-sv032) -> /cartes/eb04.5/sv32.webp
+- [Fichier manquant] Frissonille SV033 (destinees-radieuses-sv033) -> /cartes/eb04.5/sv33.webp
+- [Fichier manquant] Beldeneige SV034 (destinees-radieuses-sv034) -> /cartes/eb04.5/sv34.webp
+- [Fichier manquant] Bekaglaçon SV035 (destinees-radieuses-sv035) -> /cartes/eb04.5/sv35.webp
+- [Fichier manquant] Hydragon SV036 (destinees-radieuses-sv036) -> /cartes/eb04.5/sv36.webp
+- [Fichier manquant] Hydragla SV037 (destinees-radieuses-sv037) -> /cartes/eb04.5/sv37.webp
+- [Fichier manquant] Motisma SV038 (destinees-radieuses-sv038) -> /cartes/eb04.5/sv38.webp
+- [Fichier manquant] Voltoutou SV039 (destinees-radieuses-sv039) -> /cartes/eb04.5/sv39.webp
+- [Fichier manquant] Fulgudog SV040 (destinees-radieuses-sv040) -> /cartes/eb04.5/sv40.webp
+- [Fichier manquant] Toxizap SV041 (destinees-radieuses-sv041) -> /cartes/eb04.5/sv41.webp
+- [Fichier manquant] Salarsen SV042 (destinees-radieuses-sv042) -> /cartes/eb04.5/sv42.webp
+- [Fichier manquant] Wattapik SV043 (destinees-radieuses-sv043) -> /cartes/eb04.5/sv43.webp
+- [Fichier manquant] Morpeko SV044 (destinees-radieuses-sv044) -> /cartes/eb04.5/sv44.webp
+- [Fichier manquant] Galvagon SV045 (destinees-radieuses-sv045) -> /cartes/eb04.5/sv45.webp
+- [Fichier manquant] Galvagla SV046 (destinees-radieuses-sv046) -> /cartes/eb04.5/sv46.webp
+- [Fichier manquant] Ponyta de Galar SV047 (destinees-radieuses-sv047) -> /cartes/eb04.5/sv47.webp
+- [Fichier manquant] Galopa de Galar SV048 (destinees-radieuses-sv048) -> /cartes/eb04.5/sv48.webp
+- [Fichier manquant] Corayon de Galar SV049 (destinees-radieuses-sv049) -> /cartes/eb04.5/sv49.webp
+- [Fichier manquant] Corayôme de Galar SV050 (destinees-radieuses-sv050) -> /cartes/eb04.5/sv50.webp
+- [Fichier manquant] Dedenne SV051 (destinees-radieuses-sv051) -> /cartes/eb04.5/sv51.webp
+- [Fichier manquant] Théffroi SV052 (destinees-radieuses-sv052) -> /cartes/eb04.5/sv52.webp
+- [Fichier manquant] Polthégeist SV053 (destinees-radieuses-sv053) -> /cartes/eb04.5/sv53.webp
+- [Fichier manquant] Bibichut SV054 (destinees-radieuses-sv054) -> /cartes/eb04.5/sv54.webp
+- [Fichier manquant] Chapotus SV055 (destinees-radieuses-sv055) -> /cartes/eb04.5/sv55.webp
+- [Fichier manquant] Sorcilence SV056 (destinees-radieuses-sv056) -> /cartes/eb04.5/sv56.webp
+- [Fichier manquant] Crèmy SV057 (destinees-radieuses-sv057) -> /cartes/eb04.5/sv57.webp
+- [Fichier manquant] Charmilly SV058 (destinees-radieuses-sv058) -> /cartes/eb04.5/sv58.webp
+- [Fichier manquant] Wimessir SV059 (destinees-radieuses-sv059) -> /cartes/eb04.5/sv59.webp
+- [Fichier manquant] Fantyrm SV060 (destinees-radieuses-sv060) -> /cartes/eb04.5/sv60.webp
+- [Fichier manquant] Dispareptil SV061 (destinees-radieuses-sv061) -> /cartes/eb04.5/sv61.webp
+- [Fichier manquant] Lanssorien SV062 (destinees-radieuses-sv062) -> /cartes/eb04.5/sv62.webp
+- [Fichier manquant] Canarticho de Galar SV063 (destinees-radieuses-sv063) -> /cartes/eb04.5/sv63.webp
+- [Fichier manquant] Palarticho de Galar SV064 (destinees-radieuses-sv064) -> /cartes/eb04.5/sv64.webp
+- [Fichier manquant] Tutafeh de Galar SV065 (destinees-radieuses-sv065) -> /cartes/eb04.5/sv65.webp
+- [Fichier manquant] Tutétékri de Galar SV066 (destinees-radieuses-sv066) -> /cartes/eb04.5/sv66.webp
+- [Fichier manquant] Charbi SV067 (destinees-radieuses-sv067) -> /cartes/eb04.5/sv67.webp
+- [Fichier manquant] Wagomine SV068 (destinees-radieuses-sv068) -> /cartes/eb04.5/sv68.webp
+- [Fichier manquant] Monthracite SV069 (destinees-radieuses-sv069) -> /cartes/eb04.5/sv69.webp
+- [Fichier manquant] Dunaja SV070 (destinees-radieuses-sv070) -> /cartes/eb04.5/sv70.webp
+- [Fichier manquant] Dunaconda SV071 (destinees-radieuses-sv071) -> /cartes/eb04.5/sv71.webp
+- [Fichier manquant] Poulpaf SV072 (destinees-radieuses-sv072) -> /cartes/eb04.5/sv72.webp
+- [Fichier manquant] Krakos SV073 (destinees-radieuses-sv073) -> /cartes/eb04.5/sv73.webp
+- [Fichier manquant] Hexadron SV074 (destinees-radieuses-sv074) -> /cartes/eb04.5/sv74.webp
+- [Fichier manquant] Dolman SV075 (destinees-radieuses-sv075) -> /cartes/eb04.5/sv75.webp
+- [Fichier manquant] Smogo SV076 (destinees-radieuses-sv076) -> /cartes/eb04.5/sv76.webp
+- [Fichier manquant] Smogogo de Galar SV077 (destinees-radieuses-sv077) -> /cartes/eb04.5/sv77.webp
+- [Fichier manquant] Zigzaton de Galar SV078 (destinees-radieuses-sv078) -> /cartes/eb04.5/sv78.webp
+- [Fichier manquant] Linéon de Galar SV079 (destinees-radieuses-sv079) -> /cartes/eb04.5/sv79.webp
+- [Fichier manquant] Ixon de Galar SV080 (destinees-radieuses-sv080) -> /cartes/eb04.5/sv80.webp
+- [Fichier manquant] Goupilou SV081 (destinees-radieuses-sv081) -> /cartes/eb04.5/sv81.webp
+- [Fichier manquant] Roublenard SV082 (destinees-radieuses-sv082) -> /cartes/eb04.5/sv82.webp
+- [Fichier manquant] Grimalin SV083 (destinees-radieuses-sv083) -> /cartes/eb04.5/sv83.webp
+- [Fichier manquant] Fourbelin SV084 (destinees-radieuses-sv084) -> /cartes/eb04.5/sv84.webp
+- [Fichier manquant] Angoliath SV085 (destinees-radieuses-sv085) -> /cartes/eb04.5/sv85.webp
+- [Fichier manquant] Miaouss de Galar SV086 (destinees-radieuses-sv086) -> /cartes/eb04.5/sv86.webp
+- [Fichier manquant] Berserkatt de Galar SV087 (destinees-radieuses-sv087) -> /cartes/eb04.5/sv87.webp
+- [Fichier manquant] Limonde de Galar SV088 (destinees-radieuses-sv088) -> /cartes/eb04.5/sv88.webp
+- [Fichier manquant] Corvaillus SV089 (destinees-radieuses-sv089) -> /cartes/eb04.5/sv89.webp
+- [Fichier manquant] Charibari SV090 (destinees-radieuses-sv090) -> /cartes/eb04.5/sv90.webp
+- [Fichier manquant] Pachyradjah SV091 (destinees-radieuses-sv091) -> /cartes/eb04.5/sv91.webp
+- [Fichier manquant] Duralugon SV092 (destinees-radieuses-sv092) -> /cartes/eb04.5/sv92.webp
+- [Fichier manquant] Chinchidou SV093 (destinees-radieuses-sv093) -> /cartes/eb04.5/sv93.webp
+- [Fichier manquant] Pashmilla SV094 (destinees-radieuses-sv094) -> /cartes/eb04.5/sv94.webp
+- [Fichier manquant] Couaneton SV095 (destinees-radieuses-sv095) -> /cartes/eb04.5/sv95.webp
+- [Fichier manquant] Lakmécygne SV096 (destinees-radieuses-sv096) -> /cartes/eb04.5/sv96.webp
+- [Fichier manquant] Sapereau SV097 (destinees-radieuses-sv097) -> /cartes/eb04.5/sv97.webp
+- [Fichier manquant] Gouroutan SV098 (destinees-radieuses-sv098) -> /cartes/eb04.5/sv98.webp
+- [Fichier manquant] Rongourmand SV099 (destinees-radieuses-sv099) -> /cartes/eb04.5/sv99.webp
+- [Fichier manquant] Rongrigou SV100 (destinees-radieuses-sv100) -> /cartes/eb04.5/sv100.webp
+- [Fichier manquant] Minisange SV101 (destinees-radieuses-sv101) -> /cartes/eb04.5/sv101.webp
+- [Fichier manquant] Bleuseille SV102 (destinees-radieuses-sv102) -> /cartes/eb04.5/sv102.webp
+- [Fichier manquant] Moumouton SV103 (destinees-radieuses-sv103) -> /cartes/eb04.5/sv103.webp
+- [Fichier manquant] Moumouflon SV104 (destinees-radieuses-sv104) -> /cartes/eb04.5/sv104.webp
+- [Fichier manquant] Gorythmic-V SV105 (destinees-radieuses-sv105) -> /cartes/eb04.5/sv105.webp
+- [Fichier manquant] Gorythmic-VMAX SV106 (destinees-radieuses-sv106) -> /cartes/eb04.5/sv106.webp
+- [Fichier manquant] Dracaufeu-VMAX SV107 (destinees-radieuses-sv107) -> /cartes/eb04.5/sv107.webp
+- [Fichier manquant] Scolocendre-V SV108 (destinees-radieuses-sv108) -> /cartes/eb04.5/sv108.webp
+- [Fichier manquant] Scolocendre-VMAX SV109 (destinees-radieuses-sv109) -> /cartes/eb04.5/sv109.webp
+- [Fichier manquant] Lokhlass-V SV110 (destinees-radieuses-sv110) -> /cartes/eb04.5/sv110.webp
+- [Fichier manquant] Lokhlass-VMAX SV111 (destinees-radieuses-sv111) -> /cartes/eb04.5/sv111.webp
+- [Fichier manquant] Salarsen-V SV112 (destinees-radieuses-sv112) -> /cartes/eb04.5/sv112.webp
+- [Fichier manquant] Salarsen-VMAX SV113 (destinees-radieuses-sv113) -> /cartes/eb04.5/sv113.webp
+- [Fichier manquant] Wimessir-V SV114 (destinees-radieuses-sv114) -> /cartes/eb04.5/sv114.webp
+- [Fichier manquant] Hexadron-V SV115 (destinees-radieuses-sv115) -> /cartes/eb04.5/sv115.webp
+- [Fichier manquant] Angoliath-V SV116 (destinees-radieuses-sv116) -> /cartes/eb04.5/sv116.webp
+- [Fichier manquant] Angoliath-VMAX SV117 (destinees-radieuses-sv117) -> /cartes/eb04.5/sv117.webp
+- [Fichier manquant] Métamorph-V SV118 (destinees-radieuses-sv118) -> /cartes/eb04.5/sv118.webp
+- [Fichier manquant] Métamorph-VMAX SV119 (destinees-radieuses-sv119) -> /cartes/eb04.5/sv119.webp
+- [Fichier manquant] Moumouflon-V SV120 (destinees-radieuses-sv120) -> /cartes/eb04.5/sv120.webp
+- [Fichier manquant] Éthernatos-V SV121 (destinees-radieuses-sv121) -> /cartes/eb04.5/sv121.webp
+- [Fichier manquant] Éthernatos-VMAX SV122 (destinees-radieuses-sv122) -> /cartes/eb04.5/sv122.webp
+
+## Épée et Bouclier / Promo - Épée et Bouclier (6)
+- [Fichier manquant] Special Delivery Pikachu SWSH074 (promo-eb-074) -> /cartes/swsh/74.webp
+- [Fichier manquant] Special Delivery Charizard SWSH075 (promo-eb-075) -> /cartes/swsh/75.webp
+- [Fichier manquant] Special Delivery Bidoof SWSH177 (promo-eb-177) -> /cartes/swsh/177.webp
+- [Fichier manquant] Bulbasaur SWSH303 (promo-eb-303) -> /cartes/swsh/303.webp
+- [Fichier manquant] Arcanine SWSH304 (promo-eb-304) -> /cartes/swsh/304.webp
+- [Fichier manquant] Greninja SWSH305 (promo-eb-305) -> /cartes/swsh/305.webp
+
+## HeartGold SoulSilver / HGSS01 - HeartGold SoulSilver (1)
+- [Fichier manquant] Lithographie d'Alpha UN (hgss01-un) -> /cartes/HGSS01/un.webp
+
+## HeartGold SoulSilver / HGSS02 - Déchaînement (1)
+- [Fichier manquant] Lithographie d'Alpha DEUX (hgss02-deux) -> /cartes/HGSS02/deux.webp
+
+## HeartGold SoulSilver / HGSS03 - Indomptable (1)
+- [Fichier manquant] Lithographie d'Alpha TROIS (hgss03-trois) -> /cartes/HGSS03/trois.webp
+
+## HeartGold SoulSilver / HGSS04 - Triomphe (1)
+- [Fichier manquant] Lithographie d'Alpha QUATRE (hgss04-quatre) -> /cartes/HGSS04/quatre.webp
+
+## McDo / McDo 2018 - Collection McDonald's 2018 (France) (1)
+- [Aucune image] Ponchiot 38/40 (mcdo-2018sm-fr-38) -> (vide)
+
+## McDo / McDo 2021 - Collection McDonald's 2021 (1)
+- [Aucune image] Ouisticram 12/25 (mcdo-2021swsh-12) -> (vide)
+
+## Méga-Évolution / ME04 - Chaos Ascendant (122)
+- [Image externe] Aspicot 001/086 (chaos-ascendant-001) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_001_R_FR_LG.png
+- [Image externe] Coconfort 002/086 (chaos-ascendant-002) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_002_R_FR_LG.png
+- [Image externe] Dardargnan-ex 003/086 (chaos-ascendant-003) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_003_R_FR_LG.png
+- [Image externe] Vortente 004/086 (chaos-ascendant-004) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_004_R_FR_LG.png
+- [Image externe] Marisson 005/086 (chaos-ascendant-005) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_005_R_FR_LG.png
+- [Image externe] Boguérisse 006/086 (chaos-ascendant-006) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_006_R_FR_LG.png
+- [Image externe] Blindépique 007/086 (chaos-ascendant-007) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_007_R_FR_LG.png
+- [Image externe] Goupix 008/086 (chaos-ascendant-008) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_008_R_FR_LG.png
+- [Image externe] Feunard 009/086 (chaos-ascendant-009) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_009_R_FR_LG.png
+- [Image externe] Ho-Oh 010/086 (chaos-ascendant-010) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_010_R_FR_LG.png
+- [Image externe] Feunnec 011/086 (chaos-ascendant-011) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_011_R_FR_LG.png
+- [Image externe] Roussil 012/086 (chaos-ascendant-012) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_012_R_FR_LG.png
+- [Image externe] Goupelin 013/086 (chaos-ascendant-013) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_013_R_FR_LG.png
+- [Image externe] Hélionceau 014/086 (chaos-ascendant-014) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_014_R_FR_LG.png
+- [Image externe] Méga-Némélios-ex 015/086 (chaos-ascendant-015) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_015_R_FR_LG.png
+- [Image externe] Rémoraid 016/086 (chaos-ascendant-016) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_016_R_FR_LG.png
+- [Image externe] Octillery 017/086 (chaos-ascendant-017) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_017_R_FR_LG.png
+- [Image externe] Cadoizo 018/086 (chaos-ascendant-018) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_018_R_FR_LG.png
+- [Image externe] Keldeo 019/086 (chaos-ascendant-019) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_019_R_FR_LG.png
+- [Image externe] Grenousse 020/086 (chaos-ascendant-020) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_020_R_FR_LG.png
+- [Image externe] Croâporal 021/086 (chaos-ascendant-021) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_021_R_FR_LG.png
+- [Image externe] Méga-Amphinobi-ex 022/086 (chaos-ascendant-022) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_022_R_FR_LG.png
+- [Image externe] Grelaçon 023/086 (chaos-ascendant-023) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_023_R_FR_LG.png
+- [Image externe] Séracrawl 024/086 (chaos-ascendant-024) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_024_R_FR_LG.png
+- [Image externe] Sovkipou 025/086 (chaos-ascendant-025) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_025_R_FR_LG.png
+- [Image externe] Sarmuraï 026/086 (chaos-ascendant-026) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_026_R_FR_LG.png
+- [Image externe] Wattouat 027/086 (chaos-ascendant-027) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_027_R_FR_LG.png
+- [Image externe] Lainergie 028/086 (chaos-ascendant-028) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_028_R_FR_LG.png
+- [Image externe] Pharamp 029/086 (chaos-ascendant-029) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_029_R_FR_LG.png
+- [Image externe] Emolga 030/086 (chaos-ascendant-030) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_030_R_FR_LG.png
+- [Image externe] Deoxys 031/086 (chaos-ascendant-031) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_031_R_FR_LG.png
+- [Image externe] Deoxys 032/086 (chaos-ascendant-032) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_032_R_FR_LG.png
+- [Image externe] Deoxys 033/086 (chaos-ascendant-033) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_033_R_FR_LG.png
+- [Image externe] Deoxys 034/086 (chaos-ascendant-034) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_034_R_FR_LG.png
+- [Image externe] Méga-Floette-ex 035/086 (chaos-ascendant-035) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_035_R_FR_LG.png
+- [Image externe] Psystigri 036/086 (chaos-ascendant-036) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_036_R_FR_LG.png
+- [Image externe] Mistigrix 037/086 (chaos-ascendant-037) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_037_R_FR_LG.png
+- [Image externe] Brocélôme 038/086 (chaos-ascendant-038) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_038_R_FR_LG.png
+- [Image externe] Desséliande 039/086 (chaos-ascendant-039) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_039_R_FR_LG.png
+- [Image externe] Pitrouille 040/086 (chaos-ascendant-040) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_040_R_FR_LG.png
+- [Image externe] Banshitrouye-ex 041/086 (chaos-ascendant-041) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_041_R_FR_LG.png
+- [Image externe] Xerneas 042/086 (chaos-ascendant-042) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_042_R_FR_LG.png
+- [Image externe] Simularbre 043/086 (chaos-ascendant-043) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_043_R_FR_LG.png
+- [Image externe] Phanpy 044/086 (chaos-ascendant-044) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_044_R_FR_LG.png
+- [Image externe] Donphan 045/086 (chaos-ascendant-045) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_045_R_FR_LG.png
+- [Image externe] Balbuto 046/086 (chaos-ascendant-046) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_046_R_FR_LG.png
+- [Image externe] Kaorine 047/086 (chaos-ascendant-047) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_047_R_FR_LG.png
+- [Image externe] Méga-Gallame-ex 048/086 (chaos-ascendant-048) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_048_R_FR_LG.png
+- [Image externe] Nosferapti 049/086 (chaos-ascendant-049) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_049_R_FR_LG.png
+- [Image externe] Nosferalto 050/086 (chaos-ascendant-050) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_050_R_FR_LG.png
+- [Image externe] Nostenfer 051/086 (chaos-ascendant-051) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_051_R_FR_LG.png
+- [Image externe] Qwilfish 052/086 (chaos-ascendant-052) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_052_R_FR_LG.png
+- [Image externe] Moufouette 053/086 (chaos-ascendant-053) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_053_R_FR_LG.png
+- [Image externe] Moufflair 054/086 (chaos-ascendant-054) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_054_R_FR_LG.png
+- [Image externe] Crocorible-ex 055/086 (chaos-ascendant-055) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_055_R_FR_LG.png
+- [Image externe] Miamiasme 056/086 (chaos-ascendant-056) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_056_R_FR_LG.png
+- [Image externe] Miasmax 057/086 (chaos-ascendant-057) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_057_R_FR_LG.png
+- [Image externe] Venalgue 058/086 (chaos-ascendant-058) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_058_R_FR_LG.png
+- [Image externe] Terhal 059/086 (chaos-ascendant-059) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_059_R_FR_LG.png
+- [Image externe] Métang 060/086 (chaos-ascendant-060) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_060_R_FR_LG.png
+- [Image externe] Métalosse 061/086 (chaos-ascendant-061) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_061_R_FR_LG.png
+- [Image externe] Grindur 062/086 (chaos-ascendant-062) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_062_R_FR_LG.png
+- [Image externe] Noacier 063/086 (chaos-ascendant-063) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_063_R_FR_LG.png
+- [Image externe] Cobaltium-ex 064/086 (chaos-ascendant-064) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_064_R_FR_LG.png
+- [Image externe] Méga-Kravarech-ex 065/086 (chaos-ascendant-065) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_065_R_FR_LG.png
+- [Image externe] Mucuscule 066/086 (chaos-ascendant-066) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_066_R_FR_LG.png
+- [Image externe] Colimucus 067/086 (chaos-ascendant-067) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_067_R_FR_LG.png
+- [Image externe] Muplodocus 068/086 (chaos-ascendant-068) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_068_R_FR_LG.png
+- [Image externe] Tauros 069/086 (chaos-ascendant-069) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_069_R_FR_LG.png
+- [Image externe] Ratentif 070/086 (chaos-ascendant-070) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_070_R_FR_LG.png
+- [Image externe] Miradar 071/086 (chaos-ascendant-071) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_071_R_FR_LG.png
+- [Image externe] Chinchidou 072/086 (chaos-ascendant-072) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_072_R_FR_LG.png
+- [Image externe] Pashmilla-ex 073/086 (chaos-ascendant-073) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_073_R_FR_LG.png
+- [Image externe] Assurance Adversité 074/086 (chaos-ascendant-074) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_074_R_FR_LG.png
+- [Image externe] Ange Floette 075/086 (chaos-ascendant-075) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_075_R_FR_LG.png
+- [Image externe] Tranquillité d'A.Z. 076/086 (chaos-ascendant-076) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_076_R_FR_LG.png
+- [Image externe] Millie 077/086 (chaos-ascendant-077) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_077_R_FR_LG.png
+- [Image externe] Filet Grande Prise 078/086 (chaos-ascendant-078) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_078_R_FR_LG.png
+- [Image externe] Gypso 079/086 (chaos-ascendant-079) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_079_R_FR_LG.png
+- [Image externe] Tour Prismatique 080/086 (chaos-ascendant-080) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_080_R_FR_LG.png
+- [Image externe] Performance de Strykna 081/086 (chaos-ascendant-081) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_081_R_FR_LG.png
+- [Image externe] Carton Rouge Spécial 082/086 (chaos-ascendant-082) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_082_R_FR_LG.png
+- [Image externe] Tome de Transformation 083/086 (chaos-ascendant-083) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_083_R_FR_LG.png
+- [Image externe] Énergie Eau Pétillante 084/086 (chaos-ascendant-084) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_084_R_FR_LG.png
+- [Image externe] Énergie Métal Magnétique 085/086 (chaos-ascendant-085) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_085_R_FR_LG.png
+- [Image externe] Énergie Feu Nitro 086/086 (chaos-ascendant-086) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_086_R_FR_LG.png
+- [Image externe] Marisson 087/086 (chaos-ascendant-087) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_087_R_FR_LG.png
+- [Image externe] Grenousse 088/086 (chaos-ascendant-088) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_088_R_FR_LG.png
+- [Image externe] Croâporal 089/086 (chaos-ascendant-089) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_089_R_FR_LG.png
+- [Image externe] Pharamp 090/086 (chaos-ascendant-090) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_090_R_FR_LG.png
+- [Image externe] Xerneas 091/086 (chaos-ascendant-091) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_091_R_FR_LG.png
+- [Image externe] Kaorine 092/086 (chaos-ascendant-092) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_092_R_FR_LG.png
+- [Image externe] Nostenfer 093/086 (chaos-ascendant-093) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_093_R_FR_LG.png
+- [Image externe] Métang 094/086 (chaos-ascendant-094) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_094_R_FR_LG.png
+- [Image externe] Colimucus 095/086 (chaos-ascendant-095) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_095_R_FR_LG.png
+- [Image externe] Tauros 096/086 (chaos-ascendant-096) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_096_R_FR_LG.png
+- [Image externe] Miradar 097/086 (chaos-ascendant-097) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_097_R_FR_LG.png
+- [Image externe] Dardargnan-ex 098/086 (chaos-ascendant-098) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_098_R_FR_LG.png
+- [Image externe] Méga-Némélios-ex 099/086 (chaos-ascendant-099) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_099_R_FR_LG.png
+- [Image externe] Méga-Amphinobi-ex 100/086 (chaos-ascendant-100) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_100_R_FR_LG.png
+- [Image externe] Méga-Floette-ex 101/086 (chaos-ascendant-101) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_101_R_FR_LG.png
+- [Image externe] Banshitrouye-ex 102/086 (chaos-ascendant-102) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_102_R_FR_LG.png
+- [Image externe] Cobaltium-ex 103/086 (chaos-ascendant-103) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_103_R_FR_LG.png
+- [Image externe] Méga-Kravarech-ex 104/086 (chaos-ascendant-104) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_104_R_FR_LG.png
+- [Image externe] Pashmilla-ex 105/086 (chaos-ascendant-105) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_105_R_FR_LG.png
+- [Image externe] Tranquillité d'A.Z. 106/086 (chaos-ascendant-106) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_106_R_FR_LG.png
+- [Image externe] Millie 107/086 (chaos-ascendant-107) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_107_R_FR_LG.png
+- [Image externe] Récupération d'Énergie 108/086 (chaos-ascendant-108) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_108_R_FR_LG.png
+- [Image externe] Glace Géante 109/086 (chaos-ascendant-109) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_109_R_FR_LG.png
+- [Image externe] Gypso 110/086 (chaos-ascendant-110) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_110_R_FR_LG.png
+- [Image externe] Tour Prismatique 111/086 (chaos-ascendant-111) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_111_R_FR_LG.png
+- [Image externe] Performance de Strykna 112/086 (chaos-ascendant-112) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_112_R_FR_LG.png
+- [Image externe] Carton Rouge Spécial 113/086 (chaos-ascendant-113) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_113_R_FR_LG.png
+- [Image externe] Plage de Surf 114/086 (chaos-ascendant-114) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_114_R_FR_LG.png
+- [Image externe] Arrache-Outil 115/086 (chaos-ascendant-115) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_115_R_FR_LG.png
+- [Image externe] Méga-Amphinobi-ex 116/086 (chaos-ascendant-116) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_116_R_FR_LG.png
+- [Image externe] Méga-Floette-ex 117/086 (chaos-ascendant-117) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_117_R_FR_LG.png
+- [Image externe] Méga-Kravarech-ex 118/086 (chaos-ascendant-118) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_118_R_FR_LG.png
+- [Image externe] Pashmilla-ex 119/086 (chaos-ascendant-119) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_119_R_FR_LG.png
+- [Image externe] Tranquillité d'A.Z. 120/086 (chaos-ascendant-120) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_120_R_FR_LG.png
+- [Image externe] Performance de Strykna 121/086 (chaos-ascendant-121) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_121_R_FR_LG.png
+- [Image externe] Méga-Amphinobi-ex 122/086 (chaos-ascendant-122) -> https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRI/CRI_122_R_FR_LG.png
+
+## Méga-Évolution / Promo - Méga-Évolution (1)
+- [Fichier manquant] Méga-Amphinobi ex   081 (mega-evolution-081) -> /cartes/mep/81.webp
+
+## XY / XY01 - XY (9)
+- [Fichier manquant] Énergie Plante 132/146 (xy-base-132) -> /cartes/xy01/132.webp
+- [Fichier manquant] Énergie Feu 133/146 (xy-base-133) -> /cartes/xy01/133.webp
+- [Fichier manquant] Énergie Eau 134/146 (xy-base-134) -> /cartes/xy01/134.webp
+- [Fichier manquant] Énergie Électrique 135/146 (xy-base-135) -> /cartes/xy01/135.webp
+- [Fichier manquant] Énergie Psy 136/146 (xy-base-136) -> /cartes/xy01/136.webp
+- [Fichier manquant] Énergie Combat 137/146 (xy-base-137) -> /cartes/xy01/137.webp
+- [Fichier manquant] Énergie Obscurité 138/146 (xy-base-138) -> /cartes/xy01/138.webp
+- [Fichier manquant] Énergie Métal 139/146 (xy-base-139) -> /cartes/xy01/139.webp
+- [Fichier manquant] Énergie Fée 140/146 (xy-base-140) -> /cartes/xy01/140.webp
+
+## XY / XY03 - Poings Furieux (1)
+- [Fichier manquant] Élektek 029/111 (poings-furieux-029) -> /cartes/xy03/29.webp
+
+## XY / XY09.5 - Générations (32)
+- [Fichier manquant] Germignon RC01 (generations-rc01) -> /cartes/xy09.5/rc1.webp
+- [Fichier manquant] Balignon RC02 (generations-rc02) -> /cartes/xy09.5/rc2.webp
+- [Fichier manquant] Salameche RC03 (generations-rc03) -> /cartes/xy09.5/rc3.webp
+- [Fichier manquant] Reptincel RC04 (generations-rc04) -> /cartes/xy09.5/rc4.webp
+- [Fichier manquant] Dracaufeu RC05 (generations-rc05) -> /cartes/xy09.5/rc5.webp
+- [Fichier manquant] Pyroli-EX RC06 (generations-rc06) -> /cartes/xy09.5/rc6.webp
+- [Fichier manquant] Stalgamin RC07 (generations-rc07) -> /cartes/xy09.5/rc7.webp
+- [Fichier manquant] Momartik RC08 (generations-rc08) -> /cartes/xy09.5/rc8.webp
+- [Fichier manquant] Raichu RC09 (generations-rc09) -> /cartes/xy09.5/rc9.webp
+- [Fichier manquant] Dedenne RC10 (generations-rc10) -> /cartes/xy09.5/rc10.webp
+- [Fichier manquant] Qulbutoke RC11 (generations-rc11) -> /cartes/xy09.5/rc11.webp
+- [Fichier manquant] Gloupti RC12 (generations-rc12) -> /cartes/xy09.5/rc12.webp
+- [Fichier manquant] Jirachi RC13 (generations-rc13) -> /cartes/xy09.5/rc13.webp
+- [Fichier manquant] Psystigri RC14 (generations-rc14) -> /cartes/xy09.5/rc14.webp
+- [Fichier manquant] Mistigrix RC15 (generations-rc15) -> /cartes/xy09.5/rc15.webp
+- [Fichier manquant] Yveltal RC16 (generations-rc16) -> /cartes/xy09.5/rc16.webp
+- [Fichier manquant] Flabebe RC17 (generations-rc17) -> /cartes/xy09.5/rc17.webp
+- [Fichier manquant] Floette RC18 (generations-rc18) -> /cartes/xy09.5/rc18.webp
+- [Fichier manquant] Sucroquin RC19 (generations-rc19) -> /cartes/xy09.5/rc19.webp
+- [Fichier manquant] Cupcanaille RC20 (generations-rc20) -> /cartes/xy09.5/rc20.webp
+- [Fichier manquant] Nymphali-EX RC21 (generations-rc21) -> /cartes/xy09.5/rc21.webp
+- [Fichier manquant] Diancie RC22 (generations-rc22) -> /cartes/xy09.5/rc22.webp
+- [Fichier manquant] Tylton RC23 (generations-rc23) -> /cartes/xy09.5/rc23.webp
+- [Fichier manquant] Altaria RC24 (generations-rc24) -> /cartes/xy09.5/rc24.webp
+- [Fichier manquant] Passerouge RC25 (generations-rc25) -> /cartes/xy09.5/rc25.webp
+- [Fichier manquant] Couronne Florale RC26 (generations-rc26) -> /cartes/xy09.5/rc26.webp
+- [Fichier manquant] Timmy RC27 (generations-rc27) -> /cartes/xy09.5/rc27.webp
+- [Fichier manquant] Pyroli-EX RC28 (generations-rc28) -> /cartes/xy09.5/rc28.webp
+- [Fichier manquant] Pikachu RC29 (generations-rc29) -> /cartes/xy09.5/rc29.webp
+- [Fichier manquant] Gardevoir-EX RC30 (generations-rc30) -> /cartes/xy09.5/rc30.webp
+- [Fichier manquant] M-Gardevoir-EX RC31 (generations-rc31) -> /cartes/xy09.5/rc31.webp
+- [Fichier manquant] Nymphali-EX RC32 (generations-rc32) -> /cartes/xy09.5/rc32.webp

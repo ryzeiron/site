@@ -21,7 +21,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { serie: serieId } = await params;
   const serie = getSerie(serieId);
-  return { title: serie ? `${serie.code} - ${serie.name}` : "Série" };
+  if (!serie) return { title: "Série" };
+
+  return {
+    title: `${serie.code} - ${serie.name}`,
+    description: `Retrouvez les cartes Pokémon françaises de la série ${serie.name} (${serie.code}) à l'unité sur PokeDel62.`,
+    alternates: { canonical: `/blocs/${serie.blocId}/${serie.id}` },
+  };
 }
 
 export default async function SeriePage({
@@ -62,6 +68,12 @@ export default async function SeriePage({
         <h1 className="text-2xl md:text-3xl font-bold text-white">{serie.name}</h1>
         <span className="text-sm text-gray-400">({serie.releaseYear})</span>
       </div>
+
+      <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-300">
+        Retrouvez les cartes Pokémon françaises de la série {serie.name} (
+        {serie.code}) à l'unité, avec les raretés disponibles, les reverses et
+        les cartes en stock selon les arrivages.
+      </p>
 
       {serie.comingSoon ? (
         <div className="mt-8 rounded-lg border border-violet-500/40 bg-violet-500/10 p-6 text-center">

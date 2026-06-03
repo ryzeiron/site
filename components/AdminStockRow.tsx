@@ -559,6 +559,19 @@ function NewVariantForm({
   );
 }
 
+function submittedUpdateMatchesVariant(update: PendingStockUpdate, variant: VariantSpec) {
+  const stockMatches = typeof update.stock === "undefined" || update.stock === variant.stock;
+  const priceMatches =
+    typeof update.price === "undefined" ||
+    Math.abs(update.price - variant.price) < 0.0001;
+  const rarityMatches =
+    typeof update.rarity === "undefined" || update.rarity === variant.rarity;
+  const conditionMatches =
+    typeof update.condition === "undefined" || update.condition === variant.condition;
+
+  return stockMatches && priceMatches && rarityMatches && conditionMatches;
+}
+
 function VariantRow({
   card,
   variant,
@@ -570,9 +583,17 @@ function VariantRow({
   showCardCell: boolean;
   cardRowSpan: number;
 }) {
-  const { getPendingUpdate, setPendingUpdate, clearPendingUpdate, syncingAfterSave } =
-    useAdminStockBatch();
+  const {
+    getPendingUpdate,
+    getSubmittedUpdate,
+    setPendingUpdate,
+    clearPendingUpdate,
+    clearSubmittedUpdate,
+  } = useAdminStockBatch();
   const pendingUpdate = getPendingUpdate(card.id, variant.key);
+  const submittedUpdate = getSubmittedUpdate(card.id, variant.key);
+  const activeUpdate = submittedUpdate ?? pendingUpdate;
+  const waitingForServer = Boolean(submittedUpdate);
   const [rarityValue, setRarityValue] = useState<string>(variant.rarity);
   const [conditionValue, setConditionValue] = useState<Condition>(
     variant.condition,
@@ -581,24 +602,21 @@ function VariantRow({
   const [priceValue, setPriceValue] = useState<string>(String(variant.price));
 
   useEffect(() => {
-    if (syncingAfterSave) {
-      setRarityValue(variant.rarity);
-      setConditionValue(variant.condition);
-      setStockValue(String(variant.stock));
-      setPriceValue(String(variant.price));
-      return;
+    if (submittedUpdate && submittedUpdateMatchesVariant(submittedUpdate, variant)) {
+      clearSubmittedUpdate(card.id, variant.key);
     }
+  }, [card.id, clearSubmittedUpdate, submittedUpdate, variant]);
 
-    setRarityValue(pendingUpdate?.rarity ?? variant.rarity);
-    setConditionValue(pendingUpdate?.condition ?? variant.condition);
-    setStockValue(String(pendingUpdate?.stock ?? variant.stock));
-    setPriceValue(String(pendingUpdate?.price ?? variant.price));
+  useEffect(() => {
+    setRarityValue(activeUpdate?.rarity ?? variant.rarity);
+    setConditionValue(activeUpdate?.condition ?? variant.condition);
+    setStockValue(String(activeUpdate?.stock ?? variant.stock));
+    setPriceValue(String(activeUpdate?.price ?? variant.price));
   }, [
-    syncingAfterSave,
-    pendingUpdate?.rarity,
-    pendingUpdate?.condition,
-    pendingUpdate?.stock,
-    pendingUpdate?.price,
+    activeUpdate?.rarity,
+    activeUpdate?.condition,
+    activeUpdate?.stock,
+    activeUpdate?.price,
     variant.rarity,
     variant.condition,
     variant.stock,
@@ -619,7 +637,7 @@ function VariantRow({
   const pendingValid = hasChanges && stockValid && priceValid;
 
   useEffect(() => {
-    if (syncingAfterSave) return;
+    if (submittedUpdate) return;
 
     if (!pendingValid) {
       clearPendingUpdate(card.id, variant.key);
@@ -655,7 +673,7 @@ function VariantRow({
     rarityValue,
     setPendingUpdate,
     stockChanged,
-    syncingAfterSave,
+    submittedUpdate,
     variant.key,
     variant.label,
   ]);
@@ -745,19 +763,23 @@ function VariantRow({
 
       <td className="px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          {pendingValid ? (
+          {waitingForServer ? (
+            <span className="rounded bg-emerald-500/20 px-3 py-1.5 text-xs font-medium text-emerald-200">
+              Envoyee
+            </span>
+          ) : pendingValid ? (
             <span className="rounded bg-violet-600/90 px-3 py-1.5 text-xs font-medium text-white">
               En attente
             </span>
           ) : null}
 
-          {hasChanges && !pendingValid ? (
+          {hasChanges && !pendingValid && !waitingForServer ? (
             <span className="rounded bg-red-500/20 px-3 py-1.5 text-xs font-medium text-red-200">
               Corrige avant envoi
             </span>
           ) : null}
 
-          {hasChanges ? (
+          {hasChanges && !waitingForServer ? (
             <button
               type="button"
               onClick={() => {

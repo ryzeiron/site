@@ -32,8 +32,10 @@ type AdminStockBatchContextValue = {
   message: string | null;
   error: string | null;
   getPendingUpdate: (cardId: string, variant: VariantKey) => PendingStockUpdate | undefined;
+  getSubmittedUpdate: (cardId: string, variant: VariantKey) => PendingStockUpdate | undefined;
   setPendingUpdate: (update: PendingStockUpdate) => void;
   clearPendingUpdate: (cardId: string, variant: VariantKey) => void;
+  clearSubmittedUpdate: (cardId: string, variant: VariantKey) => void;
   discardAll: () => void;
   saveAll: () => Promise<void>;
 };
@@ -61,17 +63,23 @@ function samePendingUpdate(a: PendingStockUpdate | undefined, b: PendingStockUpd
 export function AdminStockBatchProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [pending, setPending] = useState<Map<string, PendingStockUpdate>>(() => new Map());
+  const [submitted, setSubmitted] = useState<Map<string, PendingStockUpdate>>(() => new Map());
   const [saving, setSaving] = useState(false);
-  const [syncingAfterSave, setSyncingAfterSave] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const pendingUpdates = useMemo(() => Array.from(pending.values()), [pending]);
   const pendingCount = pendingUpdates.length;
+  const syncingAfterSave = submitted.size > 0;
 
   const getPendingUpdate = useCallback(
     (cardId: string, variant: VariantKey) => pending.get(pendingKey(cardId, variant)),
     [pending],
+  );
+
+  const getSubmittedUpdate = useCallback(
+    (cardId: string, variant: VariantKey) => submitted.get(pendingKey(cardId, variant)),
+    [submitted],
   );
 
   const setPendingUpdate = useCallback((update: PendingStockUpdate) => {
@@ -96,8 +104,19 @@ export function AdminStockBatchProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const clearSubmittedUpdate = useCallback((cardId: string, variant: VariantKey) => {
+    setSubmitted((current) => {
+      const key = pendingKey(cardId, variant);
+      if (!current.has(key)) return current;
+      const next = new Map(current);
+      next.delete(key);
+      return next;
+    });
+  }, []);
+
   const discardAll = useCallback(() => {
     setPending(new Map());
+    setSubmitted(new Map());
     setMessage(null);
     setError(null);
   }, []);
@@ -120,14 +139,20 @@ export function AdminStockBatchProvider({ children }: { children: ReactNode }) {
       if (!response.ok) {
         throw new Error(data?.error ?? "Impossible d'enregistrer les modifications.");
       }
+      setSubmitted(() => {
+        const next = new Map<string, PendingStockUpdate>();
+        for (const update of pendingUpdates) {
+          next.set(pendingKey(update.cardId, update.variant), update);
+        }
+        return next;
+      });
       setPending(new Map());
-      setSyncingAfterSave(true);
       setMessage(`${pendingUpdates.length} modification${pendingUpdates.length > 1 ? "s" : ""} envoyee${pendingUpdates.length > 1 ? "s" : ""}.`);
       router.refresh();
-      window.setTimeout(() => setSyncingAfterSave(false), 1500);
+      window.setTimeout(() => setSubmitted(new Map()), 30000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'enregistrer les modifications.");
-      setSyncingAfterSave(false);
+      setSubmitted(new Map());
     } finally {
       setSaving(false);
     }
@@ -152,8 +177,10 @@ export function AdminStockBatchProvider({ children }: { children: ReactNode }) {
       message,
       error,
       getPendingUpdate,
+      getSubmittedUpdate,
       setPendingUpdate,
       clearPendingUpdate,
+      clearSubmittedUpdate,
       discardAll,
       saveAll,
     }),
@@ -161,6 +188,7 @@ export function AdminStockBatchProvider({ children }: { children: ReactNode }) {
       clearPendingUpdate,
       discardAll,
       error,
+      getSubmittedUpdate,
       getPendingUpdate,
       message,
       pendingCount,
@@ -168,6 +196,7 @@ export function AdminStockBatchProvider({ children }: { children: ReactNode }) {
       saveAll,
       saving,
       syncingAfterSave,
+      clearSubmittedUpdate,
       setPendingUpdate,
     ],
   );
