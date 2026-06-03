@@ -73,7 +73,7 @@ export const MEGA_EVOLUTION_CARDS = ([
   { id: "mega-evolution-078", serieId: "me-promo", name: "Toxizap", number: "078", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, imageError: "/cartes/mep/78.webp",},
   { id: "mega-evolution-079", serieId: "me-promo", name: "Reptincel", number: "079", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, imageError: "/cartes/mep/79.webp",},
   { id: "mega-evolution-080", serieId: "me-promo", name: "Feunnec", number: "080", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, imageError: "/cartes/mep/80.webp",},
-  { id: "mega-evolution-081", serieId: "me-promo", name: "Méga-Amphinobi ex  ", number: "081", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, imageError: "/cartes/mep/81.webp",},
+  { id: "mega-evolution-081", serieId: "me-promo", name: "Méga-Amphinobi ex  ", number: "081", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, imageError: "/cartes/mep/81.png",},
   { id: "mega-evolution-086", serieId: "me-promo", name: "Ramoloss", number: "086", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, imageError: "/cartes/mep/82.webp",},
   { id: "mega-evolution-087", serieId: "me-promo", name: "Opermine", number: "087", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, imageError: "/cartes/mep/83.webp",},
   { id: "mega-evolution-088", serieId: "me-promo", name: "Zarude", number: "088", rarity: "Promo", condition: "Near Mint", language: "FR", price: 1, stock: 0, imageError: "/cartes/mep/84.webp",},
