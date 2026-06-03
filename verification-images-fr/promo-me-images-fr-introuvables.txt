@@ -1,0 +1,23 @@
+Promos ME - images FR introuvables ou non confirmees
+
+Ces cartes ont ete ajoutees au catalogue, mais aucune image francaise n'a pu etre confirmee.
+Par securite, aucune image externe non verifiee n'est affichee pour elles.
+
+- 046 Germignon
+- 047 Hericendre
+- 048 Kaiminus
+- 049 Vipelierre
+- 050 Gruikui
+- 051 Moustillon
+- 052 Ouistempo
+- 053 Flambino
+- 054 Larmeleon
+- 072 Mega-Melodelfe ex
+- 073 Mega-Ectoplasma ex
+- 078 Toxizap
+- 079 Reptincel
+- 080 Feunnec
+- 081 Mega-Amphinobi ex
+- 086 Ramoloss
+- 087 Opermine
+- 088 Zarude
