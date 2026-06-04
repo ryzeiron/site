@@ -8,7 +8,10 @@ export default function PromoBanner() {
           Code BIENVENUE
         </span>
         <span className="font-semibold">
-          -10% de réduction sur ta première commande
+          -10% de réduction sur ta première commande*
+        </span>
+        <span className="text-[11px] text-violet-100/80 sm:text-xs">
+          *Sauf Amphinobi alt ME04 122/086
         </span>
         <Link
           href="/panier"
