@@ -1,5 +1,5 @@
 export const PROMO_EXCLUDED_CARD_IDS = new Set([
-  "primo-choc-156",
+  "chaos-ascendant-116",
 ]);
 
 export function isPromoExcludedCard(cardId: string): boolean {
