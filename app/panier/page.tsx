@@ -56,6 +56,9 @@ type DeliveryProfileResponse = {
 
 type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
 
+const PROMO_NO_ELIGIBLE_ITEMS_MESSAGE =
+  "Code valide, mais aucun article de ce panier n'est eligible a cette offre.";
+
 const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
   FR: 490,
   BE: 690,
@@ -259,6 +262,9 @@ export default function CartPage() {
   const hasPromoExcludedItems = cardItems.some((item) =>
     isPromoExcludedCard(item.cardId),
   );
+  const hasPromoEligibleItems =
+    sleeveItems.length > 0 ||
+    cardItems.some((item) => !isPromoExcludedCard(item.cardId));
 
   const discount =
     appliedPromo?.type === "percent_off"
@@ -294,6 +300,13 @@ export default function CartPage() {
           : "Accepter les CGV"
         : "Choisir un point relais";
 
+  useEffect(() => {
+    if (appliedPromo?.type !== "percent_off" || hasPromoEligibleItems) return;
+
+    setAppliedPromo(null);
+    setPromoError(PROMO_NO_ELIGIBLE_ITEMS_MESSAGE);
+  }, [appliedPromo, hasPromoEligibleItems]);
+
   async function applyPromo() {
     if (!promoInput.trim()) return;
 
@@ -313,7 +326,15 @@ export default function CartPage() {
         throw new Error(data.error ?? "Code invalide.");
       }
 
-      setAppliedPromo(data.promo);
+      const promo = data.promo as AppliedPromo;
+
+      if (promo.type === "percent_off" && !hasPromoEligibleItems) {
+        setAppliedPromo(null);
+        setPromoError(PROMO_NO_ELIGIBLE_ITEMS_MESSAGE);
+        return;
+      }
+
+      setAppliedPromo(promo);
       setPromoError(null);
     } catch (e) {
       setAppliedPromo(null);
@@ -355,7 +376,10 @@ export default function CartPage() {
           items: cardItems,
           sleeveItems,
           cartId,
-          promoCode: appliedPromo?.code,
+          promoCode:
+            appliedPromo?.type === "percent_off" && !hasPromoEligibleItems
+              ? undefined
+              : appliedPromo?.code,
           relay: selectedRelay,
           country,
           acceptedCgv,
