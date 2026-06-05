@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { desc, eq, or } from "drizzle-orm";
+import { desc, eq, inArray, or } from "drizzle-orm";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
 import { getCard, resolveVariant } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
-import { favoriteCards, orders, users } from "@/lib/db/schema";
+import {
+  favoriteCards,
+  orders,
+  userDeliveryProfiles,
+  users,
+} from "@/lib/db/schema";
 import { formatRarityLabel } from "@/lib/display-variants";
 import { formatPrice } from "@/lib/format";
 import { applyStockOverrides } from "@/lib/stock";
@@ -20,6 +25,8 @@ type Search = {
 
 type OrderRow = typeof orders.$inferSelect;
 type FavoriteRow = typeof favoriteCards.$inferSelect;
+type ClientRow = typeof users.$inferSelect;
+type DeliveryProfileRow = typeof userDeliveryProfiles.$inferSelect;
 type CardMap = Map<string, NonNullable<ReturnType<typeof getCard>>>;
 
 const PAGE_SIZE = 25;
@@ -62,6 +69,14 @@ function clientsHref({
   return search ? `/admin/clients?${search}` : "/admin/clients";
 }
 
+function profileFullName(profile?: DeliveryProfileRow | null) {
+  return [profile?.firstName, profile?.lastName].filter(Boolean).join(" ").trim();
+}
+
+function clientDisplayName(client: ClientRow, profile?: DeliveryProfileRow | null) {
+  return profileFullName(profile) || client.name || "Client sans nom";
+}
+
 export default async function AdminClientsPage({
   searchParams,
 }: {
@@ -82,10 +97,34 @@ export default async function AdminClientsPage({
     .limit(PAGE_SIZE + 1)
     .offset(offset);
   const clientRows = clientRowsPlusOne.slice(0, PAGE_SIZE);
+  const clientProfileRows =
+    clientRows.length > 0
+      ? await db
+          .select()
+          .from(userDeliveryProfiles)
+          .where(
+            inArray(
+              userDeliveryProfiles.userId,
+              clientRows.map((client) => client.id),
+            ),
+          )
+      : [];
+  const profileByUserId = new Map(
+    clientProfileRows.map((profile) => [profile.userId, profile]),
+  );
   const hasNextPage = clientRowsPlusOne.length > PAGE_SIZE;
   const hasPreviousPage = currentPage > 1;
   const selectedClient = selectedClientId
     ? (await db.select().from(users).where(eq(users.id, selectedClientId)).limit(1))[0] ??
+      null
+    : null;
+  const selectedProfile = selectedClient
+    ? profileByUserId.get(selectedClient.id) ??
+      (await db
+        .select()
+        .from(userDeliveryProfiles)
+        .where(eq(userDeliveryProfiles.userId, selectedClient.id))
+        .limit(1))[0] ??
       null
     : null;
 
@@ -150,7 +189,10 @@ export default async function AdminClientsPage({
       ) : (
         <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
           <section className="space-y-3">
-            {clientRows.map((client) => (
+            {clientRows.map((client) => {
+              const profile = profileByUserId.get(client.id);
+
+              return (
               <Link
                 key={client.id}
                 href={clientsHref({ clientId: client.id, page: currentPage })}
@@ -161,14 +203,25 @@ export default async function AdminClientsPage({
                 }`}
               >
                 <div className="font-bold text-white">
-                  {client.name || "Client sans nom"}
+                  {clientDisplayName(client, profile)}
                 </div>
                 <div className="mt-1 truncate text-sm text-gray-300">{client.email}</div>
+                {profile?.phone && (
+                  <div className="mt-1 truncate text-xs text-gray-400">
+                    {profile.phone}
+                  </div>
+                )}
+                {(profile?.postcode || profile?.city) && (
+                  <div className="mt-1 truncate text-xs text-gray-500">
+                    {profile.postcode} {profile.city}
+                  </div>
+                )}
                 <div className="mt-2 text-xs text-gray-500">
                   Créé le {formatDate(client.createdAt)}
                 </div>
               </Link>
-            ))}
+              );
+            })}
 
             {(hasPreviousPage || hasNextPage) && (
               <div className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-zinc-950/65 p-3 text-sm">
@@ -209,7 +262,7 @@ export default async function AdminClientsPage({
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <h2 className="text-xl font-bold text-white">
-                      {selectedClient.name || "Client sans nom"}
+                      {clientDisplayName(selectedClient, selectedProfile)}
                     </h2>
                     <div className="mt-1 text-sm text-gray-300">{selectedClient.email}</div>
                     <div className="mt-1 font-mono text-xs text-gray-500">
@@ -222,7 +275,9 @@ export default async function AdminClientsPage({
                   </div>
                 </div>
 
-                <div className="grid gap-4 lg:grid-cols-2">
+                <AdminClientProfileCard profile={selectedProfile} />
+
+                <div className="mt-4 grid gap-4 lg:grid-cols-2">
                   <div className="rounded-lg border border-white/10 bg-black/20 p-3">
                     <h3 className="mb-3 font-semibold text-white">
                       Commandes ({clientOrders.length})
@@ -284,6 +339,72 @@ function StatCard({ label, value }: { label: string; value: number }) {
     <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
       <div className="text-sm text-gray-400">{label}</div>
       <div className="mt-1 text-2xl font-bold text-white">{value}</div>
+    </div>
+  );
+}
+
+function AdminClientProfileCard({
+  profile,
+}: {
+  profile: DeliveryProfileRow | null;
+}) {
+  if (!profile) {
+    return (
+      <div className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm text-gray-400">
+        Aucune information de livraison enregistrée pour ce client.
+      </div>
+    );
+  }
+
+  const fullName = profileFullName(profile);
+
+  return (
+    <div className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm">
+      <h3 className="mb-3 font-semibold text-white">
+        Informations actuelles du compte
+      </h3>
+
+      <div className="grid gap-2 text-gray-300 sm:grid-cols-2">
+        <InfoLine label="Nom" value={fullName || "-"} />
+        <InfoLine label="Téléphone" value={profile.phone || "-"} />
+        <InfoLine
+          label="Adresse"
+          value={
+            [profile.address, profile.postcode, profile.city]
+              .filter(Boolean)
+              .join(" ") || "-"
+          }
+        />
+        <InfoLine label="Pays" value={profile.country || "-"} />
+      </div>
+
+      <div className="mt-3 rounded border border-white/10 bg-zinc-950/50 p-3">
+        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-200">
+          Point relais favori
+        </div>
+        {profile.relayCode ? (
+          <div className="mt-2 grid gap-1 text-xs text-gray-300">
+            <div className="font-semibold text-white">{profile.relayName}</div>
+            <div>{profile.relayAddress}</div>
+            <div>
+              {profile.relayPostcode} {profile.relayCity}
+            </div>
+            <div className="text-gray-500">Code : {profile.relayCode}</div>
+          </div>
+        ) : (
+          <div className="mt-2 text-xs text-gray-500">
+            Aucun point relais favori enregistré.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InfoLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <span className="text-gray-500">{label} :</span> {value}
     </div>
   );
 }
