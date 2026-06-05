@@ -10,6 +10,7 @@ import {
   orders,
   processedEvents,
   stockOverrides,
+  users,
 } from "@/lib/db/schema";
 import {
   customerOrderEmail,
@@ -95,23 +96,36 @@ function formatAmount(cents: number | null) {
 
 async function removePurchasedFavorites({
   userId,
+  customerEmail,
   items,
   sleeveItems,
 }: {
   userId: string | null;
+  customerEmail?: string | null;
   items: CompactItem[];
   sleeveItems: CompactSleeveItem[];
 }) {
-  if (!userId) return;
-
   const db = getDb();
+  let favoriteUserId = userId;
+
+  if (!favoriteUserId && customerEmail?.trim()) {
+    const [matchedUser] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, customerEmail.trim().toLowerCase()))
+      .limit(1);
+
+    favoriteUserId = matchedUser?.id ?? null;
+  }
+
+  if (!favoriteUserId) return;
 
   for (const [cardId, variant] of items) {
     if (!cardId || !variant) continue;
 
     await db.delete(favoriteCards).where(
       and(
-        eq(favoriteCards.userId, userId),
+        eq(favoriteCards.userId, favoriteUserId),
         eq(favoriteCards.cardId, cardId),
         eq(favoriteCards.variant, variant),
       ),
@@ -123,11 +137,23 @@ async function removePurchasedFavorites({
 
     await db.delete(favoriteSleeves).where(
       and(
-        eq(favoriteSleeves.userId, userId),
+        eq(favoriteSleeves.userId, favoriteUserId),
         eq(favoriteSleeves.sleeveId, sleeveId),
       ),
     );
   }
+}
+
+async function removePurchasedFavoritesFromSession(
+  session: Stripe.Checkout.Session,
+) {
+  const metadata = session.metadata ?? {};
+  await removePurchasedFavorites({
+    userId: metadataValue(metadata.user_id),
+    customerEmail: session.customer_details?.email ?? null,
+    items: decodeItems(metadata),
+    sleeveItems: decodeSleeves(metadata),
+  });
 }
 
 async function sendOrderNotifications({
@@ -244,6 +270,7 @@ export async function POST(request: Request) {
         // A previous webhook attempt marked the event as processed before the
         // order was saved. Continue so a manual Stripe resend can repair it.
       } else {
+        await removePurchasedFavoritesFromSession(session).catch(() => {});
         return NextResponse.json({ received: true, duplicate: true });
       }
     } else {
@@ -319,7 +346,12 @@ export async function POST(request: Request) {
       await confirmStockReservation(reservationId, session.id);
     }
 
-    await removePurchasedFavorites({ userId, items, sleeveItems }).catch((error) => {
+    await removePurchasedFavorites({
+      userId,
+      customerEmail,
+      items,
+      sleeveItems,
+    }).catch((error) => {
       favoritesCleanupError =
         error instanceof Error
           ? error.message
