@@ -4,7 +4,13 @@ import { and, eq } from "drizzle-orm";
 import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
-import { orders, processedEvents, stockOverrides } from "@/lib/db/schema";
+import {
+  favoriteCards,
+  favoriteSleeves,
+  orders,
+  processedEvents,
+  stockOverrides,
+} from "@/lib/db/schema";
 import {
   customerOrderEmail,
   orderAdminEmail,
@@ -85,6 +91,43 @@ function formatAmount(cents: number | null) {
     style: "currency",
     currency: "EUR",
   }).format((cents ?? 0) / 100);
+}
+
+async function removePurchasedFavorites({
+  userId,
+  items,
+  sleeveItems,
+}: {
+  userId: string | null;
+  items: CompactItem[];
+  sleeveItems: CompactSleeveItem[];
+}) {
+  if (!userId) return;
+
+  const db = getDb();
+
+  for (const [cardId, variant] of items) {
+    if (!cardId || !variant) continue;
+
+    await db.delete(favoriteCards).where(
+      and(
+        eq(favoriteCards.userId, userId),
+        eq(favoriteCards.cardId, cardId),
+        eq(favoriteCards.variant, variant),
+      ),
+    );
+  }
+
+  for (const [sleeveId] of sleeveItems) {
+    if (!sleeveId) continue;
+
+    await db.delete(favoriteSleeves).where(
+      and(
+        eq(favoriteSleeves.userId, userId),
+        eq(favoriteSleeves.sleeveId, sleeveId),
+      ),
+    );
+  }
 }
 
 async function sendOrderNotifications({
@@ -228,6 +271,7 @@ export async function POST(request: Request) {
   const customerEmail = session.customer_details?.email ?? "";
   const customerPhone = session.customer_details?.phone ?? "";
   const country = metadata.country ?? "FR";
+  const userId = metadataValue(metadata.user_id);
 
   const mondialRelayExpeditionNumber: string | null = null;
   const mondialRelayLabelUrl: string | null = null;
@@ -268,11 +312,19 @@ export async function POST(request: Request) {
   }
 
   let stockUpdateError: string | null = null;
+  let favoritesCleanupError: string | null = null;
 
   try {
     if (reservationId) {
       await confirmStockReservation(reservationId, session.id);
     }
+
+    await removePurchasedFavorites({ userId, items, sleeveItems }).catch((error) => {
+      favoritesCleanupError =
+        error instanceof Error
+          ? error.message
+          : "Erreur suppression favoris achetes.";
+    });
 
     if (items.length === 0 || reservationId) {
       await decrementSleeveStock(
@@ -287,6 +339,7 @@ export async function POST(request: Request) {
         items: items.length,
         sleeves: sleeveItems.length,
         reservationConfirmed: Boolean(reservationId),
+        favoritesCleanupError,
       });
     }
 
@@ -339,5 +392,6 @@ export async function POST(request: Request) {
     labelCreated: Boolean(mondialRelayLabelUrl),
     labelError: mondialRelayError,
     stockUpdateError,
+    favoritesCleanupError,
   });
 }

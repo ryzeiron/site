@@ -18,6 +18,7 @@ import {
   buildOrderContents,
   type OrderContent,
 } from "@/lib/order-contents";
+import { formatCents } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,12 @@ function AccountOrderContentDetails({ content }: { content?: OrderContent }) {
     );
   }
 
+  const visibleTotalCents =
+    content.orderTotalCents ??
+    content.itemsTotalCents +
+      (content.shippingTotalCents ?? 0) -
+      content.discountTotalCents;
+
   return (
     <div className="space-y-4 border-t border-white/10 px-4 py-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -121,7 +128,7 @@ function AccountOrderContentDetails({ content }: { content?: OrderContent }) {
             {group.lines.map((line) => (
               <div
                 key={line.key}
-                className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_auto] sm:items-center"
+                className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_7rem_auto] sm:items-center"
               >
                 <div className="flex h-16 w-12 items-center justify-center overflow-hidden rounded border border-white/10 bg-zinc-900 text-[10px] text-gray-500">
                   {line.image ? (
@@ -153,6 +160,13 @@ function AccountOrderContentDetails({ content }: { content?: OrderContent }) {
                 </div>
 
                 <div className="text-sm font-bold text-white">
+                  <div>{formatCents(line.lineTotalCents)}</div>
+                  <div className="mt-1 text-xs font-normal text-gray-500">
+                    {formatCents(line.unitPriceCents)} / u.
+                  </div>
+                </div>
+
+                <div className="text-right text-sm font-bold text-white sm:text-left">
                   x{line.quantity}
                 </div>
               </div>
@@ -170,7 +184,7 @@ function AccountOrderContentDetails({ content }: { content?: OrderContent }) {
             {content.sleeveLines.map((line) => (
               <div
                 key={line.key}
-                className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_auto] sm:items-center"
+                className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_7rem_auto] sm:items-center"
               >
                 <div className="flex h-16 w-12 items-center justify-center overflow-hidden rounded border border-white/10 bg-zinc-900 text-[10px] text-gray-500">
                   {line.image ? (
@@ -184,12 +198,45 @@ function AccountOrderContentDetails({ content }: { content?: OrderContent }) {
                   )}
                 </div>
                 <div className="font-semibold text-white">{line.name}</div>
-                <div className="text-sm font-bold text-white">x{line.quantity}</div>
+                <div className="text-sm font-bold text-white">
+                  <div>{formatCents(line.lineTotalCents)}</div>
+                  <div className="mt-1 text-xs font-normal text-gray-500">
+                    {formatCents(line.unitPriceCents)} / u.
+                  </div>
+                </div>
+                <div className="text-right text-sm font-bold text-white sm:text-left">
+                  x{line.quantity}
+                </div>
               </div>
             ))}
           </div>
         </div>
       ) : null}
+
+      <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm">
+        <div className="flex justify-between gap-3 text-gray-300">
+          <span>Articles</span>
+          <span className="font-semibold text-white">
+            {formatCents(content.itemsTotalCents)}
+          </span>
+        </div>
+        {content.discountTotalCents > 0 && (
+          <div className="mt-1 flex justify-between gap-3 text-emerald-200">
+            <span>Reduction</span>
+            <span>- {formatCents(content.discountTotalCents)}</span>
+          </div>
+        )}
+        {content.shippingTotalCents !== null && (
+          <div className="mt-1 flex justify-between gap-3 text-gray-300">
+            <span>Livraison</span>
+            <span>{formatCents(content.shippingTotalCents)}</span>
+          </div>
+        )}
+        <div className="mt-2 flex justify-between gap-3 border-t border-white/10 pt-2 text-base font-bold text-white">
+          <span>Total paye</span>
+          <span>{formatCents(visibleTotalCents)}</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -508,12 +555,21 @@ export default async function ComptePage({
                       />
 
                       <div className="border-t border-white/10 px-4 pb-4 pt-3">
-                        <Link
-                          href={`/suivi-commande/${order.stripeSessionId}`}
-                          className="text-xs font-semibold text-violet-200 transition hover:text-violet-100"
-                        >
-                          Voir le suivi de commande
-                        </Link>
+                        <div className="flex flex-wrap gap-3">
+                          <Link
+                            href={`/suivi-commande/${order.stripeSessionId}`}
+                            className="text-xs font-semibold text-violet-200 transition hover:text-violet-100"
+                          >
+                            Voir le suivi de commande
+                          </Link>
+                          <Link
+                            href={`/facture/${order.id}`}
+                            target="_blank"
+                            className="text-xs font-semibold text-violet-200 transition hover:text-violet-100"
+                          >
+                            Voir la facture
+                          </Link>
+                        </div>
                       </div>
                     </details>
                   ))}

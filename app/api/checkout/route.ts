@@ -62,9 +62,19 @@ const ALLOWED_COUNTRIES: Country[] = [
 ];
 
 function encodeItems(
-  items: { cardId: string; variant: VariantKey; quantity: number }[],
+  items: {
+    cardId: string;
+    variant: VariantKey;
+    quantity: number;
+    unitAmountCents?: number;
+  }[],
 ): Record<string, string> {
-  const compact = items.map((i) => [i.cardId, i.variant, i.quantity]);
+  const compact = items.map((i) => [
+    i.cardId,
+    i.variant,
+    i.quantity,
+    i.unitAmountCents,
+  ]);
   const json = JSON.stringify(compact);
 
   if (json.length <= META_VALUE_MAX) {
@@ -83,9 +93,13 @@ function encodeItems(
 }
 
 function encodeSleeves(
-  items: { sleeveId: string; quantity: number }[],
+  items: { sleeveId: string; quantity: number; unitAmountCents?: number }[],
 ): Record<string, string> {
-  const compact = items.map((i) => [i.sleeveId, i.quantity]);
+  const compact = items.map((i) => [
+    i.sleeveId,
+    i.quantity,
+    i.unitAmountCents,
+  ]);
   const json = JSON.stringify(compact);
 
   if (json.length <= META_VALUE_MAX) {
@@ -166,6 +180,13 @@ export async function POST(request: Request) {
       }
     >();
 
+    const pricedCardItems: Array<{
+      cardId: string;
+      variant: VariantKey;
+      quantity: number;
+      unitAmountCents: number;
+    }> = [];
+
     const lineItems = cardItems.map((item) => {
       const card = cardMap.get(item.cardId);
 
@@ -201,13 +222,22 @@ export async function POST(request: Request) {
         });
       }
 
+      const unitAmountCents = Math.max(
+        0,
+        Math.round(v.price * 100 * itemPercentMultiplier),
+      );
+
+      pricedCardItems.push({
+        cardId: item.cardId,
+        variant: item.variant,
+        quantity: item.quantity,
+        unitAmountCents,
+      });
+
       return {
         price_data: {
           currency: "eur",
-          unit_amount: Math.max(
-            0,
-            Math.round(v.price * 100 * itemPercentMultiplier),
-          ),
+          unit_amount: unitAmountCents,
           product_data: {
             name: `${card.name} (${card.number}) - ${v.rarity}`,
             description: `${v.rarity} - État : ${v.condition ?? card.condition} - ${card.language}`,
@@ -245,6 +275,12 @@ export async function POST(request: Request) {
     );
     const sleeveMap = new Map(sleeveRows.map((sleeve) => [sleeve.id, sleeve]));
 
+    const pricedSleeveItems: Array<{
+      sleeveId: string;
+      quantity: number;
+      unitAmountCents: number;
+    }> = [];
+
     for (const item of sleeveItems) {
       const sleeve = sleeveMap.get(item.sleeveId);
       if (!sleeve || !sleeve.active) {
@@ -255,13 +291,21 @@ export async function POST(request: Request) {
         throw new Error(`Stock insuffisant pour ${sleeve.name}.`);
       }
 
+      const unitAmountCents = Math.max(
+        0,
+        Math.round(sleeve.priceCents * percentMultiplier),
+      );
+
+      pricedSleeveItems.push({
+        sleeveId: item.sleeveId,
+        quantity: item.quantity,
+        unitAmountCents,
+      });
+
       lineItems.push({
         price_data: {
           currency: "eur",
-          unit_amount: Math.max(
-            0,
-            Math.round(sleeve.priceCents * percentMultiplier),
-          ),
+          unit_amount: unitAmountCents,
           product_data: {
             name: sleeve.name,
             description: sleeve.description ?? "Sleeve",
@@ -315,8 +359,8 @@ export async function POST(request: Request) {
 
     const origin = getRequestOrigin(request);
 
-    const itemsMeta = encodeItems(cardItems);
-    const sleeveMeta = encodeSleeves(sleeveItems);
+    const itemsMeta = encodeItems(pricedCardItems);
+    const sleeveMeta = encodeSleeves(pricedSleeveItems);
     const reservationId = randomUUID();
     const relayMeta: Record<string, string> = {};
 

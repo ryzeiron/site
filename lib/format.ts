@@ -4,3 +4,7 @@ export function formatPrice(euros: number): string {
     currency: "EUR",
   }).format(euros);
 }
+
+export function formatCents(cents: number): string {
+  return formatPrice(cents / 100);
+}

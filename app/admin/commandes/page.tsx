@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import type Stripe from "stripe";
 import { desc, eq } from "drizzle-orm";
 import LogoutButton from "@/components/LogoutButton";
 import AdminOrderShippingForm from "@/components/AdminOrderShippingForm";
@@ -10,22 +9,13 @@ import {
   AdminOrderPreparedCheckboxes,
 } from "@/components/AdminOrderPreparationChecklist";
 import { isAdmin } from "@/lib/admin/auth";
-import {
-  BLOCS,
-  SERIES,
-  getBloc,
-  getCard,
-  getSerie,
-  resolveVariant,
-  type Card,
-  type VariantKey,
-} from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { orders } from "@/lib/db/schema";
-import { formatRarityLabel } from "@/lib/display-variants";
-import { getSleevesByIds, type SleeveProduct } from "@/lib/sleeves";
-import { applyStockOverrides } from "@/lib/stock";
-import { getStripe } from "@/lib/stripe";
+import { formatCents } from "@/lib/format";
+import {
+  buildOrderContents,
+  type OrderContent,
+} from "@/lib/order-contents";
 
 export const dynamic = "force-dynamic";
 
@@ -42,56 +32,6 @@ type OrderStatus =
   | "picked_up";
 
 const PAGE_SIZE = 25;
-
-type CompactItem = [string, VariantKey, number];
-type CompactSleeveItem = [string, number];
-type OrderRow = typeof orders.$inferSelect;
-
-type CardOrderLine = {
-  type: "card";
-  key: string;
-  cardId: string;
-  variant: VariantKey;
-  quantity: number;
-  card?: Card;
-  name: string;
-  number: string;
-  image?: string;
-  blocName: string;
-  blocOrder: number;
-  serieName: string;
-  serieCode: string;
-  serieOrder: number;
-  rarity: string;
-  condition: string;
-};
-
-type SleeveOrderLine = {
-  type: "sleeve";
-  key: string;
-  sleeveId: string;
-  quantity: number;
-  name: string;
-  image?: string | null;
-};
-
-type OrderContent = {
-  cardGroups: {
-    key: string;
-    blocName: string;
-    serieName: string;
-    serieCode: string;
-    lines: CardOrderLine[];
-  }[];
-  sleeveLines: SleeveOrderLine[];
-  totalQuantity: number;
-  error?: string;
-};
-
-type StripeOrderMetadata = {
-  metadata: Stripe.Metadata | null;
-  error?: string;
-};
 
 const STATUS_LABELS: Record<string, string> = {
   paid: "Commande payée",
@@ -141,244 +81,6 @@ function statusClass(status: string) {
   return "border-white/15 bg-white/10 text-gray-200";
 }
 
-function decodeCompactItems(metadata: Stripe.Metadata | null, key: "items" | "sleeves") {
-  if (!metadata) return [];
-
-  const partsCount = Number(metadata[`${key}_parts`] ?? "0");
-  let json = "";
-
-  if (metadata[key]) {
-    json = metadata[key] ?? "";
-  } else if (partsCount > 0) {
-    for (let i = 0; i < partsCount; i++) {
-      const chunk = metadata[`${key}_${i}`];
-      if (!chunk) return [];
-      json += chunk;
-    }
-  }
-
-  if (!json) return [];
-
-  try {
-    const parsed = JSON.parse(json) as unknown;
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function decodeCardItems(metadata: Stripe.Metadata | null): CompactItem[] {
-  return decodeCompactItems(metadata, "items").filter(
-    (item): item is CompactItem =>
-      Array.isArray(item) &&
-      typeof item[0] === "string" &&
-      typeof item[1] === "string" &&
-      typeof item[2] === "number",
-  );
-}
-
-function decodeSleeveItems(metadata: Stripe.Metadata | null): CompactSleeveItem[] {
-  return decodeCompactItems(metadata, "sleeves").filter(
-    (item): item is CompactSleeveItem =>
-      Array.isArray(item) &&
-      typeof item[0] === "string" &&
-      typeof item[1] === "number",
-  );
-}
-
-function cardNumberSortValue(number: string) {
-  const firstNumber = Number.parseInt(number.match(/\d+/)?.[0] ?? "0", 10);
-  return Number.isFinite(firstNumber) ? firstNumber : 0;
-}
-
-function mergeCardItems(items: CompactItem[]) {
-  const merged = new Map<string, CompactItem>();
-
-  for (const [cardId, variant, quantity] of items) {
-    if (!cardId || !variant || !Number.isFinite(quantity) || quantity <= 0) continue;
-
-    const key = `${cardId}:${variant}`;
-    const existing = merged.get(key);
-    if (existing) {
-      existing[2] += quantity;
-    } else {
-      merged.set(key, [cardId, variant, quantity]);
-    }
-  }
-
-  return Array.from(merged.values());
-}
-
-function mergeSleeveItems(items: CompactSleeveItem[]) {
-  const merged = new Map<string, CompactSleeveItem>();
-
-  for (const [sleeveId, quantity] of items) {
-    if (!sleeveId || !Number.isFinite(quantity) || quantity <= 0) continue;
-
-    const existing = merged.get(sleeveId);
-    if (existing) {
-      existing[1] += quantity;
-    } else {
-      merged.set(sleeveId, [sleeveId, quantity]);
-    }
-  }
-
-  return Array.from(merged.values());
-}
-
-async function getOrderMetadata(rows: OrderRow[]) {
-  let stripe: Stripe;
-  try {
-    stripe = getStripe();
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Impossible de charger Stripe pour lire le contenu.";
-    return new Map<string, StripeOrderMetadata>(
-      rows.map((order) => [order.id, { metadata: null, error: message }]),
-    );
-  }
-
-  const entries: Array<readonly [string, StripeOrderMetadata]> = await Promise.all(
-    rows.map(async (order) => {
-      try {
-        const session = await stripe.checkout.sessions.retrieve(
-          order.stripeSessionId || order.id,
-        );
-        return [order.id, { metadata: session.metadata ?? null }] as const;
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Impossible de lire la session Stripe.";
-        return [order.id, { metadata: null, error: message }] as const;
-      }
-    }),
-  );
-
-  return new Map(entries);
-}
-
-async function buildOrderContents(rows: OrderRow[]) {
-  const metadataByOrder = await getOrderMetadata(rows);
-  const decoded = rows.map((order) => {
-    const stripeData = metadataByOrder.get(order.id);
-    return {
-      orderId: order.id,
-      error: stripeData?.error,
-      cardItems: mergeCardItems(decodeCardItems(stripeData?.metadata ?? null)),
-      sleeveItems: mergeSleeveItems(decodeSleeveItems(stripeData?.metadata ?? null)),
-    };
-  });
-  const cardIds = Array.from(
-    new Set(decoded.flatMap((entry) => entry.cardItems.map(([cardId]) => cardId))),
-  );
-  const rawCards = cardIds
-    .map((cardId) => getCard(cardId))
-    .filter((card): card is Card => Boolean(card));
-  const liveCards = await applyStockOverrides(rawCards).catch(() => rawCards);
-  const cardMap = new Map(liveCards.map((card) => [card.id, card]));
-
-  const sleeveIds = Array.from(
-    new Set(decoded.flatMap((entry) => entry.sleeveItems.map(([id]) => id))),
-  );
-  const sleeves = await getSleevesByIds(sleeveIds).catch(() => []);
-  const sleeveMap = new Map(sleeves.map((sleeve) => [sleeve.id, sleeve]));
-
-  return new Map(
-    decoded.map((entry) => [
-      entry.orderId,
-      buildOrderContent(
-        entry.cardItems,
-        entry.sleeveItems,
-        sleeveMap,
-        cardMap,
-        entry.error,
-      ),
-    ]),
-  );
-}
-
-function buildOrderContent(
-  cardItems: CompactItem[],
-  sleeveItems: CompactSleeveItem[],
-  sleeveMap: Map<string, SleeveProduct>,
-  cardMap: Map<string, Card>,
-  error?: string,
-): OrderContent {
-  const cardLines: CardOrderLine[] = cardItems.map(([cardId, variant, quantity]) => {
-    const card = cardMap.get(cardId) ?? getCard(cardId);
-    const serie = card ? getSerie(card.serieId) : undefined;
-    const bloc = serie ? getBloc(serie.blocId) : undefined;
-    const resolved = card ? resolveVariant(card, variant) : undefined;
-
-    return {
-      type: "card",
-      key: `${cardId}:${variant}`,
-      cardId,
-      variant,
-      quantity,
-      card,
-      name: card?.name ?? cardId,
-      number: card?.number ?? "-",
-      image: card?.image,
-      blocName: bloc?.name ?? "Bloc inconnu",
-      blocOrder: bloc ? BLOCS.findIndex((item) => item.id === bloc.id) : 9999,
-      serieName: serie?.name ?? "Serie inconnue",
-      serieCode: serie?.code ?? "-",
-      serieOrder: serie ? SERIES.findIndex((item) => item.id === serie.id) : 9999,
-      rarity: resolved?.rarity ? formatRarityLabel(resolved.rarity) : "-",
-      condition: resolved?.condition ?? card?.condition ?? "-",
-    };
-  });
-
-  cardLines.sort((a, b) => {
-    if (a.blocOrder !== b.blocOrder) return a.blocOrder - b.blocOrder;
-    if (a.serieOrder !== b.serieOrder) return a.serieOrder - b.serieOrder;
-    return cardNumberSortValue(a.number) - cardNumberSortValue(b.number);
-  });
-
-  const groupMap = new Map<string, OrderContent["cardGroups"][number]>();
-
-  for (const line of cardLines) {
-    const groupKey = `${line.blocName}:${line.serieName}`;
-    const group = groupMap.get(groupKey);
-    if (group) {
-      group.lines.push(line);
-    } else {
-      groupMap.set(groupKey, {
-        key: groupKey,
-        blocName: line.blocName,
-        serieName: line.serieName,
-        serieCode: line.serieCode,
-        lines: [line],
-      });
-    }
-  }
-
-  const sleeveLines: SleeveOrderLine[] = sleeveItems.map(([sleeveId, quantity]) => {
-    const sleeve = sleeveMap.get(sleeveId);
-    return {
-      type: "sleeve",
-      key: sleeveId,
-      sleeveId,
-      quantity,
-      name: sleeve?.name ?? sleeveId,
-      image: sleeve?.image,
-    };
-  });
-
-  return {
-    cardGroups: Array.from(groupMap.values()),
-    sleeveLines,
-    totalQuantity:
-      cardLines.reduce((total, line) => total + line.quantity, 0) +
-      sleeveLines.reduce((total, line) => total + line.quantity, 0),
-    error,
-  };
-}
-
 function preparationUnitIds(itemKey: string, quantity: number) {
   const count = Math.max(0, Math.floor(quantity));
   return Array.from({ length: count }, (_, index) => `${itemKey}:${index + 1}`);
@@ -425,6 +127,12 @@ function OrderContentDetails({
     );
   }
 
+  const visibleTotalCents =
+    content.orderTotalCents ??
+    content.itemsTotalCents +
+      (content.shippingTotalCents ?? 0) -
+      content.discountTotalCents;
+
   return (
     <div className="mt-4 rounded-2xl border border-white/10 bg-zinc-950/55 p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -468,7 +176,7 @@ function OrderContentDetails({
               {group.lines.map((line) => (
                 <div
                   key={line.key}
-                  className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_auto] sm:items-center"
+                  className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_8rem_4rem] sm:items-center"
                 >
                   <div className="flex h-16 w-12 items-center justify-center overflow-hidden rounded border border-white/10 bg-zinc-900 text-[10px] text-gray-500">
                     {line.image ? (
@@ -508,6 +216,13 @@ function OrderContentDetails({
                   </div>
 
                   <div className="text-sm font-bold text-white">
+                    <div>{formatCents(line.lineTotalCents)}</div>
+                    <div className="mt-1 text-xs font-normal text-gray-500">
+                      {formatCents(line.unitPriceCents)} / u.
+                    </div>
+                  </div>
+
+                  <div className="text-right text-sm font-bold text-white sm:text-left">
                     x{line.quantity}
                   </div>
                 </div>
@@ -525,7 +240,7 @@ function OrderContentDetails({
               {content.sleeveLines.map((line) => (
                 <div
                   key={line.key}
-                  className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_auto] sm:items-center"
+                  className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_8rem_4rem] sm:items-center"
                 >
                   <div className="flex h-16 w-12 items-center justify-center overflow-hidden rounded border border-white/10 bg-zinc-900 text-[10px] text-gray-500">
                     {line.image ? (
@@ -546,12 +261,45 @@ function OrderContentDetails({
                       quantity={line.quantity}
                     />
                   </div>
-                  <div className="text-sm font-bold text-white">x{line.quantity}</div>
+                  <div className="text-sm font-bold text-white">
+                    <div>{formatCents(line.lineTotalCents)}</div>
+                    <div className="mt-1 text-xs font-normal text-gray-500">
+                      {formatCents(line.unitPriceCents)} / u.
+                    </div>
+                  </div>
+                  <div className="text-right text-sm font-bold text-white sm:text-left">
+                    x{line.quantity}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         ) : null}
+      </div>
+
+      <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3 text-sm">
+        <div className="flex justify-between gap-3 text-gray-300">
+          <span>Articles</span>
+          <span className="font-semibold text-white">
+            {formatCents(content.itemsTotalCents)}
+          </span>
+        </div>
+        {content.discountTotalCents > 0 && (
+          <div className="mt-1 flex justify-between gap-3 text-emerald-200">
+            <span>Reduction</span>
+            <span>- {formatCents(content.discountTotalCents)}</span>
+          </div>
+        )}
+        {content.shippingTotalCents !== null && (
+          <div className="mt-1 flex justify-between gap-3 text-gray-300">
+            <span>Livraison</span>
+            <span>{formatCents(content.shippingTotalCents)}</span>
+          </div>
+        )}
+        <div className="mt-2 flex justify-between gap-3 border-t border-white/10 pt-2 text-base font-bold text-white">
+          <span>Total paye</span>
+          <span>{formatCents(visibleTotalCents)}</span>
+        </div>
       </div>
     </div>
   );
@@ -771,6 +519,14 @@ export default async function AdminOrdersPage({
                 <div className="mt-2 text-xs text-gray-500">
                   ID commande : <span className="font-mono">{order.id}</span>
                 </div>
+
+                <Link
+                  href={`/admin/commandes/${order.id}/facture`}
+                  target="_blank"
+                  className="mt-3 inline-flex rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20"
+                >
+                  Voir la facture
+                </Link>
               </div>
 
               <OrderContentDetails

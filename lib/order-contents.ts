@@ -16,8 +16,8 @@ import { getSleevesByIds, type SleeveProduct } from "@/lib/sleeves";
 import { applyStockOverrides } from "@/lib/stock";
 import { getStripe } from "@/lib/stripe";
 
-type CompactItem = [string, VariantKey, number];
-type CompactSleeveItem = [string, number];
+type CompactItem = [string, VariantKey, number, number?];
+type CompactSleeveItem = [string, number, number?];
 
 export type OrderContentSource = {
   id: string;
@@ -41,6 +41,8 @@ export type CardOrderLine = {
   serieOrder: number;
   rarity: string;
   condition: string;
+  unitPriceCents: number;
+  lineTotalCents: number;
 };
 
 export type SleeveOrderLine = {
@@ -50,6 +52,8 @@ export type SleeveOrderLine = {
   quantity: number;
   name: string;
   image?: string | null;
+  unitPriceCents: number;
+  lineTotalCents: number;
 };
 
 export type OrderContent = {
@@ -62,11 +66,19 @@ export type OrderContent = {
   }[];
   sleeveLines: SleeveOrderLine[];
   totalQuantity: number;
+  itemsTotalCents: number;
+  shippingTotalCents: number | null;
+  discountTotalCents: number;
+  orderTotalCents: number | null;
   error?: string;
 };
 
 type StripeOrderMetadata = {
   metadata: Stripe.Metadata | null;
+  amountSubtotalCents: number | null;
+  amountTotalCents: number | null;
+  shippingTotalCents: number | null;
+  discountTotalCents: number;
   error?: string;
 };
 
@@ -105,7 +117,10 @@ function decodeCardItems(metadata: Stripe.Metadata | null): CompactItem[] {
       Array.isArray(item) &&
       typeof item[0] === "string" &&
       typeof item[1] === "string" &&
-      typeof item[2] === "number",
+      typeof item[2] === "number" &&
+      (typeof item[3] === "undefined" ||
+        item[3] === null ||
+        typeof item[3] === "number"),
   );
 }
 
@@ -114,7 +129,10 @@ function decodeSleeveItems(metadata: Stripe.Metadata | null): CompactSleeveItem[
     (item): item is CompactSleeveItem =>
       Array.isArray(item) &&
       typeof item[0] === "string" &&
-      typeof item[1] === "number",
+      typeof item[1] === "number" &&
+      (typeof item[2] === "undefined" ||
+        item[2] === null ||
+        typeof item[2] === "number"),
   );
 }
 
@@ -126,7 +144,8 @@ function cardNumberSortValue(number: string) {
 function mergeCardItems(items: CompactItem[]) {
   const merged = new Map<string, CompactItem>();
 
-  for (const [cardId, variant, quantity] of items) {
+  for (const item of items) {
+    const [cardId, variant, quantity] = item;
     if (!cardId || !variant || !Number.isFinite(quantity) || quantity <= 0) {
       continue;
     }
@@ -136,7 +155,7 @@ function mergeCardItems(items: CompactItem[]) {
     if (existing) {
       existing[2] += quantity;
     } else {
-      merged.set(key, [cardId, variant, quantity]);
+      merged.set(key, [cardId, variant, quantity, item[3]]);
     }
   }
 
@@ -146,14 +165,15 @@ function mergeCardItems(items: CompactItem[]) {
 function mergeSleeveItems(items: CompactSleeveItem[]) {
   const merged = new Map<string, CompactSleeveItem>();
 
-  for (const [sleeveId, quantity] of items) {
+  for (const item of items) {
+    const [sleeveId, quantity] = item;
     if (!sleeveId || !Number.isFinite(quantity) || quantity <= 0) continue;
 
     const existing = merged.get(sleeveId);
     if (existing) {
       existing[1] += quantity;
     } else {
-      merged.set(sleeveId, [sleeveId, quantity]);
+      merged.set(sleeveId, [sleeveId, quantity, item[2]]);
     }
   }
 
@@ -170,7 +190,17 @@ async function getOrderMetadata(rows: OrderContentSource[]) {
         ? error.message
         : "Impossible de charger Stripe pour lire le contenu.";
     return new Map<string, StripeOrderMetadata>(
-      rows.map((order) => [order.id, { metadata: null, error: message }]),
+      rows.map((order) => [
+        order.id,
+        {
+          metadata: null,
+          amountSubtotalCents: null,
+          amountTotalCents: null,
+          shippingTotalCents: null,
+          discountTotalCents: 0,
+          error: message,
+        },
+      ]),
     );
   }
 
@@ -180,13 +210,32 @@ async function getOrderMetadata(rows: OrderContentSource[]) {
         const session = await stripe.checkout.sessions.retrieve(
           order.stripeSessionId || order.id,
         );
-        return [order.id, { metadata: session.metadata ?? null }] as const;
+        return [
+          order.id,
+          {
+            metadata: session.metadata ?? null,
+            amountSubtotalCents: session.amount_subtotal ?? null,
+            amountTotalCents: session.amount_total ?? null,
+            shippingTotalCents: session.shipping_cost?.amount_total ?? null,
+            discountTotalCents: session.total_details?.amount_discount ?? 0,
+          },
+        ] as const;
       } catch (error) {
         const message =
           error instanceof Error
             ? error.message
             : "Impossible de lire la session Stripe.";
-        return [order.id, { metadata: null, error: message }] as const;
+        return [
+          order.id,
+          {
+            metadata: null,
+            amountSubtotalCents: null,
+            amountTotalCents: null,
+            shippingTotalCents: null,
+            discountTotalCents: 0,
+            error: message,
+          },
+        ] as const;
       }
     }),
   );
@@ -201,6 +250,9 @@ export async function buildOrderContents(rows: OrderContentSource[]) {
     return {
       orderId: order.id,
       error: stripeData?.error,
+      shippingTotalCents: stripeData?.shippingTotalCents ?? null,
+      discountTotalCents: stripeData?.discountTotalCents ?? 0,
+      orderTotalCents: stripeData?.amountTotalCents ?? null,
       cardItems: mergeCardItems(decodeCardItems(stripeData?.metadata ?? null)),
       sleeveItems: mergeSleeveItems(
         decodeSleeveItems(stripeData?.metadata ?? null),
@@ -230,6 +282,9 @@ export async function buildOrderContents(rows: OrderContentSource[]) {
         entry.sleeveItems,
         sleeveMap,
         cardMap,
+        entry.shippingTotalCents,
+        entry.discountTotalCents,
+        entry.orderTotalCents,
         entry.error,
       ),
     ]),
@@ -241,13 +296,20 @@ function buildOrderContent(
   sleeveItems: CompactSleeveItem[],
   sleeveMap: Map<string, SleeveProduct>,
   cardMap: Map<string, Card>,
+  shippingTotalCents: number | null,
+  discountTotalCents: number,
+  orderTotalCents: number | null,
   error?: string,
 ): OrderContent {
-  const cardLines: CardOrderLine[] = cardItems.map(([cardId, variant, quantity]) => {
+  const cardLines: CardOrderLine[] = cardItems.map(([cardId, variant, quantity, paidUnitCents]) => {
     const card = cardMap.get(cardId) ?? getCard(cardId);
     const serie = card ? getSerie(card.serieId) : undefined;
     const bloc = serie ? getBloc(serie.blocId) : undefined;
     const resolved = card ? resolveVariant(card, variant) : undefined;
+    const unitPriceCents =
+      typeof paidUnitCents === "number"
+        ? paidUnitCents
+        : Math.round((resolved?.price ?? 0) * 100);
 
     return {
       type: "card",
@@ -266,6 +328,8 @@ function buildOrderContent(
       serieOrder: serie ? SERIES.findIndex((item) => item.id === serie.id) : 9999,
       rarity: resolved?.rarity ? formatRarityLabel(resolved.rarity) : "-",
       condition: resolved?.condition ?? card?.condition ?? "-",
+      unitPriceCents,
+      lineTotalCents: unitPriceCents * quantity,
     };
   });
 
@@ -293,8 +357,11 @@ function buildOrderContent(
     }
   }
 
-  const sleeveLines: SleeveOrderLine[] = sleeveItems.map(([sleeveId, quantity]) => {
+  const sleeveLines: SleeveOrderLine[] = sleeveItems.map(([sleeveId, quantity, paidUnitCents]) => {
     const sleeve = sleeveMap.get(sleeveId);
+    const unitPriceCents =
+      typeof paidUnitCents === "number" ? paidUnitCents : sleeve?.priceCents ?? 0;
+
     return {
       type: "sleeve",
       key: sleeveId,
@@ -302,8 +369,13 @@ function buildOrderContent(
       quantity,
       name: sleeve?.name ?? sleeveId,
       image: sleeve?.image,
+      unitPriceCents,
+      lineTotalCents: unitPriceCents * quantity,
     };
   });
+  const itemsTotalCents =
+    cardLines.reduce((total, line) => total + line.lineTotalCents, 0) +
+    sleeveLines.reduce((total, line) => total + line.lineTotalCents, 0);
 
   return {
     cardGroups: Array.from(groupMap.values()),
@@ -311,6 +383,10 @@ function buildOrderContent(
     totalQuantity:
       cardLines.reduce((total, line) => total + line.quantity, 0) +
       sleeveLines.reduce((total, line) => total + line.quantity, 0),
+    itemsTotalCents,
+    shippingTotalCents,
+    discountTotalCents,
+    orderTotalCents,
     error,
   };
 }
