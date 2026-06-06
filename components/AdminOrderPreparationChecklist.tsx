@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 const CHANGE_EVENT = "pokedel-admin-order-preparation-change";
@@ -205,6 +206,57 @@ export function AdminOrderPreparationProgress({
           style={{ width: `${percent}%` }}
         />
       </div>
+    </div>
+  );
+}
+
+export function AdminOrderPreparedGroup({
+  orderId,
+  items,
+  children,
+}: {
+  orderId: string;
+  items: string[];
+  children: ReactNode;
+}) {
+  const validItems = useMemo(() => Array.from(new Set(items)), [items]);
+  const { prepared } = usePreparedState(orderId);
+  const fullyPrepared =
+    validItems.length > 0 && validItems.every((item) => prepared.has(item));
+
+  return (
+    <div style={{ order: fullyPrepared ? 1 : 0 }}>
+      {children}
+    </div>
+  );
+}
+
+export function AdminOrderPreparedItem({
+  orderId,
+  itemKey,
+  quantity,
+  className,
+  children,
+}: {
+  orderId: string;
+  itemKey: string;
+  quantity: number;
+  className?: string;
+  children: ReactNode;
+}) {
+  const ids = useMemo(() => unitIds(itemKey, quantity), [itemKey, quantity]);
+  const { prepared } = usePreparedState(orderId);
+  const fullyPrepared =
+    ids.length > 0 && ids.every((item) => prepared.has(item));
+
+  return (
+    <div
+      className={`${className ?? ""} transition ${
+        fullyPrepared ? "bg-emerald-500/[0.05] opacity-70" : ""
+      }`}
+      style={{ order: fullyPrepared ? 1 : 0 }}
+    >
+      {children}
     </div>
   );
 }

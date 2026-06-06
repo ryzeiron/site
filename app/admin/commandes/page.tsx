@@ -5,6 +5,8 @@ import LogoutButton from "@/components/LogoutButton";
 import AdminOrderShippingForm from "@/components/AdminOrderShippingForm";
 import AdminOrderDeleteButton from "@/components/AdminOrderDeleteButton";
 import {
+  AdminOrderPreparedGroup,
+  AdminOrderPreparedItem,
   AdminOrderPreparationProgress,
   AdminOrderPreparedCheckboxes,
 } from "@/components/AdminOrderPreparationChecklist";
@@ -149,9 +151,16 @@ function OrderContentDetails({
         items={preparationItemIds(content)}
       />
 
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         {content.cardGroups.map((group) => (
-          <div key={group.key} className="rounded-xl border border-white/10 bg-white/[0.03]">
+          <AdminOrderPreparedGroup
+            key={group.key}
+            orderId={orderId}
+            items={group.lines.flatMap((line) =>
+              preparationUnitIds(`card:${line.key}`, line.quantity),
+            )}
+          >
+            <div className="rounded-xl border border-white/10 bg-white/[0.03]">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
               <div>
                 <div className="text-xs uppercase tracking-[0.14em] text-gray-500">
@@ -172,11 +181,14 @@ function OrderContentDetails({
               </span>
             </div>
 
-            <div className="divide-y divide-white/10">
+            <div className="flex flex-col">
               {group.lines.map((line) => (
-                <div
+                <AdminOrderPreparedItem
                   key={line.key}
-                  className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_8rem_4rem] sm:items-center"
+                  orderId={orderId}
+                  itemKey={`card:${line.key}`}
+                  quantity={line.quantity}
+                  className="grid gap-3 border-t border-white/10 px-3 py-3 first:border-t-0 sm:grid-cols-[3.25rem_1fr_8rem_4rem] sm:items-center"
                 >
                   <div className="flex h-16 w-12 items-center justify-center overflow-hidden rounded border border-white/10 bg-zinc-900 text-[10px] text-gray-500">
                     {line.image ? (
@@ -225,55 +237,66 @@ function OrderContentDetails({
                   <div className="text-right text-sm font-bold text-white sm:text-left">
                     x{line.quantity}
                   </div>
-                </div>
+                </AdminOrderPreparedItem>
               ))}
             </div>
-          </div>
+            </div>
+          </AdminOrderPreparedGroup>
         ))}
 
         {content.sleeveLines.length > 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/[0.03]">
-            <div className="border-b border-white/10 px-3 py-2 font-semibold text-white">
-              Sleeves
-            </div>
-            <div className="divide-y divide-white/10">
-              {content.sleeveLines.map((line) => (
-                <div
-                  key={line.key}
-                  className="grid gap-3 px-3 py-3 sm:grid-cols-[3.25rem_1fr_8rem_4rem] sm:items-center"
-                >
-                  <div className="flex h-16 w-12 items-center justify-center overflow-hidden rounded border border-white/10 bg-zinc-900 text-[10px] text-gray-500">
-                    {line.image ? (
-                      <img
-                        src={line.image}
-                        alt={line.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      "Sleeve"
-                    )}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-white">{line.name}</div>
-                    <AdminOrderPreparedCheckboxes
-                      orderId={orderId}
-                      itemKey={`sleeve:${line.key}`}
-                      quantity={line.quantity}
-                    />
-                  </div>
-                  <div className="text-sm font-bold text-white">
-                    <div>{formatCents(line.lineTotalCents)}</div>
-                    <div className="mt-1 text-xs font-normal text-gray-500">
-                      {formatCents(line.unitPriceCents)} / u.
+          <AdminOrderPreparedGroup
+            orderId={orderId}
+            items={content.sleeveLines.flatMap((line) =>
+              preparationUnitIds(`sleeve:${line.key}`, line.quantity),
+            )}
+          >
+            <div className="rounded-xl border border-white/10 bg-white/[0.03]">
+              <div className="border-b border-white/10 px-3 py-2 font-semibold text-white">
+                Sleeves
+              </div>
+              <div className="flex flex-col">
+                {content.sleeveLines.map((line) => (
+                  <AdminOrderPreparedItem
+                    key={line.key}
+                    orderId={orderId}
+                    itemKey={`sleeve:${line.key}`}
+                    quantity={line.quantity}
+                    className="grid gap-3 border-t border-white/10 px-3 py-3 first:border-t-0 sm:grid-cols-[3.25rem_1fr_8rem_4rem] sm:items-center"
+                  >
+                    <div className="flex h-16 w-12 items-center justify-center overflow-hidden rounded border border-white/10 bg-zinc-900 text-[10px] text-gray-500">
+                      {line.image ? (
+                        <img
+                          src={line.image}
+                          alt={line.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        "Sleeve"
+                      )}
                     </div>
-                  </div>
-                  <div className="text-right text-sm font-bold text-white sm:text-left">
-                    x{line.quantity}
-                  </div>
-                </div>
-              ))}
+                    <div>
+                      <div className="font-semibold text-white">{line.name}</div>
+                      <AdminOrderPreparedCheckboxes
+                        orderId={orderId}
+                        itemKey={`sleeve:${line.key}`}
+                        quantity={line.quantity}
+                      />
+                    </div>
+                    <div className="text-sm font-bold text-white">
+                      <div>{formatCents(line.lineTotalCents)}</div>
+                      <div className="mt-1 text-xs font-normal text-gray-500">
+                        {formatCents(line.unitPriceCents)} / u.
+                      </div>
+                    </div>
+                    <div className="text-right text-sm font-bold text-white sm:text-left">
+                      x{line.quantity}
+                    </div>
+                  </AdminOrderPreparedItem>
+                ))}
+              </div>
             </div>
-          </div>
+          </AdminOrderPreparedGroup>
         ) : null}
       </div>
 
