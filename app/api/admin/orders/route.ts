@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/admin/auth";
 import { getDb } from "@/lib/db/client";
 import { orderPreparationItems, orders, stockReservations } from "@/lib/db/schema";
+import { discordAdminUrl, sendDiscordNotification } from "@/lib/discord";
 import {
   sendOrderReviewRequestEmail,
   sendOrderShippedEmail,
@@ -31,6 +32,14 @@ const ALLOWED_STATUSES: OrderStatus[] = [
   "shipped",
   "picked_up",
 ];
+
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  paid: "Commande payee",
+  label_to_create: "Bordereau a creer",
+  label_created: "Etiquette creee",
+  shipped: "Colis expedie",
+  picked_up: "Colis retire",
+};
 
 export async function POST(request: Request) {
   if (!(await isAdmin())) {
@@ -133,6 +142,28 @@ export async function POST(request: Request) {
         mondialRelayError: null,
       })
       .where(eq(orders.id, orderId));
+
+    if (existingOrder.status !== status) {
+      const channel =
+        status === "paid" || status === "label_to_create"
+          ? "preparation"
+          : "orders";
+
+      await sendDiscordNotification(channel, {
+        title: "Statut de commande modifie",
+        description: `[Ouvrir les commandes admin](${discordAdminUrl("/admin/commandes")})`,
+        fields: [
+          { name: "Commande", value: orderId, inline: false },
+          {
+            name: "Ancien statut",
+            value: STATUS_LABELS[existingOrder.status as OrderStatus] ?? existingOrder.status,
+            inline: true,
+          },
+          { name: "Nouveau statut", value: STATUS_LABELS[status], inline: true },
+          { name: "Client", value: existingOrder.customerEmail, inline: false },
+        ],
+      }).catch(() => false);
+    }
 
     return NextResponse.json({
       ok: true,

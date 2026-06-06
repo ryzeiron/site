@@ -13,6 +13,11 @@ import {
   users,
 } from "@/lib/db/schema";
 import {
+  discordAdminUrl,
+  sendDiscordErrorNotification,
+  sendDiscordNotification,
+} from "@/lib/discord";
+import {
   customerOrderEmail,
   orderAdminEmail,
   sendMail,
@@ -30,6 +35,11 @@ export const runtime = "nodejs";
 
 type CompactItem = [string, VariantKey, number];
 type CompactSleeveItem = [string, number];
+
+const LOW_STOCK_ALERT_THRESHOLD = Math.max(
+  0,
+  Number.parseInt(process.env.LOW_STOCK_ALERT_THRESHOLD ?? "1", 10) || 1,
+);
 
 function decodeItems(metadata: Stripe.Metadata | null): CompactItem[] {
   if (!metadata) return [];
@@ -94,12 +104,6 @@ function formatAmount(cents: number | null) {
   }).format((cents ?? 0) / 100);
 }
 
-function discordValue(value: string | null | undefined, fallback = "-") {
-  const cleaned = value?.trim();
-  if (!cleaned) return fallback;
-  return cleaned.length > 1000 ? `${cleaned.slice(0, 997)}...` : cleaned;
-}
-
 async function sendDiscordOrderNotification({
   session,
   amount,
@@ -117,13 +121,7 @@ async function sendDiscordOrderNotification({
   country: string;
   metadata: Stripe.Metadata;
 }) {
-  const webhookUrl = process.env.DISCORD_ORDER_WEBHOOK_URL?.trim();
-  if (!webhookUrl) return;
-
-  const siteUrl = normalizeSiteUrl(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  );
-  const adminOrdersUrl = `${siteUrl}/admin/commandes`;
+  const adminOrdersUrl = discordAdminUrl("/admin/commandes");
   const relayLine = [
     metadataValue(metadata.relay_name),
     metadataValue(metadata.relay_address),
@@ -136,43 +134,28 @@ async function sendDiscordOrderNotification({
   ]
     .filter(Boolean)
     .join("\n");
+  const fields = [
+    { name: "Montant", value: amount, inline: true },
+    { name: "Client", value: customerName, inline: true },
+    { name: "Email", value: customerEmail, inline: false },
+    { name: "Telephone", value: customerPhone, inline: true },
+    { name: "Pays", value: country, inline: true },
+    { name: "Point relais", value: relayLine, inline: false },
+    { name: "ID Stripe", value: `\`${session.id}\``, inline: false },
+  ];
 
-  const response = await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: "PokeDel62",
-      embeds: [
-        {
-          title: "Nouvelle commande payee",
-          color: 0x7c3aed,
-          description: `[Ouvrir les commandes admin](${adminOrdersUrl})`,
-          fields: [
-            { name: "Montant", value: amount, inline: true },
-            { name: "Client", value: discordValue(customerName), inline: true },
-            { name: "Email", value: discordValue(customerEmail), inline: false },
-            {
-              name: "Telephone",
-              value: discordValue(customerPhone),
-              inline: true,
-            },
-            { name: "Pays", value: discordValue(country), inline: true },
-            {
-              name: "Point relais",
-              value: discordValue(relayLine),
-              inline: false,
-            },
-            { name: "ID Stripe", value: `\`${session.id}\``, inline: false },
-          ],
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Discord webhook error ${response.status}`);
-  }
+  await Promise.all([
+    sendDiscordNotification("orders", {
+      title: "Nouvelle commande payee",
+      description: `[Ouvrir les commandes admin](${adminOrdersUrl})`,
+      fields,
+    }).catch(() => false),
+    sendDiscordNotification("preparation", {
+      title: "Commande a preparer",
+      description: `[Ouvrir les commandes admin](${adminOrdersUrl})`,
+      fields,
+    }).catch(() => false),
+  ]);
 }
 
 async function removePurchasedFavorites({
@@ -235,6 +218,93 @@ async function removePurchasedFavoritesFromSession(
     items: decodeItems(metadata),
     sleeveItems: decodeSleeves(metadata),
   });
+}
+
+async function sendLowStockAfterOrder(
+  alerts: {
+    name: string;
+    number: string;
+    rarity: string;
+    variant: string;
+    stock: number;
+  }[],
+) {
+  if (alerts.length === 0) return;
+
+  await sendDiscordNotification("stock", {
+    title: alerts.length === 1 ? "Stock faible apres commande" : "Stocks faibles apres commande",
+    description: `[Ouvrir l'admin stock](${discordAdminUrl("/admin")})`,
+    fields: alerts.slice(0, 10).map((alert) => ({
+      name: `${alert.name} ${alert.number}`,
+      value: `${alert.rarity} - variante ${alert.variant} - stock ${alert.stock}`,
+      inline: false,
+    })),
+  }).catch(() => false);
+}
+
+async function sendLowStockSleevesAfterOrder(
+  alerts: { sleeveId: string; name: string; stock: number }[],
+) {
+  const lowStock = alerts.filter(
+    (alert) => alert.stock <= LOW_STOCK_ALERT_THRESHOLD,
+  );
+  if (lowStock.length === 0) return;
+
+  await sendDiscordNotification("stock", {
+    title:
+      lowStock.length === 1
+        ? "Stock faible sleeve apres commande"
+        : "Stocks faibles sleeves apres commande",
+    description: `[Ouvrir l'admin stock](${discordAdminUrl("/admin")})`,
+    fields: lowStock.slice(0, 10).map((alert) => ({
+      name: alert.name,
+      value: `Stock ${alert.stock}`,
+      inline: false,
+    })),
+  }).catch(() => false);
+}
+
+async function getCurrentLowStockAlerts(items: CompactItem[]) {
+  const db = getDb();
+  const alerts: {
+    name: string;
+    number: string;
+    rarity: string;
+    variant: string;
+    stock: number;
+  }[] = [];
+
+  for (const [cardId, variant] of items) {
+    if (!cardId || !variant) continue;
+
+    const card = getCard(cardId);
+    if (!card) continue;
+
+    const resolvedVariant = resolveVariant(card, variant);
+    const existing = await db
+      .select({ stock: stockOverrides.stock })
+      .from(stockOverrides)
+      .where(
+        and(
+          eq(stockOverrides.cardId, cardId),
+          eq(stockOverrides.variant, variant),
+        ),
+      )
+      .limit(1);
+    const currentStock = existing[0]?.stock ?? resolvedVariant.stock;
+
+    if (currentStock <= LOW_STOCK_ALERT_THRESHOLD) {
+      alerts.push({
+        name: card.name,
+        number: card.number,
+        rarity: resolvedVariant.rarity,
+        variant,
+        stock: currentStock,
+      });
+    }
+  }
+
+  return alerts;
 }
 
 async function sendOrderNotifications({
@@ -450,12 +520,16 @@ export async function POST(request: Request) {
     });
 
     if (items.length === 0 || reservationId) {
-      await decrementSleeveStock(
+      const sleeveStockUpdates = await decrementSleeveStock(
         sleeveItems.map(([sleeveId, quantity]) => ({ sleeveId, quantity })),
       );
       if (items.length > 0) {
         revalidatePublicStockCache();
       }
+      if (reservationId) {
+        await sendLowStockAfterOrder(await getCurrentLowStockAlerts(items));
+      }
+      await sendLowStockSleevesAfterOrder(sleeveStockUpdates);
 
       return NextResponse.json({
         received: true,
@@ -465,6 +539,14 @@ export async function POST(request: Request) {
         favoritesCleanupError,
       });
     }
+
+    const lowStockAlerts: {
+      name: string;
+      number: string;
+      rarity: string;
+      variant: string;
+      stock: number;
+    }[] = [];
 
     for (const [cardId, variant, quantity] of items) {
       if (!cardId || !variant || !quantity || quantity <= 0) continue;
@@ -488,6 +570,19 @@ export async function POST(request: Request) {
       const currentStock = existing[0]?.stock ?? v.stock;
       const nextStock = Math.max(0, currentStock - quantity);
 
+      if (
+        currentStock > LOW_STOCK_ALERT_THRESHOLD &&
+        nextStock <= LOW_STOCK_ALERT_THRESHOLD
+      ) {
+        lowStockAlerts.push({
+          name: card.name,
+          number: card.number,
+          rarity: v.rarity,
+          variant,
+          stock: nextStock,
+        });
+      }
+
       await db
         .insert(stockOverrides)
         .values({ cardId, variant, stock: nextStock })
@@ -497,15 +592,22 @@ export async function POST(request: Request) {
         });
     }
 
-    await decrementSleeveStock(
+    const sleeveStockUpdates = await decrementSleeveStock(
       sleeveItems.map(([sleeveId, quantity]) => ({ sleeveId, quantity })),
     );
     if (items.length > 0) {
       revalidatePublicStockCache();
     }
+    await sendLowStockAfterOrder(lowStockAlerts);
+    await sendLowStockSleevesAfterOrder(sleeveStockUpdates);
   } catch (error) {
     stockUpdateError =
       error instanceof Error ? error.message : "Erreur mise a jour stock.";
+    await sendDiscordErrorNotification({
+      title: "Erreur apres commande Stripe",
+      message: stockUpdateError,
+      route: "/api/webhooks/stripe",
+    }).catch(() => false);
   }
 
   return NextResponse.json({

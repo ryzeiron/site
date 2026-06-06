@@ -4,6 +4,7 @@ import { isAdmin } from "@/lib/admin/auth";
 import { getCatalogSleeve } from "@/lib/catalog/sleeves";
 import { getDb } from "@/lib/db/client";
 import { sleeveOverrides } from "@/lib/db/schema";
+import { discordAdminUrl, sendDiscordNotification } from "@/lib/discord";
 import { revalidatePublicSleeveCache } from "@/lib/sleeves";
 
 type Body = {
@@ -12,6 +13,11 @@ type Body = {
   stock?: number;
   active?: boolean;
 };
+
+const LOW_STOCK_ALERT_THRESHOLD = Math.max(
+  0,
+  Number.parseInt(process.env.LOW_STOCK_ALERT_THRESHOLD ?? "1", 10) || 1,
+);
 
 export async function POST(request: Request) {
   if (!(await isAdmin())) {
@@ -29,7 +35,9 @@ export async function POST(request: Request) {
   const price = body.price;
   const stock = body.stock;
 
-  if (!id || !getCatalogSleeve(id)) {
+  const catalogSleeve = id ? getCatalogSleeve(id) : null;
+
+  if (!id || !catalogSleeve) {
     return NextResponse.json(
       { error: "Sleeve introuvable dans le catalogue." },
       { status: 404 },
@@ -68,6 +76,17 @@ export async function POST(request: Request) {
       });
 
     revalidatePublicSleeveCache();
+
+    if (stock <= LOW_STOCK_ALERT_THRESHOLD) {
+      await sendDiscordNotification("stock", {
+        title: "Stock faible sleeve",
+        description: `[Ouvrir l'admin sleeves](${discordAdminUrl("/admin?sleeves=1")})`,
+        fields: [
+          { name: "Sleeve", value: catalogSleeve.name, inline: true },
+          { name: "Stock", value: String(stock), inline: true },
+        ],
+      }).catch(() => false);
+    }
 
     return NextResponse.json({ ok: true, id });
   } catch (e) {

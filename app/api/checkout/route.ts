@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
+import { sendDiscordErrorNotification } from "@/lib/discord";
 import { getStripePromotionCode } from "@/lib/stripe-promo";
 import { getRequestOrigin } from "@/lib/site-url";
 import { getSleevesByIds } from "@/lib/sleeves";
@@ -454,6 +455,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: session.url });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur inconnue.";
+    await sendDiscordErrorNotification({
+      title: "Erreur checkout",
+      message,
+      route: "/api/checkout",
+    }).catch(() => false);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

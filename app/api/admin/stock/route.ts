@@ -11,6 +11,7 @@ import {
 } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { stockOverrides } from "@/lib/db/schema";
+import { discordAdminUrl, sendDiscordNotification } from "@/lib/discord";
 import { notifyRestockSubscribers } from "@/lib/restock-alerts";
 import { revalidatePublicStockCache } from "@/lib/stock";
 import { and, eq, sql } from "drizzle-orm";
@@ -32,6 +33,11 @@ class AdminStockError extends Error {
     this.status = status;
   }
 }
+
+const LOW_STOCK_ALERT_THRESHOLD = Math.max(
+  0,
+  Number.parseInt(process.env.LOW_STOCK_ALERT_THRESHOLD ?? "1", 10) || 1,
+);
 
 function validateVariantKey(value: unknown) {
   if (typeof value !== "string" || !isValidVariantKey(value)) {
@@ -183,9 +189,48 @@ async function saveStockUpdate(body: Body) {
 
   return {
     cardId: card.id,
+    cardName: card.name,
+    cardNumber: card.number,
     variant,
+    rarity: rarityValue,
+    stock: nextStock,
+    lowStock: hasStock && nextStock <= LOW_STOCK_ALERT_THRESHOLD,
     restockNotifications,
   };
+}
+
+async function notifyLowStockCards(
+  results: Awaited<ReturnType<typeof saveStockUpdate>>[],
+) {
+  const lowStockResults = results.filter((result) => result.lowStock);
+  if (lowStockResults.length === 0) return;
+
+  const visible = lowStockResults.slice(0, 10);
+  const hiddenCount = lowStockResults.length - visible.length;
+
+  await sendDiscordNotification("stock", {
+    title:
+      lowStockResults.length === 1
+        ? "Stock faible carte"
+        : "Stocks faibles cartes",
+    description: `[Ouvrir l'admin stock](${discordAdminUrl("/admin")})`,
+    fields: [
+      ...visible.map((result) => ({
+        name: `${result.cardName} ${result.cardNumber}`,
+        value: `${result.rarity} - variante ${result.variant} - stock ${result.stock}`,
+        inline: false,
+      })),
+      ...(hiddenCount > 0
+        ? [
+            {
+              name: "Autres alertes",
+              value: `${hiddenCount} autre(s) stock(s) faible(s) dans ce lot.`,
+              inline: false,
+            },
+          ]
+        : []),
+    ],
+  }).catch(() => false);
 }
 
 export async function POST(request: Request) {
@@ -223,6 +268,7 @@ export async function POST(request: Request) {
       }
 
       revalidatePublicStockCache();
+      await notifyLowStockCards(results);
 
       return NextResponse.json({
         ok: true,
@@ -237,6 +283,7 @@ export async function POST(request: Request) {
 
     const result = await saveStockUpdate(body);
     revalidatePublicStockCache();
+    await notifyLowStockCards([result]);
 
     return NextResponse.json({
       ok: true,

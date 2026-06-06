@@ -4,6 +4,7 @@ import { eq, or } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db/client";
 import { orders, reviews } from "@/lib/db/schema";
+import { discordAdminUrl, sendDiscordNotification } from "@/lib/discord";
 import { revalidatePublicReviewsCache } from "@/lib/public-reviews";
 
 function cleanComment(value: unknown) {
@@ -75,18 +76,39 @@ export async function POST(request: Request) {
       })
       .where(eq(reviews.id, existing[0].id));
 
+    await sendDiscordNotification("reviews", {
+      title: "Avis client modifie",
+      description: `[Ouvrir les avis admin](${discordAdminUrl("/admin/avis")})`,
+      fields: [
+        { name: "Client", value: session.user.email, inline: false },
+        { name: "Note", value: `${rating}/5`, inline: true },
+        { name: "Commentaire", value: comment, inline: false },
+      ],
+    }).catch(() => false);
+
     revalidatePublicReviewsCache();
 
     return NextResponse.json({ ok: true });
   }
 
+  const reviewId = randomUUID();
   await db.insert(reviews).values({
-    id: randomUUID(),
+    id: reviewId,
     userId: session.user.id,
     rating,
     comment,
     status: "approved",
   });
+
+  await sendDiscordNotification("reviews", {
+    title: "Nouvel avis client",
+    description: `[Ouvrir les avis admin](${discordAdminUrl("/admin/avis")})`,
+    fields: [
+      { name: "Client", value: session.user.email, inline: false },
+      { name: "Note", value: `${rating}/5`, inline: true },
+      { name: "Commentaire", value: comment, inline: false },
+    ],
+  }).catch(() => false);
 
   revalidatePublicReviewsCache();
 

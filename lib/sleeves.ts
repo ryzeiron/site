@@ -116,10 +116,11 @@ export async function getSleevesByIds(ids: string[]) {
 export async function decrementSleeveStock(
   items: { sleeveId: string; quantity: number }[],
 ) {
-  if (items.length === 0) return;
+  if (items.length === 0) return [];
 
   const db = getDb();
   let changed = false;
+  const updatedItems: { sleeveId: string; name: string; stock: number }[] = [];
 
   for (const item of items) {
     if (!item.sleeveId || item.quantity <= 0) continue;
@@ -135,6 +136,11 @@ export async function decrementSleeveStock(
 
     const currentStock = existing?.stock ?? catalogSleeve.defaultStock;
     const nextStock = Math.max(0, currentStock - item.quantity);
+    updatedItems.push({
+      sleeveId: item.sleeveId,
+      name: catalogSleeve.name,
+      stock: nextStock,
+    });
 
     await db
       .insert(sleeveOverrides)
@@ -159,4 +165,6 @@ export async function decrementSleeveStock(
   if (changed) {
     revalidatePublicSleeveCache();
   }
+
+  return updatedItems;
 }

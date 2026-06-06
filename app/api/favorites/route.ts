@@ -4,10 +4,12 @@ import { auth } from "@/lib/auth";
 import {
   getCard,
   isValidVariantKey,
+  resolveVariant,
   type Card,
 } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { favoriteCards } from "@/lib/db/schema";
+import { discordAdminUrl, sendDiscordNotification } from "@/lib/discord";
 import { applyStockOverrides } from "@/lib/stock";
 
 type Body = {
@@ -115,14 +117,49 @@ export async function POST(request: Request) {
     );
   }
 
-  await getDb()
+  const db = getDb();
+  const inserted = await db
     .insert(favoriteCards)
     .values({
       userId: user.id,
       cardId,
       variant,
     })
-    .onConflictDoNothing();
+    .onConflictDoNothing()
+    .returning({ userId: favoriteCards.userId });
+
+  if (inserted.length > 0) {
+    const favoriteRows = await db
+      .select({ userId: favoriteCards.userId })
+      .from(favoriteCards)
+      .where(
+        and(
+          eq(favoriteCards.cardId, cardId),
+          eq(favoriteCards.variant, variant),
+        ),
+      );
+    const resolvedVariant = resolveVariant(card, variant);
+
+    await sendDiscordNotification("favorites", {
+      title: "Carte ajoutee aux favoris",
+      description: `[Ouvrir les favoris admin](${discordAdminUrl("/admin/favoris?type=cartes")})`,
+      fields: [
+        { name: "Carte", value: `${card.name} ${card.number}`, inline: true },
+        { name: "Variante", value: resolvedVariant.rarity, inline: true },
+        { name: "Client", value: user.email ?? user.id, inline: false },
+        {
+          name: "Total favoris",
+          value: String(favoriteRows.length),
+          inline: true,
+        },
+        {
+          name: "Fiche",
+          value: `${discordAdminUrl(`/carte/${card.id}`)}`,
+          inline: false,
+        },
+      ],
+    }).catch(() => false);
+  }
 
   return NextResponse.json({ ok: true, favorite: true });
 }
