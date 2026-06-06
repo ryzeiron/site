@@ -94,6 +94,87 @@ function formatAmount(cents: number | null) {
   }).format((cents ?? 0) / 100);
 }
 
+function discordValue(value: string | null | undefined, fallback = "-") {
+  const cleaned = value?.trim();
+  if (!cleaned) return fallback;
+  return cleaned.length > 1000 ? `${cleaned.slice(0, 997)}...` : cleaned;
+}
+
+async function sendDiscordOrderNotification({
+  session,
+  amount,
+  customerEmail,
+  customerName,
+  customerPhone,
+  country,
+  metadata,
+}: {
+  session: Stripe.Checkout.Session;
+  amount: string;
+  customerEmail: string;
+  customerName: string;
+  customerPhone: string;
+  country: string;
+  metadata: Stripe.Metadata;
+}) {
+  const webhookUrl = process.env.DISCORD_ORDER_WEBHOOK_URL?.trim();
+  if (!webhookUrl) return;
+
+  const siteUrl = normalizeSiteUrl(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  );
+  const adminOrdersUrl = `${siteUrl}/admin/commandes`;
+  const relayLine = [
+    metadataValue(metadata.relay_name),
+    metadataValue(metadata.relay_address),
+    [metadataValue(metadata.relay_postcode), metadataValue(metadata.relay_city)]
+      .filter(Boolean)
+      .join(" "),
+    metadataValue(metadata.relay_code)
+      ? `Code relais : ${metadataValue(metadata.relay_code)}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const response = await fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: "PokeDel62",
+      embeds: [
+        {
+          title: "Nouvelle commande payee",
+          color: 0x7c3aed,
+          description: `[Ouvrir les commandes admin](${adminOrdersUrl})`,
+          fields: [
+            { name: "Montant", value: amount, inline: true },
+            { name: "Client", value: discordValue(customerName), inline: true },
+            { name: "Email", value: discordValue(customerEmail), inline: false },
+            {
+              name: "Telephone",
+              value: discordValue(customerPhone),
+              inline: true,
+            },
+            { name: "Pays", value: discordValue(country), inline: true },
+            {
+              name: "Point relais",
+              value: discordValue(relayLine),
+              inline: false,
+            },
+            { name: "ID Stripe", value: `\`${session.id}\``, inline: false },
+          ],
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Discord webhook error ${response.status}`);
+  }
+}
+
 async function removePurchasedFavorites({
   userId,
   customerEmail,
@@ -194,6 +275,16 @@ async function sendOrderNotifications({
   await sendToAdmin({
     subject: `[PokeDel] Nouvelle commande payée - ${amount}`,
     text: adminEmail.text,
+  }).catch(() => ({ ok: false }));
+
+  await sendDiscordOrderNotification({
+    session,
+    amount,
+    customerEmail,
+    customerName,
+    customerPhone,
+    country,
+    metadata,
   }).catch(() => ({ ok: false }));
 
   if (customerEmail) {
