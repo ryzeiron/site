@@ -89,22 +89,12 @@ export async function POST(request: Request) {
     .returning({ userId: favoriteSleeves.userId });
 
   if (inserted.length > 0) {
-    const favoriteRows = await db
-      .select({ userId: favoriteSleeves.userId })
-      .from(favoriteSleeves)
-      .where(eq(favoriteSleeves.sleeveId, sleeveId));
-
     await sendDiscordNotification("favorites", {
       title: "Sleeve ajoutee aux favoris",
       description: `[Ouvrir les favoris admin](${discordAdminUrl("/admin/favoris?type=sleeves")})`,
       fields: [
         { name: "Sleeve", value: sleeve.name, inline: true },
         { name: "Client", value: user.email ?? user.id, inline: false },
-        {
-          name: "Total favoris",
-          value: String(favoriteRows.length),
-          inline: true,
-        },
       ],
     }).catch(() => false);
   }

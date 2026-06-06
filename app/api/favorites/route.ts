@@ -129,15 +129,6 @@ export async function POST(request: Request) {
     .returning({ userId: favoriteCards.userId });
 
   if (inserted.length > 0) {
-    const favoriteRows = await db
-      .select({ userId: favoriteCards.userId })
-      .from(favoriteCards)
-      .where(
-        and(
-          eq(favoriteCards.cardId, cardId),
-          eq(favoriteCards.variant, variant),
-        ),
-      );
     const resolvedVariant = resolveVariant(card, variant);
 
     await sendDiscordNotification("favorites", {
@@ -147,11 +138,6 @@ export async function POST(request: Request) {
         { name: "Carte", value: `${card.name} ${card.number}`, inline: true },
         { name: "Variante", value: resolvedVariant.rarity, inline: true },
         { name: "Client", value: user.email ?? user.id, inline: false },
-        {
-          name: "Total favoris",
-          value: String(favoriteRows.length),
-          inline: true,
-        },
         {
           name: "Fiche",
           value: `${discordAdminUrl(`/carte/${card.id}`)}`,
