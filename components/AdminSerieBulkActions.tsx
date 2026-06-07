@@ -23,6 +23,7 @@ export default function AdminSerieBulkActions({
   const [replacementRarity, setReplacementRarity] =
     useState<Rarity>(defaultRarity);
   const [priceValue, setPriceValue] = useState("0.50");
+  const [updateExistingPrice, setUpdateExistingPrice] = useState(false);
   const [savingPrice, setSavingPrice] = useState(false);
   const [savingRarity, setSavingRarity] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -40,7 +41,10 @@ export default function AdminSerieBulkActions({
     const formattedPrice = price.toFixed(2).replace(".", ",");
     const protectsHighRarities = rarity === "Commune" || rarity === "Reverse";
     const ok = window.confirm(
-      `Ajouter ou mettre à jour la variante ${formatRarityLabel(rarity)} - ${condition} sur ${serieLabel} à ${formattedPrice} EUR ?` +
+      `Ajouter la variante ${formatRarityLabel(rarity)} - ${condition} sur ${serieLabel} à ${formattedPrice} EUR ?` +
+        (updateExistingPrice
+          ? "\n\nLes variantes déjà présentes auront aussi leur prix mis à jour."
+          : "\n\nLes variantes déjà présentes garderont leur prix actuel.") +
         (protectsHighRarities
           ? "\n\nLes cartes Ultra rare et Secrète seront ignorées."
           : ""),
@@ -61,6 +65,7 @@ export default function AdminSerieBulkActions({
           rarity,
           condition,
           price,
+          updateExistingPrice,
         }),
       });
 
@@ -68,15 +73,23 @@ export default function AdminSerieBulkActions({
       if (!res.ok) throw new Error(data.error ?? "Erreur");
 
       const created = Number(data.created ?? 0);
-      const existing = Number(data.existing ?? data.updated ?? 0);
+      const existing = Number(data.existing ?? 0);
+      const existingKept = Number(data.existingKept ?? 0);
       const skippedProtected = Number(data.skippedProtected ?? 0);
-      const parts = [
-        `${created} variantes ajoutées`,
-        `${existing} prix mis à jour`,
-      ];
+      const parts = [`${created} variantes ajoutées`];
+
+      if (updateExistingPrice) {
+        parts.push(`${existing} prix mis à jour`);
+      }
+
+      if (existingKept > 0) {
+        parts.push(`${existingKept} variantes déjà présentes conservées`);
+      }
+
       if (skippedProtected > 0) {
         parts.push(`${skippedProtected} cartes protégées ignorées`);
       }
+
       setMessage(`${parts.join(". ")}.`);
       router.refresh();
     } catch (e) {
@@ -182,7 +195,7 @@ export default function AdminSerieBulkActions({
             </label>
 
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-xs text-gray-400">Prix</span>
+              <span className="text-xs text-gray-400">Prix des variantes ajoutées</span>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
@@ -194,6 +207,16 @@ export default function AdminSerieBulkActions({
                 />
                 <span className="text-sm text-gray-400">EUR</span>
               </div>
+            </label>
+
+            <label className="flex items-center gap-2 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-gray-200">
+              <input
+                type="checkbox"
+                checked={updateExistingPrice}
+                onChange={(e) => setUpdateExistingPrice(e.target.checked)}
+                className="h-4 w-4 accent-brand-500"
+              />
+              Mettre aussi à jour les prix existants
             </label>
 
             <button
@@ -211,7 +234,8 @@ export default function AdminSerieBulkActions({
           </div>
 
           <p className="mt-2 text-xs leading-5 text-gray-400">
-            Une même rareté peut exister plusieurs fois si l'état est différent.
+            Par défaut, seules les variantes manquantes sont ajoutées. Les prix
+            déjà présents restent inchangés sauf si l'option est cochée.
           </p>
         </div>
 

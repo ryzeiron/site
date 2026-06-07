@@ -19,6 +19,7 @@ type Body = {
   rarity?: string;
   condition?: string;
   price?: number;
+  updateExistingPrice?: boolean;
 };
 
 const PROTECTED_MAIN_RARITIES = new Set(["Ultra Rare", "Ultra rare", "Secrete"]);
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
   }
 
   const { serieId, rarity, condition, price } = body;
+  const updateExistingPrice = body.updateExistingPrice === true;
 
   if (!serieId || !getSerie(serieId)) {
     return NextResponse.json({ error: "Serie introuvable." }, { status: 404 });
@@ -110,6 +112,7 @@ export async function POST(request: Request) {
     rarity: Rarity;
     condition: Condition;
   }[] = [];
+  let existingMatches = 0;
 
   for (const card of cardsWithOverrides) {
     const variants = listVariants(card, { includeHidden: true });
@@ -131,15 +134,19 @@ export async function POST(request: Request) {
     );
 
     if (matchingVariants.length > 0) {
-      for (const { key, variant } of matchingVariants) {
-        existingUpdates.push({
-          cardId: card.id,
-          variant: key,
-          stock: variant.stock,
-          priceCents,
-          rarity: null,
-          condition: null,
-        });
+      existingMatches += matchingVariants.length;
+
+      if (updateExistingPrice) {
+        for (const { key, variant } of matchingVariants) {
+          existingUpdates.push({
+            cardId: card.id,
+            variant: key,
+            stock: variant.stock,
+            priceCents,
+            rarity: null,
+            condition: null,
+          });
+        }
       }
       continue;
     }
@@ -154,6 +161,7 @@ export async function POST(request: Request) {
     });
   }
 
+  const existingKept = existingMatches - existingUpdates.length;
   const updated = existingUpdates.length + createdUpdates.length;
 
   if (updated === 0) {
@@ -162,6 +170,7 @@ export async function POST(request: Request) {
       updated: 0,
       created: 0,
       existing: 0,
+      existingKept,
       skippedProtected,
     });
   }
@@ -208,7 +217,9 @@ export async function POST(request: Request) {
     updated,
     created: createdUpdates.length,
     existing: existingUpdates.length,
+    existingKept,
     skippedProtected,
+    updateExistingPrice,
     rarity: targetRarity,
     condition: targetCondition,
     price: priceCents / 100,
