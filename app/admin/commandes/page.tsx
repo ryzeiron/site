@@ -485,10 +485,45 @@ export default async function AdminOrdersPage({
       ) : (
         <div className="space-y-3">
           {rows.map((order) => (
-            <div
+            <details
               key={order.id}
-              className="rounded-2xl border border-white/10 bg-zinc-900/70 p-4 text-gray-200"
+              className="group rounded-2xl border border-white/10 bg-zinc-900/70 text-gray-200 transition open:border-violet-400/40 open:bg-zinc-900/90"
             >
+              <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 p-4 [&::-webkit-details-marker]:hidden">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="truncate font-semibold text-white">
+                      {order.customerName ?? "Client"}
+                    </div>
+                    <span
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusClass(order.status)}`}
+                    >
+                      {STATUS_LABELS[order.status] ?? order.status}
+                    </span>
+                  </div>
+                  <div className="mt-1 truncate text-xs text-gray-400">
+                    {order.customerEmail ?? "Email inconnu"}
+                    {order.customerPhone ? ` - ${order.customerPhone}` : ""}
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    {order.createdAt
+                      ? new Date(order.createdAt).toLocaleString("fr-FR")
+                      : ""}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-end gap-2 text-right text-xs">
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-gray-300">
+                    {order.relayName ?? "Point relais a verifier"}
+                  </span>
+                  <span className="rounded-full bg-violet-600 px-3 py-1 font-semibold text-white">
+                    <span className="group-open:hidden">Ouvrir</span>
+                    <span className="hidden group-open:inline">Fermer</span>
+                  </span>
+                </div>
+              </summary>
+
+              <div className="border-t border-white/10 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="font-semibold text-white">
@@ -596,7 +631,8 @@ export default async function AdminOrdersPage({
                 orderId={order.id}
                 customerLabel={`${order.customerName ?? "Client"} - ${order.customerEmail ?? "email inconnu"}`}
               />
-            </div>
+              </div>
+            </details>
           ))}
 
           {(hasPreviousPage || hasNextPage) && (
