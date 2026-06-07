@@ -601,6 +601,70 @@ function VariantRow({
   const [stockValue, setStockValue] = useState<string>(String(variant.stock));
   const [priceValue, setPriceValue] = useState<string>(String(variant.price));
 
+  type DraftValues = {
+    rarityValue: string;
+    conditionValue: Condition;
+    stockValue: string;
+    priceValue: string;
+  };
+
+  function syncPendingUpdate(draft: DraftValues) {
+    if (submittedUpdate) return;
+
+    const nextStock = Number.parseInt(draft.stockValue, 10);
+    const nextPrice = Number.parseFloat(draft.priceValue.replace(",", "."));
+    const nextStockValid = Number.isInteger(nextStock) && nextStock >= 0;
+    const nextPriceValid = Number.isFinite(nextPrice) && nextPrice >= 0;
+    const nextStockChanged = nextStock !== variant.stock;
+    const nextPriceChanged = Math.abs(nextPrice - variant.price) > 0.0001;
+    const nextRarityChanged = draft.rarityValue !== variant.rarity;
+    const nextConditionChanged = draft.conditionValue !== variant.condition;
+    const nextHasChanges =
+      nextStockChanged ||
+      nextPriceChanged ||
+      nextRarityChanged ||
+      nextConditionChanged;
+
+    if (!nextHasChanges || !nextStockValid || !nextPriceValid) {
+      clearPendingUpdate(card.id, variant.key);
+      return;
+    }
+
+    const update: PendingStockUpdate = {
+      cardId: card.id,
+      cardName: card.name,
+      cardNumber: card.number,
+      variant: variant.key,
+      label: variant.label,
+    };
+
+    if (nextStockChanged) update.stock = nextStock;
+    if (nextPriceChanged) update.price = nextPrice;
+    if (nextRarityChanged) update.rarity = draft.rarityValue as Rarity;
+    if (nextConditionChanged) update.condition = draft.conditionValue;
+
+    setPendingUpdate(update);
+  }
+
+  function updateDraft(next: Partial<DraftValues>) {
+    const draft = {
+      rarityValue,
+      conditionValue,
+      stockValue,
+      priceValue,
+      ...next,
+    };
+
+    if (typeof next.rarityValue !== "undefined") setRarityValue(next.rarityValue);
+    if (typeof next.conditionValue !== "undefined") {
+      setConditionValue(next.conditionValue);
+    }
+    if (typeof next.stockValue !== "undefined") setStockValue(next.stockValue);
+    if (typeof next.priceValue !== "undefined") setPriceValue(next.priceValue);
+
+    syncPendingUpdate(draft);
+  }
+
   useEffect(() => {
     if (submittedUpdate && submittedUpdateMatchesVariant(submittedUpdate, variant)) {
       clearSubmittedUpdate(card.id, variant.key);
@@ -636,48 +700,6 @@ function VariantRow({
     stockChanged || priceChanged || rarityChanged || conditionChanged;
   const pendingValid = hasChanges && stockValid && priceValid;
 
-  useEffect(() => {
-    if (submittedUpdate) return;
-
-    if (!pendingValid) {
-      clearPendingUpdate(card.id, variant.key);
-      return;
-    }
-
-    const update: PendingStockUpdate = {
-      cardId: card.id,
-      cardName: card.name,
-      cardNumber: card.number,
-      variant: variant.key,
-      label: variant.label,
-    };
-
-    if (stockChanged) update.stock = currentStock;
-    if (priceChanged) update.price = currentPrice;
-    if (rarityChanged) update.rarity = rarityValue as Rarity;
-    if (conditionChanged) update.condition = conditionValue;
-
-    setPendingUpdate(update);
-  }, [
-    card.id,
-    card.name,
-    card.number,
-    clearPendingUpdate,
-    conditionChanged,
-    conditionValue,
-    currentPrice,
-    currentStock,
-    pendingValid,
-    priceChanged,
-    rarityChanged,
-    rarityValue,
-    setPendingUpdate,
-    stockChanged,
-    submittedUpdate,
-    variant.key,
-    variant.label,
-  ]);
-
   return (
     <tr className={`${variant.hidden ? "bg-amber-950/10" : ""} align-top`}>
       {showCardCell ? (
@@ -697,7 +719,8 @@ function VariantRow({
       <td className="px-4 py-3">
         <select
           value={rarityValue}
-          onChange={(e) => setRarityValue(e.target.value)}
+          onChange={(e) => updateDraft({ rarityValue: e.target.value })}
+          disabled={waitingForServer}
           className="w-44 rounded border border-white/10 bg-zinc-950 px-2 py-1.5 text-white"
         >
           {RARITIES.map((r) => (
@@ -711,7 +734,10 @@ function VariantRow({
       <td className="px-4 py-3">
         <select
           value={conditionValue}
-          onChange={(e) => setConditionValue(e.target.value as Condition)}
+          onChange={(e) =>
+            updateDraft({ conditionValue: e.target.value as Condition })
+          }
+          disabled={waitingForServer}
           className="w-32 rounded border border-white/10 bg-zinc-950 px-2 py-1.5 text-white"
         >
           {CONDITIONS.map((value) => (
@@ -727,7 +753,8 @@ function VariantRow({
           type="number"
           min={0}
           value={stockValue}
-          onChange={(e) => setStockValue(e.target.value)}
+          onChange={(e) => updateDraft({ stockValue: e.target.value })}
+          disabled={waitingForServer}
           className={`w-20 rounded border px-2 py-1.5 text-white ${stockBadgeClass(currentStock, variant.hidden)} bg-opacity-10`}
         />
         {!stockValid ? <div className="mt-1 text-xs text-red-300">Invalide</div> : null}
@@ -740,7 +767,8 @@ function VariantRow({
             min={0}
             step="0.01"
             value={priceValue}
-            onChange={(e) => setPriceValue(e.target.value)}
+            onChange={(e) => updateDraft({ priceValue: e.target.value })}
+            disabled={waitingForServer}
             className="w-24 rounded border border-white/10 bg-zinc-950 px-2 py-1.5 text-white"
           />
           <span className="text-xs text-gray-500">€</span>
