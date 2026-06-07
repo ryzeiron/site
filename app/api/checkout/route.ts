@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { getStripe } from "@/lib/stripe";
 import { auth } from "@/lib/auth";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
-import { applyStockOverrides } from "@/lib/stock";
+import { applyStockOverrides, revalidatePublicStockCache } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
 import { sendDiscordErrorNotification } from "@/lib/discord";
 import { getStripePromotionCode } from "@/lib/stripe-promo";
@@ -419,6 +419,9 @@ export async function POST(request: Request) {
     }
 
     await reserveStockItems(reservationId, reservationItems);
+    if (reservationItems.length > 0) {
+      revalidatePublicStockCache();
+    }
 
     let session;
 
@@ -449,6 +452,9 @@ export async function POST(request: Request) {
       });
     } catch (e) {
       await releaseStockReservation(reservationId);
+      if (reservationItems.length > 0) {
+        revalidatePublicStockCache();
+      }
       throw e;
     }
 

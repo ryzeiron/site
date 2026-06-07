@@ -104,6 +104,17 @@ function formatAmount(cents: number | null) {
   }).format((cents ?? 0) / 100);
 }
 
+function countExpectedCardReservations(items: CompactItem[]) {
+  const keys = new Set<string>();
+
+  for (const [cardId, variant, quantity] of items) {
+    if (!cardId || !variant || !quantity || quantity <= 0) continue;
+    keys.add(`${cardId}:${variant}`);
+  }
+
+  return keys.size;
+}
+
 async function sendDiscordOrderNotification({
   session,
   amount,
@@ -442,6 +453,7 @@ export async function POST(request: Request) {
   if (event.type === "checkout.session.expired") {
     if (reservationId) {
       await releaseStockReservation(reservationId);
+      revalidatePublicStockCache();
     }
 
     return NextResponse.json({
@@ -504,7 +516,23 @@ export async function POST(request: Request) {
 
   try {
     if (reservationId) {
-      await confirmStockReservation(reservationId, session.id);
+      const confirmedReservations = await confirmStockReservation(
+        reservationId,
+        session.id,
+      );
+      const expectedReservations = countExpectedCardReservations(items);
+
+      if (
+        expectedReservations > 0 &&
+        confirmedReservations < expectedReservations
+      ) {
+        stockUpdateError = `Reservation stock incomplete : ${confirmedReservations}/${expectedReservations} ligne(s) confirmee(s) pour ${session.id}.`;
+        await sendDiscordErrorNotification({
+          title: "Verification stock apres paiement",
+          message: stockUpdateError,
+          route: "/api/webhooks/stripe",
+        }).catch(() => false);
+      }
     }
 
     await removePurchasedFavorites({
@@ -536,6 +564,7 @@ export async function POST(request: Request) {
         items: items.length,
         sleeves: sleeveItems.length,
         reservationConfirmed: Boolean(reservationId),
+        stockUpdateError,
         favoritesCleanupError,
       });
     }

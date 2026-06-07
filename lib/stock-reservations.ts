@@ -239,17 +239,20 @@ export async function upgradeCartToReserved(
 export async function confirmStockReservation(
   reservationId: string,
   stripeSessionId: string,
-) {
+): Promise<number> {
   const sql = getReservationSql();
 
-  await sql`
+  const confirmed = (await sql`
     UPDATE stock_reservations
     SET status = 'confirmed',
         stripe_session_id = ${stripeSessionId},
         updated_at = now()
     WHERE reservation_id = ${reservationId}
       AND status = 'reserved'
-  `;
+    RETURNING card_id
+  `) as { card_id: string }[];
+
+  return confirmed.length;
 }
 
 export async function releaseStockReservation(reservationId: string) {
