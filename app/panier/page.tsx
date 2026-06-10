@@ -28,6 +28,14 @@ type AppliedPromo =
       source?: "local" | "stripe";
       type: "free_shipping";
       label: string;
+    }
+  | {
+      code: string;
+      source?: "stripe";
+      type: "amount_off";
+      amountOffCents: number;
+      currency: "eur";
+      label: string;
     };
 
 type SleeveProduct = {
@@ -269,6 +277,8 @@ export default function CartPage() {
   const discount =
     appliedPromo?.type === "percent_off"
       ? (promoEligibleSubtotal * appliedPromo.percent) / 100
+      : appliedPromo?.type === "amount_off"
+        ? Math.min(subtotal, appliedPromo.amountOffCents / 100)
       : 0;
 
   const subtotalCents = Math.round(subtotal * 100);
@@ -708,7 +718,9 @@ export default function CartPage() {
         </div>
 
         <div className="mb-3">
-          <label className="text-sm text-gray-300">Code promo</label>
+          <label className="text-sm text-gray-300">
+            Code promo ou bon d'achat
+          </label>
 
           {appliedPromo ? (
             <div className="mt-2 flex items-center gap-3 rounded bg-emerald-500/10 border border-emerald-500/30 px-3 py-2">

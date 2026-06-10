@@ -6,7 +6,7 @@ import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
 import { applyStockOverrides, revalidatePublicStockCache } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
 import { sendDiscordErrorNotification } from "@/lib/discord";
-import { getStripePromotionCode } from "@/lib/stripe-promo";
+import { getStripePromotionCodeMatch } from "@/lib/stripe-promo";
 import { getRequestOrigin } from "@/lib/site-url";
 import { getSleevesByIds } from "@/lib/sleeves";
 import {
@@ -141,20 +141,26 @@ export async function POST(request: Request) {
 
     let promo = null;
     let stripePromotionCodeId: string | null = null;
+    let stripeCustomerId: string | null = null;
 
     if (body.promoCode && body.promoCode.trim()) {
       promo = getPromo(body.promoCode);
 
       if (!promo) {
-        const stripePromotionCode = await getStripePromotionCode(body.promoCode);
-        if (stripePromotionCode) {
-          stripePromotionCodeId = stripePromotionCode.id;
+        const stripePromotionCodeMatch = await getStripePromotionCodeMatch(
+          body.promoCode,
+          sessionUser?.user?.email,
+        );
+        if (stripePromotionCodeMatch) {
+          stripePromotionCodeId =
+            stripePromotionCodeMatch.promotionCode.id;
+          stripeCustomerId = stripePromotionCodeMatch.restrictedCustomerId;
         }
       }
 
       if (!stripePromotionCodeId && !promo) {
         return NextResponse.json(
-          { error: "Code promo invalide." },
+          { error: "Code promo invalide ou reserve a un autre compte." },
           { status: 400 },
         );
       }
@@ -441,6 +447,7 @@ export async function POST(request: Request) {
         success_url: `${origin}/suivi-commande/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/annule`,
         expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
+        ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
         shipping_address_collection: { allowed_countries: [country] },
         phone_number_collection: { enabled: true },
         shipping_options: [relayShippingOption],
