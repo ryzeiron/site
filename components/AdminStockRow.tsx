@@ -27,6 +27,8 @@ type VariantSpec = {
   hidden: boolean;
   fromCatalog: boolean;
   modified: boolean;
+  image?: string;
+  imageBack?: string;
 };
 
 type CardPhotoSide = "front" | "back";
@@ -120,6 +122,7 @@ function buildVariants(card: Card): VariantSpec[] {
 
   return listedVariants.map(({ key, variant }) => {
     const catalogVariant = catalogVariants.get(key);
+    const variantImages = card.variantImages?.[key];
     const condition = variant.condition ?? card.condition;
     const catalogCondition =
       catalogVariant && catalogCard
@@ -134,7 +137,9 @@ function buildVariants(card: Card): VariantSpec[] {
       variant.stock !== catalogVariant.stock ||
       Math.abs(variant.price - catalogVariant.price) > 0.0001 ||
       variant.rarity !== catalogVariant.rarity ||
-      condition !== catalogCondition;
+      condition !== catalogCondition ||
+      Boolean(variantImages?.image) ||
+      Boolean(variantImages?.imageBack);
 
     const rarityLabel = formatRarityLabel(variant.rarity);
     const hasSameRarityWithOtherCondition =
@@ -162,6 +167,8 @@ function buildVariants(card: Card): VariantSpec[] {
       hidden,
       fromCatalog,
       modified,
+      image: variantImages?.image,
+      imageBack: variantImages?.imageBack,
     };
   });
 }
@@ -1006,6 +1013,8 @@ function VariantRow({
             </button>
           ) : null}
 
+          <VariantPhotoButtons card={card} variant={variant} />
+
           <VariantActionButtons
             card={card}
             variant={variant.key}
@@ -1016,6 +1025,130 @@ function VariantRow({
         </div>
       </td>
     </tr>
+  );
+}
+
+function VariantPhotoButtons({
+  card,
+  variant,
+}: {
+  card: Card;
+  variant: VariantSpec;
+}) {
+  const router = useRouter();
+  const [uploadingFront, setUploadingFront] = useState(false);
+  const [uploadingBack, setUploadingBack] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const frontInputId = `variant-photo-front-${card.id}-${variant.key}`;
+  const backInputId = `variant-photo-back-${card.id}-${variant.key}`;
+
+  async function saveVariantImage(url: string, side: CardPhotoSide) {
+    const res = await fetch("/api/admin/stock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cardId: card.id,
+        variant: variant.key,
+        ...(side === "front" ? { image: url } : { imageBack: url }),
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? "Erreur");
+  }
+
+  async function uploadPhoto(file: File | undefined, side: CardPhotoSide) {
+    if (!file) return;
+
+    const setUploading = side === "front" ? setUploadingFront : setUploadingBack;
+    setUploading(true);
+    setError(null);
+
+    try {
+      const compressed = await compressCardPhoto(file);
+      const formData = new FormData();
+      formData.set("cardId", card.id);
+      formData.set("variant", variant.key);
+      formData.set("side", side);
+      formData.set("file", compressed);
+
+      const res = await fetch("/api/admin/card-photo", {
+        method: "POST",
+        body: formData,
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        url?: string;
+        error?: string;
+      };
+
+      if (!res.ok || !data.url) {
+        throw new Error(data.error ?? "Erreur pendant l'envoi.");
+      }
+
+      await saveVariantImage(data.url, side);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur pendant l'envoi.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      <input
+        id={frontInputId}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          void uploadPhoto(e.currentTarget.files?.[0], "front");
+          e.currentTarget.value = "";
+        }}
+      />
+      <input
+        id={backInputId}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          void uploadPhoto(e.currentTarget.files?.[0], "back");
+          e.currentTarget.value = "";
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={() => document.getElementById(frontInputId)?.click()}
+        disabled={uploadingFront || uploadingBack}
+        className={`rounded px-3 py-1.5 text-xs font-medium transition ${
+          variant.image
+            ? "bg-sky-500/20 text-sky-200 hover:bg-sky-500/30"
+            : "bg-white/10 text-white hover:bg-white/20"
+        } disabled:opacity-60`}
+        title={`Photo devant pour ${variant.label}`}
+      >
+        {uploadingFront ? "..." : variant.image ? "Devant OK" : "Devant"}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => document.getElementById(backInputId)?.click()}
+        disabled={uploadingFront || uploadingBack}
+        className={`rounded px-3 py-1.5 text-xs font-medium transition ${
+          variant.imageBack
+            ? "bg-sky-500/20 text-sky-200 hover:bg-sky-500/30"
+            : "bg-white/10 text-white hover:bg-white/20"
+        } disabled:opacity-60`}
+        title={`Photo dos pour ${variant.label}`}
+      >
+        {uploadingBack ? "..." : variant.imageBack ? "Dos OK" : "Dos"}
+      </button>
+
+      {error ? <span className="text-xs text-red-400">{error}</span> : null}
+    </span>
   );
 }
 

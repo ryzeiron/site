@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { put } from "@vercel/blob";
 import { isAdmin } from "@/lib/admin/auth";
-import { getCard } from "@/lib/catalog";
+import { getCard, isValidVariantKey } from "@/lib/catalog";
 
 const MAX_UPLOAD_BYTES = 1024 * 1024;
 
@@ -37,6 +37,7 @@ export async function POST(request: Request) {
 
   const cardId = String(formData.get("cardId") ?? "").trim();
   const side = String(formData.get("side") ?? "").trim();
+  const variant = String(formData.get("variant") ?? "").trim();
   const file = formData.get("file");
   const card = getCard(cardId);
 
@@ -46,6 +47,10 @@ export async function POST(request: Request) {
 
   if (side !== "front" && side !== "back") {
     return NextResponse.json({ error: "Face invalide." }, { status: 400 });
+  }
+
+  if (variant && !isValidVariantKey(variant)) {
+    return NextResponse.json({ error: "Variante invalide." }, { status: 400 });
   }
 
   if (!(file instanceof File)) {
@@ -72,6 +77,7 @@ export async function POST(request: Request) {
       "card-photos",
       cleanPart(card.serieId),
       cleanPart(card.id),
+      variant ? cleanPart(variant) : "card",
       `${side}-${Date.now()}-${randomUUID()}.${ext}`,
     ].join("/");
 

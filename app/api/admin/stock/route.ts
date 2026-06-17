@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { del } from "@vercel/blob";
 import { isAdmin } from "@/lib/admin/auth";
 import {
   getCard,
@@ -23,6 +24,8 @@ type Body = {
   price?: number;
   rarity?: string;
   condition?: string;
+  image?: string | null;
+  imageBack?: string | null;
 };
 
 class AdminStockError extends Error {
@@ -46,6 +49,40 @@ function validateVariantKey(value: unknown) {
   return value;
 }
 
+function cleanImageUrl(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (typeof value !== "string") {
+    throw new AdminStockError("Image invalide");
+  }
+
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  if (trimmed.startsWith("data:")) {
+    throw new AdminStockError("Image invalide");
+  }
+
+  return trimmed;
+}
+
+function isManagedBlobUrl(value: string | null | undefined): value is string {
+  return (
+    typeof value === "string" &&
+    value.includes(".blob.vercel-storage.com/") &&
+    value.includes("/card-photos/")
+  );
+}
+
+async function deleteManagedBlobUrl(value: string | null | undefined) {
+  if (!isManagedBlobUrl(value)) return;
+
+  try {
+    await del(value);
+  } catch {
+    // La photo peut deja avoir ete supprimee depuis Vercel Blob.
+  }
+}
+
 async function saveStockUpdate(body: Body) {
   if (!body.cardId) {
     throw new AdminStockError("Carte manquante");
@@ -57,12 +94,16 @@ async function saveStockUpdate(body: Body) {
   const priceInput = body.price;
   const rarityInput = body.rarity;
   const conditionInput = body.condition;
+  const imageInput = cleanImageUrl(body.image);
+  const imageBackInput = cleanImageUrl(body.imageBack);
   const hasStock = typeof stockInput !== "undefined";
   const hasPrice = typeof priceInput !== "undefined";
   const hasRarity = typeof rarityInput !== "undefined";
   const hasCondition = typeof conditionInput !== "undefined";
+  const hasImage = typeof imageInput !== "undefined";
+  const hasImageBack = typeof imageBackInput !== "undefined";
 
-  if (!hasStock && !hasPrice && !hasRarity && !hasCondition) {
+  if (!hasStock && !hasPrice && !hasRarity && !hasCondition && !hasImage && !hasImageBack) {
     throw new AdminStockError("Aucune modification");
   }
 
@@ -124,6 +165,29 @@ async function saveStockUpdate(body: Body) {
       : null;
   const rarityValue = (hasRarity ? rarityInput : currentRarity) as Rarity;
   const conditionValue = (hasCondition ? conditionInput : currentCondition) as Condition;
+  let previousImages:
+    | { image: string | null; imageBack: string | null }
+    | undefined;
+
+  if (hasImage || hasImageBack) {
+    try {
+      previousImages = (
+        await getDb()
+          .select({
+            image: stockOverrides.image,
+            imageBack: stockOverrides.imageBack,
+          })
+          .from(stockOverrides)
+          .where(and(eq(stockOverrides.cardId, card.id), eq(stockOverrides.variant, variant)))
+          .limit(1)
+      )[0];
+    } catch {
+      throw new AdminStockError(
+        "Colonnes photo manquantes dans la base. Ajoute le SQL fourni.",
+        500,
+      );
+    }
+  }
 
   try {
     await getDb()
@@ -135,6 +199,8 @@ async function saveStockUpdate(body: Body) {
         priceCents: insertPriceCents,
         rarity: rarityValue,
         condition: conditionValue,
+        ...(hasImage ? { image: imageInput } : {}),
+        ...(hasImageBack ? { imageBack: imageBackInput } : {}),
       })
       .onConflictDoUpdate({
         target: [stockOverrides.cardId, stockOverrides.variant],
@@ -143,11 +209,23 @@ async function saveStockUpdate(body: Body) {
           priceCents: hasPrice ? priceCentsValue : sql`${stockOverrides.priceCents}`,
           rarity: hasRarity ? rarityValue : sql`${stockOverrides.rarity}`,
           condition: hasCondition ? conditionValue : sql`${stockOverrides.condition}`,
+          ...(hasImage ? { image: imageInput } : {}),
+          ...(hasImageBack ? { imageBack: imageBackInput } : {}),
           updatedAt: new Date(),
         },
       });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
+
+    if (
+      (hasImage || hasImageBack) &&
+      (message.includes("image") || message.includes("stock_overrides_image"))
+    ) {
+      throw new AdminStockError(
+        "Colonnes photo manquantes dans la base. Ajoute le SQL fourni.",
+        500,
+      );
+    }
 
     if (message.includes("condition") || message.includes("stock_overrides_condition")) {
       await getDb()
@@ -178,6 +256,15 @@ async function saveStockUpdate(body: Body) {
       throw new AdminStockError(message || "Erreur base de donnees", 500);
     }
   }
+
+  await Promise.all([
+    hasImage && imageInput !== previousImages?.image
+      ? deleteManagedBlobUrl(previousImages?.image)
+      : Promise.resolve(),
+    hasImageBack && imageBackInput !== previousImages?.imageBack
+      ? deleteManagedBlobUrl(previousImages?.imageBack)
+      : Promise.resolve(),
+  ]);
 
   const nextStock = hasStock ? stockValue : currentStock;
   let restockNotifications = 0;
@@ -327,9 +414,34 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Carte introuvable" }, { status: 404 });
   }
 
-  await getDb()
+  const db = getDb();
+  let previousImages:
+    | { image: string | null; imageBack: string | null }
+    | undefined;
+
+  try {
+    previousImages = (
+      await db
+        .select({
+          image: stockOverrides.image,
+          imageBack: stockOverrides.imageBack,
+        })
+        .from(stockOverrides)
+        .where(and(eq(stockOverrides.cardId, card.id), eq(stockOverrides.variant, variant)))
+        .limit(1)
+    )[0];
+  } catch {
+    previousImages = undefined;
+  }
+
+  await db
     .delete(stockOverrides)
     .where(and(eq(stockOverrides.cardId, card.id), eq(stockOverrides.variant, variant)));
+
+  await Promise.all([
+    deleteManagedBlobUrl(previousImages?.image),
+    deleteManagedBlobUrl(previousImages?.imageBack),
+  ]);
 
   revalidatePublicStockCache();
 

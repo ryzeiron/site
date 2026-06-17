@@ -78,6 +78,8 @@ export type CardVariant = {
   condition?: Condition;
   price: number;
   stock: number;
+  image?: string;
+  imageBack?: string;
 };
 
 export type NamedVariant = {
@@ -86,6 +88,8 @@ export type NamedVariant = {
   condition?: Condition;
   price: number;
   stock: number;
+  image?: string;
+  imageBack?: string;
 };
 
 export type VariantKey = string; // "base", "alt" ou cle custom
@@ -113,6 +117,7 @@ export type Card = {
   altVariant?: CardVariant; // deuxieme version "alt" (legacy + raccourci)
   extraVariants?: NamedVariant[]; // variantes supplementaires identifiees par cle
   hiddenVariants?: VariantKey[]; // variantes masquees depuis l'admin
+  variantImages?: Partial<Record<VariantKey, { image?: string; imageBack?: string }>>;
 };
 
 export function resolveVariant(card: Card, key: VariantKey = "base"): CardVariant {
@@ -130,12 +135,17 @@ export function resolveVariant(card: Card, key: VariantKey = "base"): CardVarian
       condition: card.condition,
       price: card.price,
       stock: card.stock,
+      image: card.image,
+      imageBack: card.imageBack,
     };
   }
 
+  const variantImage = card.variantImages?.[key];
   const withCondition = {
     ...variant,
     condition: variant.condition ?? card.condition,
+    image: variantImage?.image ?? variant.image ?? card.image,
+    imageBack: variantImage?.imageBack ?? variant.imageBack ?? card.imageBack,
   };
 
   if (isVariantHidden(card, key)) return { ...withCondition, stock: 0 };
@@ -161,6 +171,8 @@ export function listVariants(
         condition: card.condition,
         price: card.price,
         stock: card.stock,
+        image: card.variantImages?.base?.image ?? card.image,
+        imageBack: card.variantImages?.base?.imageBack ?? card.imageBack,
       },
     });
   }
@@ -171,6 +183,11 @@ export function listVariants(
       variant: {
         ...card.altVariant,
         condition: card.altVariant.condition ?? card.condition,
+        image: card.variantImages?.alt?.image ?? card.altVariant.image ?? card.image,
+        imageBack:
+          card.variantImages?.alt?.imageBack ??
+          card.altVariant.imageBack ??
+          card.imageBack,
       },
     });
   }
@@ -185,6 +202,9 @@ export function listVariants(
           condition: v.condition ?? card.condition,
           price: v.price,
           stock: v.stock,
+          image: card.variantImages?.[v.key]?.image ?? v.image ?? card.image,
+          imageBack:
+            card.variantImages?.[v.key]?.imageBack ?? v.imageBack ?? card.imageBack,
         },
       });
     }

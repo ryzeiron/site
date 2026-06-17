@@ -17,6 +17,8 @@ type OverrideData = {
   priceCents: number | null;
   rarity: Rarity | null;
   condition: Condition | null;
+  image: string | null;
+  imageBack: string | null;
 };
 
 type StockOverrideRow = {
@@ -26,6 +28,8 @@ type StockOverrideRow = {
   priceCents: number | null;
   rarity: string | null;
   condition: string | null;
+  image: string | null;
+  imageBack: string | null;
 };
 
 type CardOverrideRow = {
@@ -78,6 +82,8 @@ async function loadStockRows(ids?: string[]): Promise<StockOverrideRow[]> {
           priceCents: stockOverrides.priceCents,
           rarity: stockOverrides.rarity,
           condition: stockOverrides.condition,
+          image: stockOverrides.image,
+          imageBack: stockOverrides.imageBack,
         })
         .from(stockOverrides)
         .where(inArray(stockOverrides.cardId, ids));
@@ -91,9 +97,52 @@ async function loadStockRows(ids?: string[]): Promise<StockOverrideRow[]> {
         priceCents: stockOverrides.priceCents,
         rarity: stockOverrides.rarity,
         condition: stockOverrides.condition,
+        image: stockOverrides.image,
+        imageBack: stockOverrides.imageBack,
       })
       .from(stockOverrides);
   } catch {
+    try {
+      if (ids) {
+        const fallbackRows = await db
+          .select({
+            cardId: stockOverrides.cardId,
+            variant: stockOverrides.variant,
+            stock: stockOverrides.stock,
+            priceCents: stockOverrides.priceCents,
+            rarity: stockOverrides.rarity,
+            condition: stockOverrides.condition,
+          })
+          .from(stockOverrides)
+          .where(inArray(stockOverrides.cardId, ids));
+
+        return fallbackRows.map((row) => ({
+          ...row,
+          image: null,
+          imageBack: null,
+        }));
+      }
+
+      const fallbackRows = await db
+        .select({
+          cardId: stockOverrides.cardId,
+          variant: stockOverrides.variant,
+          stock: stockOverrides.stock,
+          priceCents: stockOverrides.priceCents,
+          rarity: stockOverrides.rarity,
+          condition: stockOverrides.condition,
+        })
+        .from(stockOverrides);
+
+      return fallbackRows.map((row) => ({
+        ...row,
+        image: null,
+        imageBack: null,
+      }));
+    } catch {
+      // Fallback pour les bases qui n'ont pas encore la colonne condition.
+    }
+
     if (ids) {
       const fallbackRows = await db
         .select({
@@ -106,7 +155,12 @@ async function loadStockRows(ids?: string[]): Promise<StockOverrideRow[]> {
         .from(stockOverrides)
         .where(inArray(stockOverrides.cardId, ids));
 
-      return fallbackRows.map((row) => ({ ...row, condition: null }));
+      return fallbackRows.map((row) => ({
+        ...row,
+        condition: null,
+        image: null,
+        imageBack: null,
+      }));
     }
 
     const fallbackRows = await db
@@ -119,7 +173,12 @@ async function loadStockRows(ids?: string[]): Promise<StockOverrideRow[]> {
       })
       .from(stockOverrides);
 
-    return fallbackRows.map((row) => ({ ...row, condition: null }));
+    return fallbackRows.map((row) => ({
+      ...row,
+      condition: null,
+      image: null,
+      imageBack: null,
+    }));
   }
 }
 
@@ -200,7 +259,11 @@ function cleanCachedText(value: string | null, maxLength: number) {
 
 function sanitizeOverrideRowsForCache(data: OverrideRows): OverrideRows {
   return {
-    rows: data.rows,
+    rows: data.rows.map((row) => ({
+      ...row,
+      image: cleanCachedText(row.image, MAX_CACHED_IMAGE_TEXT_LENGTH),
+      imageBack: cleanCachedText(row.imageBack, MAX_CACHED_IMAGE_TEXT_LENGTH),
+    })),
     hiddenRows: data.hiddenRows,
     metaRows: data.metaRows.map((row) => ({
       ...row,
@@ -293,6 +356,8 @@ export async function applyStockOverrides<T extends Card>(
       priceCents: r.priceCents,
       rarity: r.rarity && isRarity(r.rarity) ? r.rarity : null,
       condition: r.condition && isCondition(r.condition) ? r.condition : null,
+      image: r.image,
+      imageBack: r.imageBack,
     });
   }
 
@@ -323,8 +388,22 @@ export async function applyStockOverrides<T extends Card>(
 
     if (!overrides) return next;
 
+    const applyVariantImages = (key: string, ov: OverrideData) => {
+      if (!ov.image && !ov.imageBack) return;
+
+      next.variantImages = {
+        ...(next.variantImages ?? {}),
+        [key]: {
+          ...(next.variantImages?.[key] ?? {}),
+          ...(ov.image ? { image: ov.image } : {}),
+          ...(ov.imageBack ? { imageBack: ov.imageBack } : {}),
+        },
+      };
+    };
+
     const baseOverride = overrides.get("base");
     if (baseOverride) {
+      applyVariantImages("base", baseOverride);
       next.stock = baseOverride.stock;
       if (baseOverride.priceCents !== null) {
         next.price = baseOverride.priceCents / 100;
@@ -339,6 +418,7 @@ export async function applyStockOverrides<T extends Card>(
 
     const altOverride = overrides.get("alt");
     if (altOverride) {
+      applyVariantImages("alt", altOverride);
       if (next.altVariant) {
         next.altVariant = {
           ...next.altVariant,
@@ -367,6 +447,7 @@ export async function applyStockOverrides<T extends Card>(
 
     for (const [key, ov] of overrides.entries()) {
       if (key === "base" || key === "alt") continue;
+      applyVariantImages(key, ov);
 
       const idx = extras.findIndex((x) => x.key === key);
       if (idx >= 0) {

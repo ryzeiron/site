@@ -55,6 +55,7 @@ export default function CardTile({
     return items;
   }, []);
   const price = displayVariant.price;
+  const displayImage = displayVariant.image ?? card.image;
 
   return (
     <div className="card-hover relative overflow-hidden rounded-lg border border-white/10 bg-zinc-900/70 text-gray-200 backdrop-blur-sm md:rounded-xl">
@@ -66,9 +67,9 @@ export default function CardTile({
 
       <Link href={`/carte/${card.id}`} className="block">
         <div className="relative aspect-[3/4] bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center text-gray-300 font-semibold overflow-hidden">
-          {card.image ? (
+          {displayImage ? (
             <CardImage
-              src={card.image}
+              src={displayImage}
               alt={card.name}
               className={`w-full h-full object-contain ${
                 outOfStock ? "opacity-40 grayscale" : ""

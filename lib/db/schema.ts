@@ -42,6 +42,8 @@ export const stockOverrides = pgTable(
     priceCents: integer("price_cents"),
     rarity: text("rarity"),
     condition: text("condition"),
+    image: text("image"),
+    imageBack: text("image_back"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.cardId, t.variant] })],

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CardImage from "@/components/CardImage";
 import ConditionBadge from "@/components/ConditionBadge";
 import FavoriteCardButton from "@/components/FavoriteCardButton";
@@ -89,6 +89,11 @@ function VariantBlock({
 
 export default function CardDetailBody({ card }: { card: Card }) {
   const variants = orderDisplayVariants(card);
+  const [selectedVariantKey, setSelectedVariantKey] = useState<VariantKey>(
+    variants[0]?.key ?? "base",
+  );
+  const selectedVariant =
+    variants.find(({ key }) => key === selectedVariantKey) ?? variants[0];
   const allOutOfStock =
     variants.length === 0 || variants.every((v) => v.variant.stock <= 0);
   const prices = variants.map(({ variant }) => variant.price);
@@ -104,12 +109,28 @@ export default function CardDetailBody({ card }: { card: Card }) {
         ? "sm:grid-cols-2"
         : "sm:grid-cols-2 lg:grid-cols-3";
 
-  const images = [card.image, card.imageBack].filter(
+  const selectedImageVariant = selectedVariant?.variant ?? resolveVariant(card, "base");
+  const images = [
+    selectedImageVariant.image ?? card.image,
+    selectedImageVariant.imageBack ?? card.imageBack,
+  ].filter(
     (s): s is string => !!s,
   );
   const [imageIndex, setImageIndex] = useState(0);
   const hasMultipleImages = images.length > 1;
-  const currentImage = images[imageIndex] ?? card.image;
+  const currentImage = images[imageIndex] ?? selectedImageVariant.image ?? card.image;
+  const selectedVariantLabel = selectedVariant
+    ? formatRarityLabel(selectedVariant.variant.rarity)
+    : formatRarityLabel(card.rarity);
+
+  useEffect(() => {
+    setImageIndex(0);
+  }, [selectedVariantKey]);
+
+  function moveImage(direction: -1 | 1) {
+    if (images.length <= 1) return;
+    setImageIndex((index) => (index + direction + images.length) % images.length);
+  }
 
   return (
     <div className="mt-4 grid grid-cols-1 gap-5 lg:mt-6 lg:grid-cols-[minmax(18rem,26rem)_1fr] lg:items-start lg:gap-8">
@@ -118,7 +139,7 @@ export default function CardDetailBody({ card }: { card: Card }) {
           {currentImage ? (
             <CardImage
               src={currentImage}
-              alt={`${card.name}${imageIndex === 1 ? " (dos)" : ""}`}
+              alt={`${card.name} - ${selectedVariantLabel}`}
               className={`h-full w-full object-contain ${
                 allOutOfStock ? "opacity-40 grayscale" : ""
               }`}
@@ -131,6 +152,31 @@ export default function CardDetailBody({ card }: { card: Card }) {
             </span>
           )}
 
+          <div className="absolute left-3 top-3 rounded-full bg-black/65 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+            {selectedVariantLabel}
+          </div>
+
+          {hasMultipleImages ? (
+            <>
+              <button
+                type="button"
+                onClick={() => moveImage(-1)}
+                className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-2xl font-bold text-white shadow-lg transition hover:bg-black/75"
+                aria-label="Photo precedente"
+              >
+                {"<"}
+              </button>
+              <button
+                type="button"
+                onClick={() => moveImage(1)}
+                className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-2xl font-bold text-white shadow-lg transition hover:bg-black/75"
+                aria-label="Photo suivante"
+              >
+                {">"}
+              </button>
+            </>
+          ) : null}
+
           {allOutOfStock && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <span className="rounded-full bg-red-600 text-white text-base font-bold uppercase tracking-wider px-6 py-2 shadow-lg -rotate-12 border-2 border-white/90">
@@ -140,20 +186,20 @@ export default function CardDetailBody({ card }: { card: Card }) {
           )}
         </div>
 
-        {hasMultipleImages ? (
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {images.map((image, index) => (
+        {variants.length > 1 ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {variants.map(({ key, variant }) => (
               <button
-                key={image}
+                key={key}
                 type="button"
-                onClick={() => setImageIndex(index)}
+                onClick={() => setSelectedVariantKey(key)}
                 className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                  imageIndex === index
+                  selectedVariantKey === key
                     ? "border-violet-300 bg-violet-500/20 text-white"
                     : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
                 }`}
               >
-                {index === 0 ? "Devant" : "Dos"}
+                {formatRarityLabel(variant.rarity)}
               </button>
             ))}
           </div>
