@@ -156,6 +156,7 @@ export const sleeveOverrides = pgTable("sleeve_overrides", {
   priceCents: integer("price_cents").notNull().default(0),
   stock: integer("stock").notNull().default(0),
   active: boolean("active").notNull().default(true),
+  image: text("image"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

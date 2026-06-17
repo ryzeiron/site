@@ -1,6 +1,6 @@
 import "server-only";
 
-import { eq, inArray, sql } from "drizzle-orm";
+import { inArray, sql } from "drizzle-orm";
 import { revalidateTag, unstable_cache } from "next/cache";
 import {
   getCatalogSleeve,
@@ -39,7 +39,7 @@ function toSleeveProduct(
     id: sleeve.id,
     name: sleeve.name,
     description: sleeve.description ?? null,
-    image: sleeve.image ?? null,
+    image: override?.image ?? sleeve.image ?? null,
     priceCents: override?.priceCents ?? sleeve.defaultPriceCents,
     stock: override?.stock ?? sleeve.defaultStock,
     active: override?.active ?? sleeve.active ?? true,
@@ -47,26 +47,40 @@ function toSleeveProduct(
   };
 }
 
+function withIds<T>(query: T, ids?: string[]) {
+  if (!ids) return query;
+  return (query as { where: (condition: unknown) => T }).where(
+    inArray(sleeveOverrides.sleeveId, ids),
+  );
+}
+
 async function getOverrideRows(ids?: string[]) {
   if (ids && ids.length === 0) return [];
 
   try {
-    if (ids) {
-      return await getDb()
-        .select()
-        .from(sleeveOverrides)
-        .where(inArray(sleeveOverrides.sleeveId, ids));
-    }
-
-    return await getDb().select().from(sleeveOverrides);
+    return await withIds(getDb().select().from(sleeveOverrides), ids);
   } catch {
-    return [];
+    try {
+      const query = getDb()
+        .select({
+          sleeveId: sleeveOverrides.sleeveId,
+          priceCents: sleeveOverrides.priceCents,
+          stock: sleeveOverrides.stock,
+          active: sleeveOverrides.active,
+          updatedAt: sleeveOverrides.updatedAt,
+        })
+        .from(sleeveOverrides);
+      const rows = await withIds(query, ids);
+      return rows.map((row) => ({ ...row, image: null })) as SleeveOverride[];
+    } catch {
+      return [];
+    }
   }
 }
 
 const getCachedSleeveOverrideRows = unstable_cache(
   () => getOverrideRows(),
-  ["public-sleeve-overrides-v1"],
+  ["public-sleeve-overrides-v2"],
   {
     revalidate: PUBLIC_SLEEVE_CACHE_SECONDS,
     tags: [PUBLIC_SLEEVE_CACHE_TAG],
@@ -128,11 +142,7 @@ export async function decrementSleeveStock(
     const catalogSleeve = getCatalogSleeve(item.sleeveId);
     if (!catalogSleeve) continue;
 
-    const [existing] = await db
-      .select()
-      .from(sleeveOverrides)
-      .where(eq(sleeveOverrides.sleeveId, item.sleeveId))
-      .limit(1);
+    const [existing] = await getOverrideRows([item.sleeveId]);
 
     const currentStock = existing?.stock ?? catalogSleeve.defaultStock;
     const nextStock = Math.max(0, currentStock - item.quantity);
