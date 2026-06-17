@@ -29,6 +29,51 @@ type VariantSpec = {
   modified: boolean;
 };
 
+type CardPhotoSide = "front" | "back";
+
+async function compressCardPhoto(file: File): Promise<File> {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Choisis une image.");
+  }
+
+  const imageUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Impossible de lire la photo."));
+      img.src = imageUrl;
+    });
+
+    const maxSize = 1600;
+    const ratio = Math.min(
+      1,
+      maxSize / Math.max(image.naturalWidth, image.naturalHeight),
+    );
+    const width = Math.max(1, Math.round(image.naturalWidth * ratio));
+    const height = Math.max(1, Math.round(image.naturalHeight * ratio));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Compression impossible.");
+
+    ctx.drawImage(image, 0, 0, width, height);
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/webp", 0.86);
+    });
+
+    if (!blob) throw new Error("Compression impossible.");
+
+    return new File([blob], "photo-carte.webp", { type: "image/webp" });
+  } finally {
+    URL.revokeObjectURL(imageUrl);
+  }
+}
+
 function buildVariants(card: Card): VariantSpec[] {
   const catalogCard = getCard(card.id);
   const catalogVariants = new Map(
@@ -252,6 +297,8 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
   const [description, setDescription] = useState(card.description ?? "");
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [uploadingFront, setUploadingFront] = useState(false);
+  const [uploadingBack, setUploadingBack] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const changed =
@@ -290,6 +337,68 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
       setError(e instanceof Error ? e.message : "Erreur");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveMeta(nextImage: string, nextImageBack: string) {
+    const res = await fetch("/api/admin/card", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cardId: card.id,
+        name,
+        image: nextImage,
+        imageBack: nextImageBack,
+        description,
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? "Erreur");
+  }
+
+  async function uploadPhoto(file: File | undefined, side: CardPhotoSide) {
+    if (!file) return;
+
+    const setUploading = side === "front" ? setUploadingFront : setUploadingBack;
+    setUploading(true);
+    setError(null);
+
+    try {
+      const compressed = await compressCardPhoto(file);
+      const formData = new FormData();
+      formData.set("cardId", card.id);
+      formData.set("side", side);
+      formData.set("file", compressed);
+
+      const res = await fetch("/api/admin/card-photo", {
+        method: "POST",
+        body: formData,
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        url?: string;
+        error?: string;
+      };
+
+      if (!res.ok || !data.url) {
+        throw new Error(data.error ?? "Erreur pendant l'envoi.");
+      }
+
+      const nextImage = side === "front" ? data.url : image;
+      const nextImageBack = side === "back" ? data.url : imageBack;
+
+      if (side === "front") {
+        setImage(data.url);
+      } else {
+        setImageBack(data.url);
+      }
+
+      await saveMeta(nextImage, nextImageBack);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur pendant l'envoi.");
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -348,6 +457,31 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
             placeholder="/cartes/serie/numero.webp"
             className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
           />
+          <input
+            id={`photo-front-${card.id}`}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              void uploadPhoto(e.currentTarget.files?.[0], "front");
+              e.currentTarget.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() =>
+              document.getElementById(`photo-front-${card.id}`)?.click()
+            }
+            disabled={uploadingFront}
+            className={`mt-2 inline-flex rounded px-3 py-2 text-xs font-medium transition ${
+              uploadingFront
+                ? "bg-white/10 text-gray-400"
+                : "bg-violet-600 text-white hover:bg-violet-700"
+            }`}
+          >
+            {uploadingFront ? "Envoi..." : "Photo devant"}
+          </button>
         </label>
 
         <label className="text-sm">
@@ -359,6 +493,31 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
             placeholder="/cartes/serie/numero-dos.webp"
             className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
           />
+          <input
+            id={`photo-back-${card.id}`}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              void uploadPhoto(e.currentTarget.files?.[0], "back");
+              e.currentTarget.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() =>
+              document.getElementById(`photo-back-${card.id}`)?.click()
+            }
+            disabled={uploadingBack}
+            className={`mt-2 inline-flex rounded px-3 py-2 text-xs font-medium transition ${
+              uploadingBack
+                ? "bg-white/10 text-gray-400"
+                : "bg-violet-600 text-white hover:bg-violet-700"
+            }`}
+          >
+            {uploadingBack ? "Envoi..." : "Photo dos"}
+          </button>
         </label>
 
         <label className="text-sm">
