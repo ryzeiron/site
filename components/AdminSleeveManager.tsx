@@ -173,7 +173,7 @@ function SleeveEditor({ product }: { product: SleeveProduct }) {
               step="0.01"
               value={form.price}
               onChange={(e) => update({ price: e.target.value })}
-              className="w-32 rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+              className="h-11 w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-base text-white sm:w-32 sm:text-sm"
             />
             <span className="text-sm text-gray-400">€</span>
           </div>
@@ -186,17 +186,17 @@ function SleeveEditor({ product }: { product: SleeveProduct }) {
             min={0}
             value={form.stock}
             onChange={(e) => update({ stock: e.target.value })}
-            className="w-32 rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+            className="h-11 w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-base text-white sm:w-32 sm:text-sm"
           />
         </label>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap sm:items-center">
         <button
           type="button"
           onClick={save}
           disabled={!canSave || saving}
-          className={`rounded px-4 py-2 text-sm font-medium transition ${
+          className={`rounded px-4 py-3 text-sm font-medium transition sm:py-2 ${
             saved
               ? "bg-emerald-500 text-white"
               : canSave
@@ -212,7 +212,7 @@ function SleeveEditor({ product }: { product: SleeveProduct }) {
             type="button"
             onClick={resetOverride}
             disabled={resetting}
-            className="rounded bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20 disabled:opacity-60"
+            className="rounded bg-white/10 px-4 py-3 text-sm font-medium text-white hover:bg-white/20 disabled:opacity-60 sm:py-2"
           >
             {resetting ? "..." : "Réinitialiser"}
           </button>

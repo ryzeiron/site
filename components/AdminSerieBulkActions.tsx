@@ -163,13 +163,13 @@ export default function AdminSerieBulkActions({
             Ajouter une variante
           </div>
 
-          <div className="flex flex-wrap items-end gap-3">
+          <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-end">
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-xs text-gray-400">Rareté</span>
               <select
                 value={rarity}
                 onChange={(e) => setRarity(e.target.value as Rarity)}
-                className="rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
+                className="h-11 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
               >
                 {RARITIES.map((value) => (
                   <option key={value} value={value}>
@@ -184,7 +184,7 @@ export default function AdminSerieBulkActions({
               <select
                 value={condition}
                 onChange={(e) => setCondition(e.target.value as Condition)}
-                className="rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
+                className="h-11 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
               >
                 {CONDITIONS.map((value) => (
                   <option key={value} value={value}>
@@ -203,13 +203,13 @@ export default function AdminSerieBulkActions({
                   step="0.01"
                   value={priceValue}
                   onChange={(e) => setPriceValue(e.target.value)}
-                  className="w-28 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
+                  className="h-11 w-full rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white sm:w-28"
                 />
                 <span className="text-sm text-gray-400">EUR</span>
               </div>
             </label>
 
-            <label className="flex items-center gap-2 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-gray-200">
+            <label className="flex min-h-11 items-center gap-2 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-gray-200">
               <input
                 type="checkbox"
                 checked={updateExistingPrice}
@@ -223,7 +223,7 @@ export default function AdminSerieBulkActions({
               type="button"
               onClick={applyPrice}
               disabled={!canSavePrice || busy}
-              className={`rounded px-4 py-2 text-sm font-medium transition ${
+              className={`rounded px-4 py-3 text-sm font-medium transition sm:py-2 ${
                 canSavePrice && !busy
                   ? "bg-brand-500 text-white hover:bg-brand-600"
                   : "cursor-not-allowed bg-white/10 text-gray-400"
@@ -244,7 +244,7 @@ export default function AdminSerieBulkActions({
             Changer X par Y
           </div>
 
-          <div className="flex flex-wrap items-end gap-3">
+          <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-end">
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-xs text-gray-400">Changer</span>
               <select
@@ -256,7 +256,7 @@ export default function AdminSerieBulkActions({
                       : (e.target.value as Rarity),
                   )
                 }
-                className="rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
+                className="h-11 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
               >
                 <option value="all">Toutes les raretés</option>
                 {RARITIES.map((value) => (
@@ -272,7 +272,7 @@ export default function AdminSerieBulkActions({
               <select
                 value={replacementRarity}
                 onChange={(e) => setReplacementRarity(e.target.value as Rarity)}
-                className="rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
+                className="h-11 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
               >
                 {RARITIES.map((value) => (
                   <option key={value} value={value}>
@@ -286,7 +286,7 @@ export default function AdminSerieBulkActions({
               type="button"
               onClick={replaceRarities}
               disabled={!canReplaceRarity || busy}
-              className={`rounded px-4 py-2 text-sm font-medium transition ${
+              className={`rounded px-4 py-3 text-sm font-medium transition sm:py-2 ${
                 canReplaceRarity && !busy
                   ? "bg-violet-600 text-white hover:bg-violet-700"
                   : "cursor-not-allowed bg-white/10 text-gray-400"

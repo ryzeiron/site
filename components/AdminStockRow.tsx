@@ -283,7 +283,18 @@ export default function AdminStockRow({ card }: { card: Card }) {
         </div>
       ) : null}
 
-      <div className="overflow-x-auto">
+      <div className="space-y-3 p-3 md:hidden">
+        {variants.map((variant) => (
+          <VariantEditor
+            key={`mobile-${variant.key}`}
+            card={card}
+            variant={variant}
+            layout="mobile"
+          />
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[980px] text-left text-sm">
           <thead className="bg-black/20 text-xs uppercase tracking-[0.14em] text-gray-500">
             <tr>
@@ -299,10 +310,11 @@ export default function AdminStockRow({ card }: { card: Card }) {
           </thead>
           <tbody className="divide-y divide-white/10">
             {variants.map((variant, index) => (
-              <VariantRow
-                key={variant.key}
+              <VariantEditor
+                key={`table-${variant.key}`}
                 card={card}
                 variant={variant}
+                layout="table"
                 showCardCell={index === 0}
                 cardRowSpan={variants.length}
               />
@@ -762,16 +774,18 @@ function submittedUpdateMatchesVariant(update: PendingStockUpdate, variant: Vari
   return stockMatches && priceMatches && rarityMatches && conditionMatches;
 }
 
-function VariantRow({
+function VariantEditor({
   card,
   variant,
-  showCardCell,
-  cardRowSpan,
+  layout,
+  showCardCell = false,
+  cardRowSpan = 1,
 }: {
   card: Card;
   variant: VariantSpec;
-  showCardCell: boolean;
-  cardRowSpan: number;
+  layout: "mobile" | "table";
+  showCardCell?: boolean;
+  cardRowSpan?: number;
 }) {
   const {
     getPendingUpdate,
@@ -855,6 +869,20 @@ function VariantRow({
     syncPendingUpdate(draft);
   }
 
+  function resetDraft() {
+    setRarityValue(variant.rarity);
+    setConditionValue(variant.condition);
+    setStockValue(String(variant.stock));
+    setPriceValue(String(variant.price));
+    clearPendingUpdate(card.id, variant.key);
+  }
+
+  function adjustStock(delta: number) {
+    const current = Number.parseInt(stockValue, 10);
+    const base = Number.isInteger(current) ? current : variant.stock;
+    updateDraft({ stockValue: String(Math.max(0, base + delta)) });
+  }
+
   useEffect(() => {
     if (submittedUpdate && submittedUpdateMatchesVariant(submittedUpdate, variant)) {
       clearSubmittedUpdate(card.id, variant.key);
@@ -889,6 +917,199 @@ function VariantRow({
   const hasChanges =
     stockChanged || priceChanged || rarityChanged || conditionChanged;
   const pendingValid = hasChanges && stockValid && priceValid;
+
+  if (layout === "mobile") {
+    return (
+      <section
+        className={`rounded-xl border p-3 ${
+          variant.hidden
+            ? "border-amber-300/25 bg-amber-950/10"
+            : "border-white/10 bg-zinc-950/70"
+        }`}
+      >
+        <div className="flex gap-3">
+          <div className="relative h-20 w-14 shrink-0 overflow-hidden rounded border border-white/10 bg-zinc-950">
+            {variant.image ?? card.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={variant.image ?? card.image}
+                alt={card.name}
+                className="h-full w-full object-contain"
+              />
+            ) : null}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-violet-500/20 px-2 py-1 text-xs font-semibold text-violet-100">
+                {variant.label}
+              </span>
+              <span className={`rounded-full border px-2 py-1 text-xs font-medium ${stockBadgeClass(currentStock, variant.hidden)}`}>
+                {stockLabel(currentStock, variant.hidden)}
+              </span>
+              {pendingValid ? (
+                <span className="rounded-full bg-violet-600 px-2 py-1 text-xs font-medium text-white">
+                  En attente
+                </span>
+              ) : null}
+              {waitingForServer ? (
+                <span className="rounded-full bg-emerald-500/20 px-2 py-1 text-xs font-medium text-emerald-200">
+                  Envoyee
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-2 truncate text-sm font-semibold text-white">
+              {card.name}
+            </div>
+            <div className="mt-0.5 font-mono text-xs text-gray-500">
+              {card.number} - {variant.key}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 grid gap-3">
+          <label className="text-sm">
+            <span className="mb-1 block text-xs font-medium text-gray-400">
+              Rarete
+            </span>
+            <select
+              value={rarityValue}
+              onChange={(e) => updateDraft({ rarityValue: e.target.value })}
+              disabled={waitingForServer}
+              className="h-11 w-full rounded-lg border border-white/10 bg-zinc-950 px-3 text-base text-white"
+            >
+              {RARITIES.map((r) => (
+                <option key={r} value={r}>
+                  {formatRarityLabel(r)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-sm">
+            <span className="mb-1 block text-xs font-medium text-gray-400">
+              Etat
+            </span>
+            <select
+              value={conditionValue}
+              onChange={(e) =>
+                updateDraft({ conditionValue: e.target.value as Condition })
+              }
+              disabled={waitingForServer}
+              className="h-11 w-full rounded-lg border border-white/10 bg-zinc-950 px-3 text-base text-white"
+            >
+              {CONDITIONS.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-sm">
+              <span className="mb-1 block text-xs font-medium text-gray-400">
+                Stock
+              </span>
+              <div className="grid h-11 grid-cols-[2.75rem_1fr_2.75rem] overflow-hidden rounded-lg border border-white/10 bg-zinc-950">
+                <button
+                  type="button"
+                  onClick={() => adjustStock(-1)}
+                  disabled={waitingForServer}
+                  className="border-r border-white/10 text-lg font-bold text-white disabled:opacity-40"
+                  aria-label="Retirer 1 stock"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  value={stockValue}
+                  onChange={(e) => updateDraft({ stockValue: e.target.value })}
+                  disabled={waitingForServer}
+                  className="min-w-0 bg-transparent px-2 text-center text-base font-semibold text-white outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => adjustStock(1)}
+                  disabled={waitingForServer}
+                  className="border-l border-white/10 text-lg font-bold text-white disabled:opacity-40"
+                  aria-label="Ajouter 1 stock"
+                >
+                  +
+                </button>
+              </div>
+              {!stockValid ? (
+                <div className="mt-1 text-xs text-red-300">Stock invalide</div>
+              ) : null}
+            </label>
+
+            <label className="text-sm">
+              <span className="mb-1 block text-xs font-medium text-gray-400">
+                Prix
+              </span>
+              <div className="flex h-11 items-center rounded-lg border border-white/10 bg-zinc-950 px-3">
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={priceValue}
+                  onChange={(e) => updateDraft({ priceValue: e.target.value })}
+                  disabled={waitingForServer}
+                  className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none"
+                />
+                <span className="ml-2 text-sm text-gray-400">EUR</span>
+              </div>
+              {!priceValid ? (
+                <div className="mt-1 text-xs text-red-300">Prix invalide</div>
+              ) : null}
+            </label>
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {variant.modified ? (
+            <span className="rounded-full border border-fuchsia-300/30 bg-fuchsia-500/15 px-2.5 py-1 text-xs font-medium text-fuchsia-200">
+              Modifiee
+            </span>
+          ) : null}
+
+          {hasChanges && !pendingValid && !waitingForServer ? (
+            <span className="rounded-full bg-red-500/20 px-2.5 py-1 text-xs font-medium text-red-200">
+              Corrige avant envoi
+            </span>
+          ) : null}
+
+          {hasChanges && !waitingForServer ? (
+            <button
+              type="button"
+              onClick={resetDraft}
+              className="rounded-lg bg-white/10 px-3 py-2 text-xs font-medium text-white hover:bg-white/20"
+            >
+              Annuler
+            </button>
+          ) : null}
+
+          <VariantPhotoButtons
+            card={card}
+            variant={variant}
+            inputScope="mobile"
+          />
+
+          <VariantActionButtons
+            card={card}
+            variant={variant.key}
+            label={variant.label}
+            hidden={variant.hidden}
+            fromCatalog={variant.fromCatalog}
+          />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <tr className={`${variant.hidden ? "bg-amber-950/10" : ""} align-top`}>
@@ -1000,20 +1221,18 @@ function VariantRow({
           {hasChanges && !waitingForServer ? (
             <button
               type="button"
-              onClick={() => {
-                setRarityValue(variant.rarity);
-                setConditionValue(variant.condition);
-                setStockValue(String(variant.stock));
-                setPriceValue(String(variant.price));
-                clearPendingUpdate(card.id, variant.key);
-              }}
+              onClick={resetDraft}
               className="rounded bg-white/10 px-3 py-1.5 text-xs text-white hover:bg-white/20"
             >
               Annuler
             </button>
           ) : null}
 
-          <VariantPhotoButtons card={card} variant={variant} />
+          <VariantPhotoButtons
+            card={card}
+            variant={variant}
+            inputScope="table"
+          />
 
           <VariantActionButtons
             card={card}
@@ -1031,16 +1250,18 @@ function VariantRow({
 function VariantPhotoButtons({
   card,
   variant,
+  inputScope,
 }: {
   card: Card;
   variant: VariantSpec;
+  inputScope: "mobile" | "table";
 }) {
   const router = useRouter();
   const [uploadingFront, setUploadingFront] = useState(false);
   const [uploadingBack, setUploadingBack] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const frontInputId = `variant-photo-front-${card.id}-${variant.key}`;
-  const backInputId = `variant-photo-back-${card.id}-${variant.key}`;
+  const frontInputId = `variant-photo-front-${inputScope}-${card.id}-${variant.key}`;
+  const backInputId = `variant-photo-back-${inputScope}-${card.id}-${variant.key}`;
 
   async function saveVariantImage(url: string, side: CardPhotoSide) {
     const res = await fetch("/api/admin/stock", {

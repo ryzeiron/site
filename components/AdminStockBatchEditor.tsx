@@ -27,7 +27,7 @@ function AdminStockBatchToolbar() {
   const hiddenCount = Math.max(0, pendingCount - preview.length);
 
   return (
-    <div className="sticky top-3 z-20 mb-4 rounded-2xl border border-violet-500/25 bg-slate-950/95 p-4 shadow-2xl shadow-black/30 backdrop-blur">
+    <div className="sticky top-2 z-20 mb-4 rounded-2xl border border-violet-500/25 bg-slate-950/95 p-3 shadow-2xl shadow-black/30 backdrop-blur sm:p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-sm font-semibold text-white">
@@ -41,7 +41,7 @@ function AdminStockBatchToolbar() {
             Les lignes modifiees seront envoyees ensemble, avec une seule mise a jour du cache.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:flex sm:flex-wrap">
           <button
             type="button"
             onClick={discardAll}

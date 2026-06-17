@@ -556,10 +556,10 @@ export default async function AdminPage({
     adminHref({ serieId, query, rarity, quick, page });
 
   return (
-    <div className="py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="px-3 py-4 sm:px-0 sm:py-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-white sm:text-3xl">
             Admin - Stocks & prix
           </h1>
           <p className="text-sm text-gray-400 mt-1">
@@ -573,11 +573,11 @@ export default async function AdminPage({
 
       <AdminCatalogTabs active="cards" cardsCount={totalCards} />
 
-      <form className="flex flex-wrap gap-3 mb-6" action="/admin">
+      <form className="mb-6 grid gap-3 sm:flex sm:flex-wrap" action="/admin">
         <select
           name="serie"
           defaultValue={serieId}
-          className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
+          className="w-full rounded border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white sm:w-auto"
         >
           <option value="">-- Toutes les séries --</option>
           {serieGroups.map((group) => (
@@ -596,13 +596,13 @@ export default async function AdminPage({
           name="q"
           defaultValue={query}
           placeholder="Rechercher dans les séries"
-          className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
+          className="w-full rounded border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white sm:w-auto"
         />
 
         <select
           name="rarity"
           defaultValue={rarity}
-          className="rounded bg-zinc-900 border border-white/10 text-white px-3 py-2 text-sm"
+          className="w-full rounded border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white sm:w-auto"
         >
           <option value="">-- Toutes les raretés --</option>
           {RARITIES.map((r) => (
@@ -616,7 +616,7 @@ export default async function AdminPage({
 
         <button
           type="submit"
-          className="rounded bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 text-sm font-medium"
+          className="rounded bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
         >
           Filtrer
         </button>
@@ -624,7 +624,7 @@ export default async function AdminPage({
         {(serieId || query || rarity || quick) && (
           <Link
             href="/admin"
-            className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+            className="rounded bg-white/10 px-4 py-2 text-center text-sm text-white hover:bg-white/20 sm:w-auto"
           >
             Reset
           </Link>
@@ -632,35 +632,35 @@ export default async function AdminPage({
 
         <Link
           href="/admin/modifications"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+          className="rounded bg-white/10 px-4 py-2 text-center text-sm text-white hover:bg-white/20 sm:w-auto"
         >
           Modifications
         </Link>
 
         <Link
           href="/admin/commandes"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+          className="rounded bg-white/10 px-4 py-2 text-center text-sm text-white hover:bg-white/20 sm:w-auto"
         >
           Commandes
         </Link>
 
         <Link
           href="/admin/clients"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+          className="rounded bg-white/10 px-4 py-2 text-center text-sm text-white hover:bg-white/20 sm:w-auto"
         >
           Clients
         </Link>
 
         <Link
           href="/admin/favoris"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+          className="rounded bg-white/10 px-4 py-2 text-center text-sm text-white hover:bg-white/20 sm:w-auto"
         >
           Favoris
         </Link>
 
         <Link
           href="/admin/avis"
-          className="rounded bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm"
+          className="rounded bg-white/10 px-4 py-2 text-center text-sm text-white hover:bg-white/20 sm:w-auto"
         >
           Avis
         </Link>
