@@ -4,7 +4,7 @@ import { put } from "@vercel/blob";
 import { isAdmin } from "@/lib/admin/auth";
 import { getCard } from "@/lib/catalog";
 
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 1024 * 1024;
 
 function cleanPart(value: string) {
   return value
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
   if (file.size > MAX_UPLOAD_BYTES) {
     return NextResponse.json(
-      { error: "Photo trop lourde. Reessaie avec une image plus legere." },
+      { error: "Photo trop lourde. Recadre-la puis reessaie." },
       { status: 400 },
     );
   }

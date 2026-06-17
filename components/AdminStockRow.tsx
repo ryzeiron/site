@@ -31,6 +31,11 @@ type VariantSpec = {
 
 type CardPhotoSide = "front" | "back";
 
+const PHOTO_TARGET_BYTES = 450 * 1024;
+const PHOTO_MAX_BYTES = 1024 * 1024;
+const PHOTO_SIZES = [1100, 1000, 900, 800];
+const PHOTO_QUALITIES = [0.78, 0.68, 0.58, 0.48];
+
 async function compressCardPhoto(file: File): Promise<File> {
   if (!file.type.startsWith("image/")) {
     throw new Error("Choisis une image.");
@@ -46,29 +51,48 @@ async function compressCardPhoto(file: File): Promise<File> {
       img.src = imageUrl;
     });
 
-    const maxSize = 1600;
-    const ratio = Math.min(
-      1,
-      maxSize / Math.max(image.naturalWidth, image.naturalHeight),
-    );
-    const width = Math.max(1, Math.round(image.naturalWidth * ratio));
-    const height = Math.max(1, Math.round(image.naturalHeight * ratio));
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
+    let bestBlob: Blob | null = null;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Compression impossible.");
+    for (const maxSize of PHOTO_SIZES) {
+      const ratio = Math.min(
+        1,
+        maxSize / Math.max(image.naturalWidth, image.naturalHeight),
+      );
+      const width = Math.max(1, Math.round(image.naturalWidth * ratio));
+      const height = Math.max(1, Math.round(image.naturalHeight * ratio));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
 
-    ctx.drawImage(image, 0, 0, width, height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Compression impossible.");
 
-    const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, "image/webp", 0.86);
-    });
+      ctx.drawImage(image, 0, 0, width, height);
 
-    if (!blob) throw new Error("Compression impossible.");
+      for (const quality of PHOTO_QUALITIES) {
+        const blob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob(resolve, "image/webp", quality);
+        });
 
-    return new File([blob], "photo-carte.webp", { type: "image/webp" });
+        if (!blob) throw new Error("Compression impossible.");
+
+        if (!bestBlob || blob.size < bestBlob.size) {
+          bestBlob = blob;
+        }
+
+        if (blob.size <= PHOTO_TARGET_BYTES) {
+          return new File([blob], "photo-carte.webp", { type: "image/webp" });
+        }
+      }
+    }
+
+    if (!bestBlob) throw new Error("Compression impossible.");
+
+    if (bestBlob.size > PHOTO_MAX_BYTES) {
+      throw new Error("Photo encore trop lourde. Recadre-la puis reessaie.");
+    }
+
+    return new File([bestBlob], "photo-carte.webp", { type: "image/webp" });
   } finally {
     URL.revokeObjectURL(imageUrl);
   }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { del } from "@vercel/blob";
 import { isAdmin } from "@/lib/admin/auth";
 import { getCard, isCondition } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
@@ -40,6 +41,24 @@ function cleanCondition(v: unknown): string | null | undefined {
   if (trimmed === "") return null;
 
   return isCondition(trimmed) ? trimmed : undefined;
+}
+
+function isManagedBlobUrl(value: string | null | undefined): value is string {
+  return (
+    typeof value === "string" &&
+    value.includes(".blob.vercel-storage.com/") &&
+    value.includes("/card-photos/")
+  );
+}
+
+async function deleteManagedBlobUrl(value: string | null | undefined) {
+  if (!isManagedBlobUrl(value)) return;
+
+  try {
+    await del(value);
+  } catch {
+    // La photo peut deja avoir ete supprimee depuis Vercel Blob.
+  }
 }
 
 export async function POST(request: Request) {
@@ -85,8 +104,20 @@ export async function POST(request: Request) {
     );
   }
 
+  const db = getDb();
+  let previous: { image: string | null; imageBack: string | null } | undefined;
+
   try {
-    const db = getDb();
+    previous = (
+      await db
+        .select({
+          image: cardOverrides.image,
+          imageBack: cardOverrides.imageBack,
+        })
+        .from(cardOverrides)
+        .where(eq(cardOverrides.cardId, cardId))
+        .limit(1)
+    )[0];
 
     await db
       .insert(cardOverrides)
@@ -115,6 +146,15 @@ export async function POST(request: Request) {
     const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+
+  await Promise.all([
+    image !== undefined && image !== previous?.image
+      ? deleteManagedBlobUrl(previous?.image)
+      : Promise.resolve(),
+    imageBack !== undefined && imageBack !== previous?.imageBack
+      ? deleteManagedBlobUrl(previous?.imageBack)
+      : Promise.resolve(),
+  ]);
 
   revalidatePublicStockCache();
 
@@ -146,13 +186,31 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "cardId requis." }, { status: 400 });
   }
 
+  const db = getDb();
+  let previous: { image: string | null; imageBack: string | null } | undefined;
+
   try {
-    const db = getDb();
+    previous = (
+      await db
+        .select({
+          image: cardOverrides.image,
+          imageBack: cardOverrides.imageBack,
+        })
+        .from(cardOverrides)
+        .where(eq(cardOverrides.cardId, body.cardId))
+        .limit(1)
+    )[0];
+
     await db.delete(cardOverrides).where(eq(cardOverrides.cardId, body.cardId));
   } catch (e) {
     const message = e instanceof Error ? e.message : "Erreur base de données.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+
+  await Promise.all([
+    deleteManagedBlobUrl(previous?.image),
+    deleteManagedBlobUrl(previous?.imageBack),
+  ]);
 
   revalidatePublicStockCache();
 
