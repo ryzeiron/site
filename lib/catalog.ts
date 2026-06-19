@@ -305,6 +305,12 @@ export const BLOCS: Bloc[] = [
     coverColor: "from-yellow-400 to-red-600",
     image: "/blocs/mcdo.webp",
   },
+  {
+    id: "trainer-kit",
+    name: "Trainer Kit",
+    tagline: "Coffrets d'initiation",
+    coverColor: "from-violet-600 to-fuchsia-700",
+  },
 ];
 
 export const SERIES: Serie[] = [
@@ -464,6 +470,19 @@ export const SERIES: Serie[] = [
   { id: "2022swsh", blocId: "mcdo", code: "McDo 2022", name: "Collection McDonald's 2022", releaseYear: 2022, image: "/series/mcdo/2022.webp", },
   { id: "2023sv", blocId: "mcdo", code: "McDo 2023", name: "Collection McDonald's 2023", releaseYear: 2023, image: "/series/mcdo/2023.webp", },
   { id: "2024sv", blocId: "mcdo", code: "McDo 2024", name: "Collection McDonald's 2024", releaseYear: 2024, image: "/series/mcdo/2024.webp", },
+
+  // Trainer Kit
+  { id: "trainer-kit-latios-latias-ex", blocId: "trainer-kit", code: "Kit 2004", name: "Latios & Latias", releaseYear: 2004 },
+  { id: "trainer-kit-posipi-negapi", blocId: "trainer-kit", code: "Kit 2005", name: "Posipi & Negapi", releaseYear: 2005 },
+  { id: "trainer-kit-lucario-manaphy", blocId: "trainer-kit", code: "Kit 2007", name: "Lucario & Manaphy", releaseYear: 2007 },
+  { id: "trainer-kit-leviator-raichu", blocId: "trainer-kit", code: "Kit 2010", name: "Leviator & Raichu", releaseYear: 2010 },
+  { id: "trainer-kit-minotaupe-zoroark", blocId: "trainer-kit", code: "Kit 2011", name: "Minotaupe & Zoroark", releaseYear: 2011 },
+  { id: "trainer-kit-bruyverne-nymphali", blocId: "trainer-kit", code: "Kit 2014", name: "Bruyverne & Nymphali", releaseYear: 2014 },
+  { id: "trainer-kit-latios-latias-xy", blocId: "trainer-kit", code: "Kit 2015", name: "Latios & Latias", releaseYear: 2015 },
+  { id: "trainer-kit-pikachu-catcheur-suicune", blocId: "trainer-kit", code: "Kit 2016", name: "Pikachu Catcheur & Suicune", releaseYear: 2016 },
+  { id: "trainer-kit-raichu-alola-lougaroc", blocId: "trainer-kit", code: "Kit 2017", name: "Raichu d'Alola & Lougaroc", releaseYear: 2017 },
+  { id: "trainer-kit-shifours", blocId: "trainer-kit", code: "Kit 2020", name: "Shifours Poing Final & Mille Poings", releaseYear: 2020 },
+  { id: "trainer-kit-pikachu-evoli", blocId: "trainer-kit", code: "Kit 2020", name: "Pikachu & Evoli", releaseYear: 2020 },
 
 ];
 
