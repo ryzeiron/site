@@ -472,17 +472,18 @@ export const SERIES: Serie[] = [
   { id: "2024sv", blocId: "mcdo", code: "McDo 2024", name: "Collection McDonald's 2024", releaseYear: 2024, image: "/series/mcdo/2024.webp", },
 
   // Trainer Kit
-  { id: "trainer-kit-latios-latias-ex", blocId: "trainer-kit", code: "Kit 2004", name: "Latios & Latias", releaseYear: 2004 },
-  { id: "trainer-kit-posipi-negapi", blocId: "trainer-kit", code: "Kit 2005", name: "Posipi & Negapi", releaseYear: 2005 },
-  { id: "trainer-kit-lucario-manaphy", blocId: "trainer-kit", code: "Kit 2007", name: "Lucario & Manaphy", releaseYear: 2007 },
-  { id: "trainer-kit-leviator-raichu", blocId: "trainer-kit", code: "Kit 2010", name: "Leviator & Raichu", releaseYear: 2010 },
-  { id: "trainer-kit-minotaupe-zoroark", blocId: "trainer-kit", code: "Kit 2011", name: "Minotaupe & Zoroark", releaseYear: 2011 },
-  { id: "trainer-kit-bruyverne-nymphali", blocId: "trainer-kit", code: "Kit 2014", name: "Bruyverne & Nymphali", releaseYear: 2014 },
-  { id: "trainer-kit-latios-latias-xy", blocId: "trainer-kit", code: "Kit 2015", name: "Latios & Latias", releaseYear: 2015 },
-  { id: "trainer-kit-pikachu-catcheur-suicune", blocId: "trainer-kit", code: "Kit 2016", name: "Pikachu Catcheur & Suicune", releaseYear: 2016 },
-  { id: "trainer-kit-raichu-alola-lougaroc", blocId: "trainer-kit", code: "Kit 2017", name: "Raichu d'Alola & Lougaroc", releaseYear: 2017 },
-  { id: "trainer-kit-shifours", blocId: "trainer-kit", code: "Kit 2020", name: "Shifours Poing Final & Mille Poings", releaseYear: 2020 },
-  { id: "trainer-kit-pikachu-evoli", blocId: "trainer-kit", code: "Kit 2020", name: "Pikachu & Evoli", releaseYear: 2020 },
+  { id: "trainer-kit-latios-latias-ex", blocId: "trainer-kit", code: "Kit 2006", name: "Latias et Latios", releaseYear: 2006 },
+  { id: "trainer-kit-posipi-negapi", blocId: "trainer-kit", code: "Kit 2006", name: "Posipi et Négapi", releaseYear: 2006 },
+  { id: "trainer-kit-lucario-manaphy", blocId: "trainer-kit", code: "Kit 2008", name: "Manaphy et Lucario", releaseYear: 2008 },
+  { id: "trainer-kit-leviator-raichu", blocId: "trainer-kit", code: "Kit 2010", name: "Léviator et Raichu", releaseYear: 2010 },
+  { id: "trainer-kit-minotaupe-zoroark", blocId: "trainer-kit", code: "Kit 2011", name: "Minotaupe et Zoroark", releaseYear: 2011 },
+  { id: "trainer-kit-bruyverne-nymphali", blocId: "trainer-kit", code: "Kit 2014", name: "Nymphali et Bruyverne", releaseYear: 2014 },
+  { id: "trainer-kit-scalproie-grodoudou", blocId: "trainer-kit", code: "Kit 2014", name: "Scalproie et Grodoudou", releaseYear: 2014 },
+  { id: "trainer-kit-latios-latias-xy", blocId: "trainer-kit", code: "Kit 2015", name: "Latias et Latios", releaseYear: 2015 },
+  { id: "trainer-kit-pikachu-catcheur-suicune", blocId: "trainer-kit", code: "Kit 2016", name: "Pikachu Catcheur et Suicune", releaseYear: 2016 },
+  { id: "trainer-kit-raichu-alola-lougaroc", blocId: "trainer-kit", code: "Kit 2017", name: "Lougaroc et Raichu d'Alola", releaseYear: 2017 },
+  { id: "trainer-kit-sablaireau-alola-feunard-alola", blocId: "trainer-kit", code: "Kit 2018", name: "Sablaireau d'Alola et Feunard d'Alola", releaseYear: 2018 },
+  { id: "trainer-kit-pikachu-evoli", blocId: "trainer-kit", code: "Kit 2020", name: "Let's Play Pokémon - Pikachu et Évoli", releaseYear: 2020 },
 
 ];
 
