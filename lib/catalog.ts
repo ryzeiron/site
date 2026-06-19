@@ -10,6 +10,7 @@ import { ADL_CARDS } from "./catalog/cards/adl";
 import { DIAMANT_ET_PERLE_CARDS } from "./catalog/cards/diamant-et-perle";
 import { EX_CARDS } from "./catalog/cards/ex";
 import { MCDO_CARDS } from "./catalog/cards/mcdo";
+import { TRAINER_KIT_CARDS } from "./catalog/cards/trainer-kit";
 
 // Catalogue : blocs > series > cartes 
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
@@ -499,7 +500,8 @@ export const CARDS: Card[] = [
   ...PLATINE_CARDS,
   ...ADL_CARDS,
   ...DIAMANT_ET_PERLE_CARDS,
-  ...EX_CARDS
+  ...EX_CARDS,
+  ...TRAINER_KIT_CARDS
 ];
 
 // Helpers
