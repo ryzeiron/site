@@ -644,50 +644,20 @@ export default async function AdminPage({
           </p>
         </div>
 
-        <LogoutButton />
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-right">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-200">
+              Stock cartes
+            </p>
+            <p className="text-sm font-black text-white">
+              {formatCents(inventoryValueSummary.totalValueCents)}
+            </p>
+          </div>
+          <LogoutButton />
+        </div>
       </div>
 
       <AdminCatalogTabs active="cards" cardsCount={totalCards} />
-
-      <section className="mb-6 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
-            Valeur du stock cartes
-          </p>
-          <p className="mt-2 text-3xl font-black text-white">
-            {formatCents(inventoryValueSummary.totalValueCents)}
-          </p>
-          <p className="mt-1 text-xs text-emerald-100/80">
-            Calcul : stock × prix, cartes uniquement.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-zinc-950/65 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-            Exemplaires en stock
-          </p>
-          <p className="mt-2 text-3xl font-black text-white">
-            {inventoryValueSummary.totalUnits}
-          </p>
-          <p className="mt-1 text-xs text-gray-500">
-            Toutes variantes confondues.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-zinc-950/65 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-            Lignes en stock
-          </p>
-          <p className="mt-2 text-3xl font-black text-white">
-            {inventoryValueSummary.totalVariantLines}
-          </p>
-          <p className="mt-1 text-xs text-gray-500">
-            {inventoryValueSummary.totalCards} carte
-            {inventoryValueSummary.totalCards > 1 ? "s" : ""} concernée
-            {inventoryValueSummary.totalCards > 1 ? "s" : ""}.
-          </p>
-        </div>
-      </section>
 
       <form className="mb-6 grid gap-3 sm:flex sm:flex-wrap" action="/admin">
         <select
