@@ -9,6 +9,7 @@ import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
 import { getDb } from "@/lib/db/client";
 import { cardOverrides, hiddenVariants, stockOverrides } from "@/lib/db/schema";
+import { formatCents } from "@/lib/format";
 import {
   CARDS,
   RARITIES,
@@ -47,6 +48,13 @@ const ADMIN_PAGE_SIZE = 50;
 type AdminSerieGroup = {
   label: string;
   seriesIds: readonly string[];
+};
+
+type InventoryValueSummary = {
+  totalValueCents: number;
+  totalUnits: number;
+  totalCards: number;
+  totalVariantLines: number;
 };
 
 // Change l'ordre ici pour ranger les groupes et les series dans le menu admin.
@@ -495,6 +503,73 @@ function getAdminSerieGroups() {
   return [...groups, { label: "Autres", series: otherSeries }];
 }
 
+function centsFromEuros(value: number) {
+  return Math.round(value * 100);
+}
+
+function inventoryLineKey(cardId: string, variant: string) {
+  return `${cardId}::${variant}`;
+}
+
+async function getInventoryValueSummary(): Promise<InventoryValueSummary> {
+  const catalogById = new Map(CARDS.map((card) => [card.id, card]));
+  const rows = await getDb()
+    .select({
+      cardId: stockOverrides.cardId,
+      variant: stockOverrides.variant,
+      stock: stockOverrides.stock,
+      priceCents: stockOverrides.priceCents,
+    })
+    .from(stockOverrides);
+
+  const overrideByLine = new Map(
+    rows.map((row) => [inventoryLineKey(row.cardId, row.variant), row]),
+  );
+  const countedLines = new Set<string>();
+  const cardsWithStock = new Set<string>();
+  let totalValueCents = 0;
+  let totalUnits = 0;
+  let totalVariantLines = 0;
+
+  for (const card of CARDS) {
+    for (const { key, variant } of listVariants(card, { includeHidden: true })) {
+      const lineKey = inventoryLineKey(card.id, key);
+      const override = overrideByLine.get(lineKey);
+      const stock = override?.stock ?? variant.stock;
+      const priceCents = override?.priceCents ?? centsFromEuros(variant.price);
+      countedLines.add(lineKey);
+
+      if (stock <= 0) continue;
+
+      totalUnits += stock;
+      totalValueCents += stock * priceCents;
+      totalVariantLines++;
+      cardsWithStock.add(card.id);
+    }
+  }
+
+  for (const row of rows) {
+    const lineKey = inventoryLineKey(row.cardId, row.variant);
+    if (countedLines.has(lineKey) || row.stock <= 0) continue;
+
+    const card = catalogById.get(row.cardId);
+    if (!card && row.priceCents === null) continue;
+
+    const priceCents = row.priceCents ?? centsFromEuros(card?.price ?? 0);
+    totalUnits += row.stock;
+    totalValueCents += row.stock * priceCents;
+    totalVariantLines++;
+    cardsWithStock.add(row.cardId);
+  }
+
+  return {
+    totalValueCents,
+    totalUnits,
+    totalCards: cardsWithStock.size,
+    totalVariantLines,
+  };
+}
+
 export default async function AdminPage({
   searchParams,
 }: {
@@ -539,6 +614,7 @@ export default async function AdminPage({
 
   const serieGroups = getAdminSerieGroups();
   const totalCards = CARDS.length;
+  const inventoryValueSummary = await getInventoryValueSummary();
   const totalFilteredCards = filteredCards.length;
   const totalPages = Math.max(1, Math.ceil(totalFilteredCards / ADMIN_PAGE_SIZE));
   const currentPage = Math.min(requestedPage, totalPages);
@@ -572,6 +648,46 @@ export default async function AdminPage({
       </div>
 
       <AdminCatalogTabs active="cards" cardsCount={totalCards} />
+
+      <section className="mb-6 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
+            Valeur du stock cartes
+          </p>
+          <p className="mt-2 text-3xl font-black text-white">
+            {formatCents(inventoryValueSummary.totalValueCents)}
+          </p>
+          <p className="mt-1 text-xs text-emerald-100/80">
+            Calcul : stock × prix, cartes uniquement.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-zinc-950/65 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+            Exemplaires en stock
+          </p>
+          <p className="mt-2 text-3xl font-black text-white">
+            {inventoryValueSummary.totalUnits}
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
+            Toutes variantes confondues.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-zinc-950/65 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+            Lignes en stock
+          </p>
+          <p className="mt-2 text-3xl font-black text-white">
+            {inventoryValueSummary.totalVariantLines}
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
+            {inventoryValueSummary.totalCards} carte
+            {inventoryValueSummary.totalCards > 1 ? "s" : ""} concernée
+            {inventoryValueSummary.totalCards > 1 ? "s" : ""}.
+          </p>
+        </div>
+      </section>
 
       <form className="mb-6 grid gap-3 sm:flex sm:flex-wrap" action="/admin">
         <select
