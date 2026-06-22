@@ -15,6 +15,7 @@ import { formatRarityLabel } from "@/lib/display-variants";
 import { getSleevesByIds, type SleeveProduct } from "@/lib/sleeves";
 import { applyStockOverrides } from "@/lib/stock";
 import { getStripe } from "@/lib/stripe";
+import { decodeCompactMetadata } from "@/lib/stripe-order-metadata";
 
 type CompactItem = [string, VariantKey, number, number?];
 type CompactSleeveItem = [string, number, number?];
@@ -86,29 +87,7 @@ function decodeCompactItems(
   metadata: Stripe.Metadata | null,
   key: "items" | "sleeves",
 ) {
-  if (!metadata) return [];
-
-  const partsCount = Number(metadata[`${key}_parts`] ?? "0");
-  let json = "";
-
-  if (metadata[key]) {
-    json = metadata[key] ?? "";
-  } else if (partsCount > 0) {
-    for (let i = 0; i < partsCount; i++) {
-      const chunk = metadata[`${key}_${i}`];
-      if (!chunk) return [];
-      json += chunk;
-    }
-  }
-
-  if (!json) return [];
-
-  try {
-    const parsed = JSON.parse(json) as unknown;
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return decodeCompactMetadata(metadata, key);
 }
 
 function decodeCardItems(metadata: Stripe.Metadata | null): CompactItem[] {

@@ -30,11 +30,12 @@ import {
   releaseStockReservation,
 } from "@/lib/stock-reservations";
 import { revalidatePublicStockCache } from "@/lib/stock";
+import { decodeCompactMetadata } from "@/lib/stripe-order-metadata";
 
 export const runtime = "nodejs";
 
-type CompactItem = [string, VariantKey, number];
-type CompactSleeveItem = [string, number];
+type CompactItem = [string, VariantKey, number, number?];
+type CompactSleeveItem = [string, number, number?];
 
 const LOW_STOCK_ALERT_THRESHOLD = Math.max(
   0,
@@ -42,55 +43,28 @@ const LOW_STOCK_ALERT_THRESHOLD = Math.max(
 );
 
 function decodeItems(metadata: Stripe.Metadata | null): CompactItem[] {
-  if (!metadata) return [];
-  const partsCount = Number(metadata.items_parts ?? "0");
-  let json = "";
-
-  if (metadata.items) {
-    json = metadata.items;
-  } else if (partsCount > 0) {
-    for (let i = 0; i < partsCount; i++) {
-      const chunk = metadata[`items_${i}`];
-      if (!chunk) return [];
-      json += chunk;
-    }
-  }
-
-  if (!json) return [];
-
-  try {
-    const parsed = JSON.parse(json);
-    if (!Array.isArray(parsed)) return [];
-    return parsed as CompactItem[];
-  } catch {
-    return [];
-  }
+  return decodeCompactMetadata(metadata, "items").filter(
+    (item): item is CompactItem =>
+      Array.isArray(item) &&
+      typeof item[0] === "string" &&
+      typeof item[1] === "string" &&
+      typeof item[2] === "number" &&
+      (typeof item[3] === "undefined" ||
+        item[3] === null ||
+        typeof item[3] === "number"),
+  );
 }
 
 function decodeSleeves(metadata: Stripe.Metadata | null): CompactSleeveItem[] {
-  if (!metadata) return [];
-  const partsCount = Number(metadata.sleeves_parts ?? "0");
-  let json = "";
-
-  if (metadata.sleeves) {
-    json = metadata.sleeves;
-  } else if (partsCount > 0) {
-    for (let i = 0; i < partsCount; i++) {
-      const chunk = metadata[`sleeves_${i}`];
-      if (!chunk) return [];
-      json += chunk;
-    }
-  }
-
-  if (!json) return [];
-
-  try {
-    const parsed = JSON.parse(json);
-    if (!Array.isArray(parsed)) return [];
-    return parsed as CompactSleeveItem[];
-  } catch {
-    return [];
-  }
+  return decodeCompactMetadata(metadata, "sleeves").filter(
+    (item): item is CompactSleeveItem =>
+      Array.isArray(item) &&
+      typeof item[0] === "string" &&
+      typeof item[1] === "number" &&
+      (typeof item[2] === "undefined" ||
+        item[2] === null ||
+        typeof item[2] === "number"),
+  );
 }
 
 function metadataValue(value: string | null | undefined): string | null {

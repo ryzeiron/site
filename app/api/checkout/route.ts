@@ -18,6 +18,7 @@ import {
   releaseStockReservation,
   reserveStockItems,
 } from "@/lib/stock-reservations";
+import { encodeCompactMetadata } from "@/lib/stripe-order-metadata";
 
 type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
 
@@ -60,7 +61,6 @@ type CheckoutLineItem = {
   quantity: number;
 };
 
-const META_VALUE_MAX = 450;
 const MIN_STRIPE_TOTAL_CENTS = 50;
 const STRIPE_GROUPED_LINE_ITEM_THRESHOLD = 95;
 
@@ -102,21 +102,7 @@ function encodeItems(
     i.quantity,
     i.unitAmountCents,
   ]);
-  const json = JSON.stringify(compact);
-
-  if (json.length <= META_VALUE_MAX) {
-    return { items: json, items_parts: "1" };
-  }
-
-  const parts: Record<string, string> = {};
-  let i = 0;
-
-  for (let offset = 0; offset < json.length; offset += META_VALUE_MAX, i++) {
-    parts[`items_${i}`] = json.slice(offset, offset + META_VALUE_MAX);
-  }
-
-  parts.items_parts = String(i);
-  return parts;
+  return encodeCompactMetadata("items", compact);
 }
 
 function encodeSleeves(
@@ -127,21 +113,7 @@ function encodeSleeves(
     i.quantity,
     i.unitAmountCents,
   ]);
-  const json = JSON.stringify(compact);
-
-  if (json.length <= META_VALUE_MAX) {
-    return { sleeves: json, sleeves_parts: "1" };
-  }
-
-  const parts: Record<string, string> = {};
-  let i = 0;
-
-  for (let offset = 0; offset < json.length; offset += META_VALUE_MAX, i++) {
-    parts[`sleeves_${i}`] = json.slice(offset, offset + META_VALUE_MAX);
-  }
-
-  parts.sleeves_parts = String(i);
-  return parts;
+  return encodeCompactMetadata("sleeves", compact);
 }
 
 function getItemsTotalCents(
