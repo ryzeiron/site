@@ -1,10 +1,26 @@
 import Image from "next/image";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
 import AuthButton from "./AuthButton";
 import CartButton from "./CartButton";
 import NavMenu from "./NavMenu";
 
-export default function Header() {
+function isAdminAccountEmail(email?: string | null) {
+  if (!email) return false;
+  const allowedEmails = [
+    process.env.ADMIN_EMAIL,
+    ...(process.env.ADMIN_ACCOUNT_EMAILS ?? "").split(","),
+  ]
+    .map((value) => value?.trim().toLowerCase())
+    .filter(Boolean);
+
+  return allowedEmails.includes(email.trim().toLowerCase());
+}
+
+export default async function Header() {
+  const session = await auth().catch(() => null);
+  const showAdminLink = isAdminAccountEmail(session?.user?.email);
+
   return (
     <header className="relative z-[800] border-b border-white/10 bg-[#02030b] text-gray-100">
       <div className="mx-auto max-w-6xl px-3 py-3 sm:px-4 sm:py-4">
@@ -27,7 +43,7 @@ export default function Header() {
           </Link>
 
           <div className="flex items-center gap-2 justify-self-end">
-            <AuthButton />
+            <AuthButton showAdminLink={showAdminLink} />
             <CartButton />
           </div>
         </div>

@@ -5,7 +5,11 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 
-export default function AuthButton() {
+export default function AuthButton({
+  showAdminLink = false,
+}: {
+  showAdminLink?: boolean;
+}) {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -79,6 +83,11 @@ export default function AuthButton() {
               </div>
 
               <div className="p-2">
+                {showAdminLink ? (
+                  <MenuLink href="/admin" onClick={() => setOpen(false)} icon={<AdminIcon />}>
+                    Admin
+                  </MenuLink>
+                ) : null}
                 <MenuLink href="/compte?section=infos" onClick={() => setOpen(false)} icon={<AccountIcon menu />}>
                   Mon compte
                 </MenuLink>
@@ -250,6 +259,25 @@ function StarIcon() {
       strokeLinejoin="round"
     >
       <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+    </svg>
+  );
+}
+
+function AdminIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 3 4 6v6c0 5 3.4 8 8 9 4.6-1 8-4 8-9V6l-8-3Z" />
+      <path d="M9 12h6" />
+      <path d="M12 9v6" />
     </svg>
   );
 }
