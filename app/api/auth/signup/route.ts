@@ -8,6 +8,7 @@ import {
   hasDeliveryProfileData,
   normalizeDeliveryProfileInput,
 } from "@/lib/delivery-profile";
+import { discordAdminUrl, sendDiscordNotification } from "@/lib/discord";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -78,6 +79,29 @@ export async function POST(request: Request) {
       // Le compte reste créé même si le profil livraison n'est pas disponible.
     }
   }
+
+  const hasProfile = hasDeliveryProfileData(deliveryProfile);
+
+  await sendDiscordNotification("accounts", {
+    title: "Nouveau compte cree",
+    description: `[Ouvrir les clients admin](${discordAdminUrl("/admin/clients")})`,
+    fields: [
+      { name: "Nom", value: name ?? "-", inline: true },
+      { name: "Email", value: email, inline: false },
+      {
+        name: "Profil livraison",
+        value: hasProfile ? "Oui" : "Non",
+        inline: true,
+      },
+      {
+        name: "Point relais",
+        value: deliveryProfile.relayName
+          ? `${deliveryProfile.relayName}${deliveryProfile.relayCode ? ` (${deliveryProfile.relayCode})` : ""}`
+          : "-",
+        inline: false,
+      },
+    ],
+  }).catch(() => false);
 
   return NextResponse.json({ ok: true });
 }

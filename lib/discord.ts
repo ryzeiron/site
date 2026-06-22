@@ -3,6 +3,7 @@ import "server-only";
 import { normalizeSiteUrl } from "@/lib/site-url";
 
 export type DiscordChannel =
+  | "accounts"
   | "orders"
   | "preparation"
   | "stock"
@@ -24,6 +25,7 @@ type DiscordNotification = {
 };
 
 const CHANNEL_ENV: Record<DiscordChannel, string> = {
+  accounts: "DISCORD_ACCOUNTS_WEBHOOK_URL",
   orders: "DISCORD_ORDER_WEBHOOK_URL",
   preparation: "DISCORD_PREPARATION_WEBHOOK_URL",
   stock: "DISCORD_STOCK_WEBHOOK_URL",
@@ -33,6 +35,7 @@ const CHANNEL_ENV: Record<DiscordChannel, string> = {
 };
 
 const CHANNEL_COLOR: Record<DiscordChannel, number> = {
+  accounts: 0x8b5cf6,
   orders: 0x7c3aed,
   preparation: 0x38bdf8,
   stock: 0xf59e0b,
