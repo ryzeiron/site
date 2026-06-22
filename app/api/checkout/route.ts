@@ -35,8 +35,34 @@ type Body = {
   };
 };
 
+type PricedCardItem = {
+  cardId: string;
+  variant: VariantKey;
+  quantity: number;
+  unitAmountCents: number;
+};
+
+type PricedSleeveItem = {
+  sleeveId: string;
+  quantity: number;
+  unitAmountCents: number;
+};
+
+type CheckoutLineItem = {
+  price_data: {
+    currency: "eur";
+    unit_amount: number;
+    product_data: {
+      name: string;
+      description?: string;
+    };
+  };
+  quantity: number;
+};
+
 const META_VALUE_MAX = 450;
 const MIN_STRIPE_TOTAL_CENTS = 50;
+const STRIPE_GROUPED_LINE_ITEM_THRESHOLD = 95;
 
 const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
   FR: 490,
@@ -118,6 +144,75 @@ function encodeSleeves(
   return parts;
 }
 
+function getItemsTotalCents(
+  cardItems: PricedCardItem[],
+  sleeveItems: PricedSleeveItem[],
+) {
+  const cardsTotal = cardItems.reduce(
+    (total, item) => total + item.unitAmountCents * item.quantity,
+    0,
+  );
+  const sleevesTotal = sleeveItems.reduce(
+    (total, item) => total + item.unitAmountCents * item.quantity,
+    0,
+  );
+
+  return cardsTotal + sleevesTotal;
+}
+
+function buildGroupedLineItems(
+  cardItems: PricedCardItem[],
+  sleeveItems: PricedSleeveItem[],
+): CheckoutLineItem[] {
+  const lines: CheckoutLineItem[] = [];
+  const cardsTotal = cardItems.reduce(
+    (total, item) => total + item.unitAmountCents * item.quantity,
+    0,
+  );
+  const cardsQuantity = cardItems.reduce(
+    (total, item) => total + item.quantity,
+    0,
+  );
+  const sleevesTotal = sleeveItems.reduce(
+    (total, item) => total + item.unitAmountCents * item.quantity,
+    0,
+  );
+  const sleevesQuantity = sleeveItems.reduce(
+    (total, item) => total + item.quantity,
+    0,
+  );
+
+  if (cardsQuantity > 0) {
+    lines.push({
+      price_data: {
+        currency: "eur",
+        unit_amount: cardsTotal,
+        product_data: {
+          name: "Cartes Pokemon a l'unite",
+          description: `${cardsQuantity} carte(s) - detail complet dans la commande.`,
+        },
+      },
+      quantity: 1,
+    });
+  }
+
+  if (sleevesQuantity > 0) {
+    lines.push({
+      price_data: {
+        currency: "eur",
+        unit_amount: sleevesTotal,
+        product_data: {
+          name: "Sleeves Pokemon",
+          description: `${sleevesQuantity} sleeve(s) - detail complet dans la commande.`,
+        },
+      },
+      quantity: 1,
+    });
+  }
+
+  return lines;
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Body;
@@ -187,14 +282,9 @@ export async function POST(request: Request) {
       }
     >();
 
-    const pricedCardItems: Array<{
-      cardId: string;
-      variant: VariantKey;
-      quantity: number;
-      unitAmountCents: number;
-    }> = [];
+    const pricedCardItems: PricedCardItem[] = [];
 
-    const lineItems = cardItems.map((item) => {
+    const detailedLineItems: CheckoutLineItem[] = cardItems.map((item) => {
       const card = cardMap.get(item.cardId);
 
       if (!card) {
@@ -282,11 +372,7 @@ export async function POST(request: Request) {
     );
     const sleeveMap = new Map(sleeveRows.map((sleeve) => [sleeve.id, sleeve]));
 
-    const pricedSleeveItems: Array<{
-      sleeveId: string;
-      quantity: number;
-      unitAmountCents: number;
-    }> = [];
+    const pricedSleeveItems: PricedSleeveItem[] = [];
 
     for (const item of sleeveItems) {
       const sleeve = sleeveMap.get(item.sleeveId);
@@ -309,7 +395,7 @@ export async function POST(request: Request) {
         unitAmountCents,
       });
 
-      lineItems.push({
+      detailedLineItems.push({
         price_data: {
           currency: "eur",
           unit_amount: unitAmountCents,
@@ -331,9 +417,13 @@ export async function POST(request: Request) {
 
     const relayBase = MR_PRICE_BY_COUNTRY[country];
     const relayCents = Math.round(relayBase * shippingMultiplier);
-    const itemsTotalCents = lineItems.reduce(
-      (total, item) => total + item.price_data.unit_amount * item.quantity,
-      0,
+    const lineItems =
+      detailedLineItems.length > STRIPE_GROUPED_LINE_ITEM_THRESHOLD
+        ? buildGroupedLineItems(pricedCardItems, pricedSleeveItems)
+        : detailedLineItems;
+    const itemsTotalCents = getItemsTotalCents(
+      pricedCardItems,
+      pricedSleeveItems,
     );
     const insurance = getMondialRelayInsurance(itemsTotalCents);
     const insuranceFeeCents = insurance?.feeCents ?? 0;
