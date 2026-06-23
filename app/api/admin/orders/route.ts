@@ -35,9 +35,9 @@ const ALLOWED_STATUSES: OrderStatus[] = [
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   paid: "Commande payee",
-  label_to_create: "Bordereau a creer",
-  label_created: "Etiquette creee",
-  shipped: "Colis expedie",
+  label_to_create: "A preparer",
+  label_created: "Prete a deposer",
+  shipped: "Colis a retirer",
   picked_up: "Colis retire",
 };
 
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
     if (shouldSendShippingEmail) {
       if (!expeditionNumber) {
         return NextResponse.json(
-          { error: "Numéro de suivi obligatoire pour expédier la commande." },
+          { error: "Numéro de suivi obligatoire pour passer la commande en colis à retirer." },
           { status: 400 },
         );
       }

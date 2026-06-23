@@ -53,12 +53,12 @@ export async function sendOrderShippedEmail({
     body: JSON.stringify({
       from,
       to,
-      subject: "Votre commande PokeDel est expédiée",
+      subject: "Votre colis PokeDel est à retirer",
       html: `
         <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
-          <h1 style="font-size:22px;margin:0 0 16px">Votre commande est expédiée</h1>
+          <h1 style="font-size:22px;margin:0 0 16px">Votre colis est à retirer</h1>
           <p>Bonjour ${escapeHtml(firstName)},</p>
-          <p>Votre commande PokeDel a été expédiée.</p>
+          <p>Votre commande PokeDel est disponible au point relais choisi.</p>
           <p>
             Numéro de suivi Mondial Relay :
             <strong>${escapeHtml(trackingNumber)}</strong>
@@ -79,7 +79,7 @@ export async function sendOrderShippedEmail({
       text: [
         `Bonjour ${firstName},`,
         "",
-        "Votre commande PokeDel a été expédiée.",
+        "Votre commande PokeDel est disponible au point relais choisi.",
         `Numéro de suivi Mondial Relay : ${trackingNumber}`,
         `Suivi de commande : ${trackingUrl}`,
         labelUrl ? `Bordereau / suivi : ${labelUrl}` : "",

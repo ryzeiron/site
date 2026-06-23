@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 
       if (!expeditionNumber) {
         return NextResponse.json(
-          { error: "Numéro de suivi obligatoire pour expédier la commande." },
+          { error: "Numéro de suivi obligatoire pour passer la commande en colis à retirer." },
           { status: 400 },
         );
       }

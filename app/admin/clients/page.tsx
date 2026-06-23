@@ -33,9 +33,9 @@ const PAGE_SIZE = 25;
 
 const STATUS_LABELS: Record<string, string> = {
   paid: "Commande payée",
-  label_to_create: "Bordereau à créer",
-  label_created: "Étiquette créée",
-  shipped: "Colis expédié",
+  label_to_create: "À préparer",
+  label_created: "Prête à déposer",
+  shipped: "Colis à retirer",
   picked_up: "Colis retiré",
 };
 

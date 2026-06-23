@@ -29,17 +29,16 @@ const STATUS_LABELS: Record<string, { title: string; detail: string }> = {
     detail: "Ta commande est enregistrée et va être préparée.",
   },
   label_to_create: {
-    title: "Préparation de l'expédition",
-    detail: "La commande est payée. Le bordereau Mondial Relay va être créé.",
+    title: "Préparation de la commande",
+    detail: "La commande est payée et va être préparée.",
   },
   label_created: {
-    title: "Expédition prête",
-    detail:
-      "L'étiquette du colis est créée. Le colis va être déposé en point relais.",
+    title: "Prête à déposer",
+    detail: "La commande est préparée et va être déposée en point relais.",
   },
   shipped: {
-    title: "Colis expédié",
-    detail: "Le colis est en route vers le point relais choisi.",
+    title: "Colis à retirer",
+    detail: "Le colis est disponible au point relais choisi.",
   },
   picked_up: {
     title: "Colis retiré",
@@ -50,8 +49,8 @@ const STATUS_LABELS: Record<string, { title: string; detail: string }> = {
 const STATUS_STEPS = [
   { key: "paid", label: "Payée" },
   { key: "label_to_create", label: "Préparation" },
-  { key: "label_created", label: "Bordereau" },
-  { key: "shipped", label: "Expédiée" },
+  { key: "label_created", label: "Prête" },
+  { key: "shipped", label: "À retirer" },
   { key: "picked_up", label: "Retirée" },
 ];
 

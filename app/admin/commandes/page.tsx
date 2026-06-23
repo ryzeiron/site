@@ -37,9 +37,9 @@ const PAGE_SIZE = 25;
 
 const STATUS_LABELS: Record<string, string> = {
   paid: "Commande payée",
-  label_to_create: "Bordereau à créer",
-  label_created: "Étiquette créée",
-  shipped: "Colis expédié",
+  label_to_create: "À préparer",
+  label_created: "Prête à déposer",
+  shipped: "Colis à retirer",
   picked_up: "Colis retiré",
 };
 
@@ -362,8 +362,9 @@ export default async function AdminOrdersPage({
   const hasNextPage = rowsPlusOne.length > PAGE_SIZE;
   const hasPreviousPage = currentPage > 1;
   const stats = {
-    paid: statusRows.filter((order) => order.status === "paid").length,
-    labelToCreate: statusRows.filter((order) => order.status === "label_to_create").length,
+    toPrepare: statusRows.filter(
+      (order) => order.status === "paid" || order.status === "label_to_create",
+    ).length,
     labelCreated: statusRows.filter((order) => order.status === "label_created").length,
     shipped: statusRows.filter((order) => order.status === "shipped").length,
     pickedUp: statusRows.filter((order) => order.status === "picked_up").length,
@@ -426,25 +427,19 @@ export default async function AdminOrdersPage({
         </Link>
       </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-sky-400/20 bg-sky-500/10 p-4">
-          <div className="text-sm text-sky-200">Payées</div>
-          <div className="mt-1 text-3xl font-bold text-white">{stats.paid}</div>
-        </div>
-        <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-4">
-          <div className="text-sm text-amber-200">Bordereaux à créer</div>
-          <div className="mt-1 text-3xl font-bold text-white">
-            {stats.labelToCreate}
-          </div>
+          <div className="text-sm text-sky-200">À préparer</div>
+          <div className="mt-1 text-3xl font-bold text-white">{stats.toPrepare}</div>
         </div>
         <div className="rounded-xl border border-violet-400/20 bg-violet-500/10 p-4">
-          <div className="text-sm text-violet-200">Étiquettes créées</div>
+          <div className="text-sm text-violet-200">Prêtes à déposer</div>
           <div className="mt-1 text-3xl font-bold text-white">
             {stats.labelCreated}
           </div>
         </div>
         <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4">
-          <div className="text-sm text-emerald-200">Expédiées</div>
+          <div className="text-sm text-emerald-200">Colis à retirer</div>
           <div className="mt-1 text-3xl font-bold text-white">
             {stats.shipped}
           </div>
@@ -460,10 +455,9 @@ export default async function AdminOrdersPage({
       <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-zinc-950/65 p-3">
         {[
           { value: "", label: "Toutes" },
-          { value: "paid", label: "Payées" },
-          { value: "label_to_create", label: "Bordereau à créer" },
-          { value: "label_created", label: "Étiquette créée" },
-          { value: "shipped", label: "Expédiées" },
+          { value: "paid", label: "À préparer" },
+          { value: "label_created", label: "Prêtes à déposer" },
+          { value: "shipped", label: "Colis à retirer" },
           { value: "picked_up", label: "Retirées" },
         ].map((item) => (
           <Link
@@ -610,7 +604,7 @@ export default async function AdminOrdersPage({
                 </a>
               ) : (
                 <p className="mt-3 text-sm text-yellow-300">
-                  Bordereau à créer manuellement sur Mondial Relay.
+                  Expédition à créer manuellement sur Mondial Relay.
                 </p>
               )}
 

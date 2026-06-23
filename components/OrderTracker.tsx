@@ -18,10 +18,17 @@ type Order = {
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   paid: { label: "Paiement validé", color: "bg-emerald-500/20 text-emerald-200" },
   label_to_create: {
-    label: "Bordereau à créer",
+    label: "À préparer",
     color: "bg-amber-500/20 text-amber-200",
   },
-  shipped: { label: "Expédiée", color: "bg-violet-500/20 text-violet-200" },
+  label_created: {
+    label: "Prête à déposer",
+    color: "bg-violet-500/20 text-violet-200",
+  },
+  shipped: {
+    label: "Colis à retirer",
+    color: "bg-violet-500/20 text-violet-200",
+  },
   picked_up: { label: "Retirée", color: "bg-fuchsia-500/20 text-fuchsia-200" },
   delivered: { label: "Livrée", color: "bg-emerald-500/20 text-emerald-200" },
   cancelled: { label: "Annulée", color: "bg-red-500/20 text-red-200" },

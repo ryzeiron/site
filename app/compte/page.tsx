@@ -501,6 +501,10 @@ export default async function ComptePage({
                               className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
                                 order.status === "paid"
                                   ? "bg-emerald-500/20 text-emerald-200"
+                                  : order.status === "label_to_create"
+                                    ? "bg-sky-500/20 text-sky-200"
+                                    : order.status === "label_created"
+                                      ? "bg-violet-500/20 text-violet-200"
                                   : order.status === "shipped"
                                     ? "bg-blue-500/20 text-blue-200"
                                     : order.status === "picked_up"
@@ -510,8 +514,12 @@ export default async function ComptePage({
                             >
                               {order.status === "paid"
                                 ? "Payée"
+                                : order.status === "label_to_create"
+                                  ? "À préparer"
+                                  : order.status === "label_created"
+                                    ? "Prête à déposer"
                                 : order.status === "shipped"
-                                  ? "Expédiée"
+                                  ? "Colis à retirer"
                                   : order.status === "picked_up"
                                     ? "Retirée"
                                     : order.status}
