@@ -8,6 +8,7 @@ import {
   favoriteCards,
   favoriteSleeves,
   cartSnapshots,
+  orderAnalytics,
   orders,
   processedEvents,
   stockOverrides,
@@ -84,6 +85,26 @@ function formatAmount(cents: number | null) {
     style: "currency",
     currency: "EUR",
   }).format((cents ?? 0) / 100);
+}
+
+async function saveOrderAnalyticsFromSession(session: Stripe.Checkout.Session) {
+  const values = {
+    orderId: session.id,
+    stripeSessionId: session.id,
+    amountSubtotalCents: session.amount_subtotal ?? null,
+    amountTotalCents: session.amount_total ?? null,
+    shippingTotalCents: session.shipping_cost?.amount_total ?? null,
+    discountTotalCents: session.total_details?.amount_discount ?? 0,
+    currency: session.currency ?? "eur",
+  };
+
+  await getDb()
+    .insert(orderAnalytics)
+    .values(values)
+    .onConflictDoUpdate({
+      target: orderAnalytics.orderId,
+      set: values,
+    });
 }
 
 function countExpectedCardReservations(items: CompactItem[]) {
@@ -424,6 +445,7 @@ export async function POST(request: Request) {
         // A previous webhook attempt marked the event as processed before the
         // order was saved. Continue so a manual Stripe resend can repair it.
       } else {
+        await saveOrderAnalyticsFromSession(session).catch(() => {});
         await removePurchasedFavoritesFromSession(session).catch(() => {});
         await removeCartSnapshotFromSession(session).catch(() => {});
         return NextResponse.json({ received: true, duplicate: true });
@@ -484,6 +506,8 @@ export async function POST(request: Request) {
     .returning({ id: orders.id });
 
   if (insertedOrders.length > 0) {
+    await saveOrderAnalyticsFromSession(session).catch(() => {});
+
     await sendOrderNotifications({
       session,
       customerEmail,

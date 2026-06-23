@@ -11,6 +11,7 @@ import BackButton from "@/components/BackButton";
 import ScrollToTop from "@/components/ScrollToTop";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import GlobalSearchBar from "@/components/GlobalSearchBar";
+import PresenceHeartbeat from "@/components/PresenceHeartbeat";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.pokedel62.fr"),
@@ -70,6 +71,7 @@ export default function RootLayout({
           </main>
           <Footer />
           <ScrollToTop />
+          <PresenceHeartbeat />
         </SessionProviderWrapper>
         <Analytics />
       </body>

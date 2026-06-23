@@ -141,6 +141,28 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const orderAnalytics = pgTable("order_analytics", {
+  orderId: text("order_id").primaryKey(),
+  stripeSessionId: text("stripe_session_id").notNull(),
+  amountSubtotalCents: integer("amount_subtotal_cents"),
+  amountTotalCents: integer("amount_total_cents"),
+  shippingTotalCents: integer("shipping_total_cents"),
+  discountTotalCents: integer("discount_total_cents"),
+  currency: text("currency").notNull().default("eur"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const activeVisitors = pgTable("active_visitors", {
+  visitorId: text("visitor_id").primaryKey(),
+  userId: text("user_id"),
+  userEmail: text("user_email"),
+  path: text("path"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type CartSnapshotItem = {
   type: "card" | "sleeve";
   id: string;

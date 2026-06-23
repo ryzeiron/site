@@ -215,6 +215,7 @@ export default async function AdminDashboardPage() {
 
       <div className="mb-6 flex flex-wrap gap-3">
         <AdminLink href="/admin/commandes">Commandes</AdminLink>
+        <AdminLink href="/admin/analyse">Analyse</AdminLink>
         <AdminLink href="/admin/paniers">Paniers</AdminLink>
         <AdminLink href="/admin/favoris">Favoris</AdminLink>
         <AdminLink href="/admin/clients">Clients</AdminLink>
