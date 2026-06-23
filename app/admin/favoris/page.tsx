@@ -15,13 +15,13 @@ import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
-type Search = { q?: string; type?: string };
+type Search = { q?: string; type?: string; page?: string };
 type FavoriteType = "all" | "cards" | "sleeves";
 type FavoriteRow = typeof favoriteCards.$inferSelect;
 type FavoriteSleeveRow = typeof favoriteSleeves.$inferSelect;
 type UserRow = typeof users.$inferSelect;
 
-const FAVORITE_GROUP_LIMIT = 20;
+const FAVORITE_GROUP_PAGE_SIZE = 50;
 
 type FavoriteClient = {
   id: string;
@@ -78,12 +78,111 @@ function parseFavoriteType(value?: string): FavoriteType {
   return "all";
 }
 
-function favoritesHref(type: FavoriteType, query: string) {
+function parsePage(value?: string) {
+  const page = Number.parseInt(value ?? "1", 10);
+  return Number.isFinite(page) && page > 0 ? page : 1;
+}
+
+function favoritesHref(type: FavoriteType, query: string, page = 1) {
   const params = new URLSearchParams();
   if (type !== "all") params.set("type", type);
   if (query) params.set("q", query);
+  if (page > 1) params.set("page", String(page));
   const search = params.toString();
   return search ? `/admin/favoris?${search}` : "/admin/favoris";
+}
+
+function AdminFavoritesPagination({
+  currentPage,
+  totalPages,
+  paginationHref,
+}: {
+  currentPage: number;
+  totalPages: number;
+  paginationHref: (page: number) => string;
+}) {
+  if (totalPages <= 1) return null;
+
+  const firstPage = Math.max(1, currentPage - 2);
+  const lastPage = Math.min(totalPages, currentPage + 2);
+  const pages = Array.from(
+    { length: lastPage - firstPage + 1 },
+    (_, index) => firstPage + index,
+  );
+
+  return (
+    <nav
+      className="flex flex-wrap items-center gap-2"
+      aria-label="Pagination favoris admin"
+    >
+      <Link
+        href={paginationHref(Math.max(1, currentPage - 1))}
+        aria-disabled={currentPage === 1}
+        className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+          currentPage === 1
+            ? "pointer-events-none bg-white/5 text-gray-600"
+            : "bg-white/10 text-white hover:bg-white/20"
+        }`}
+      >
+        Précédent
+      </Link>
+
+      {firstPage > 1 ? (
+        <>
+          <Link
+            href={paginationHref(1)}
+            className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
+          >
+            1
+          </Link>
+          {firstPage > 2 ? (
+            <span className="px-1 text-gray-500">...</span>
+          ) : null}
+        </>
+      ) : null}
+
+      {pages.map((page) => (
+        <Link
+          key={page}
+          href={paginationHref(page)}
+          aria-current={page === currentPage ? "page" : undefined}
+          className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+            page === currentPage
+              ? "bg-violet-600 text-white"
+              : "bg-white/10 text-white hover:bg-white/20"
+          }`}
+        >
+          {page}
+        </Link>
+      ))}
+
+      {lastPage < totalPages ? (
+        <>
+          {lastPage < totalPages - 1 ? (
+            <span className="px-1 text-gray-500">...</span>
+          ) : null}
+          <Link
+            href={paginationHref(totalPages)}
+            className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
+          >
+            {totalPages}
+          </Link>
+        </>
+      ) : null}
+
+      <Link
+        href={paginationHref(Math.min(totalPages, currentPage + 1))}
+        aria-disabled={currentPage === totalPages}
+        className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+          currentPage === totalPages
+            ? "pointer-events-none bg-white/5 text-gray-600"
+            : "bg-white/10 text-white hover:bg-white/20"
+        }`}
+      >
+        Suivant
+      </Link>
+    </nav>
+  );
 }
 
 function getClientEmails(clients: FavoriteClient[]) {
@@ -235,6 +334,7 @@ export default async function AdminFavoritesPage({
   const params = await searchParams;
   const query = (params.q ?? "").trim();
   const type = parseFavoriteType(params.type);
+  const requestedPage = parsePage(params.page);
 
   const db = getDb();
 
@@ -324,8 +424,23 @@ export default async function AdminFavoritesPage({
     ...sleeveFavoriteRows.map((favorite) => favorite.userId),
   ]).size;
 
-  const pagedGroups = filteredGroups.slice(0, FAVORITE_GROUP_LIMIT);
-  const pagedSleeveGroups = filteredSleeveGroups.slice(0, FAVORITE_GROUP_LIMIT);
+  const cardTotalPages =
+    type === "sleeves"
+      ? 0
+      : Math.ceil(filteredGroups.length / FAVORITE_GROUP_PAGE_SIZE);
+  const sleeveTotalPages =
+    type === "cards"
+      ? 0
+      : Math.ceil(filteredSleeveGroups.length / FAVORITE_GROUP_PAGE_SIZE);
+  const totalPages = Math.max(1, cardTotalPages, sleeveTotalPages);
+  const currentPage = Math.min(requestedPage, totalPages);
+  const pageStart = (currentPage - 1) * FAVORITE_GROUP_PAGE_SIZE;
+  const pageEnd = pageStart + FAVORITE_GROUP_PAGE_SIZE;
+  const paginationHref = (page: number) => favoritesHref(type, query, page);
+  const pagedGroups =
+    type === "sleeves" ? [] : filteredGroups.slice(pageStart, pageEnd);
+  const pagedSleeveGroups =
+    type === "cards" ? [] : filteredSleeveGroups.slice(pageStart, pageEnd);
   const serieGroups = groupFavoritesBySerie(pagedGroups);
   const totalFavorites = favoriteRows.length + sleeveFavoriteRows.length;
   const hasFilteredFavorites =
@@ -438,6 +553,17 @@ export default async function AdminFavoritesPage({
         <p className="text-gray-400">Aucun favori trouvé.</p>
       ) : (
         <div className="space-y-8">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-950/65 p-4 text-sm text-gray-300">
+            <span>
+              Page {currentPage} / {totalPages} - 50 favoris par page
+            </span>
+            <AdminFavoritesPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              paginationHref={paginationHref}
+            />
+          </div>
+
           {pagedGroups.length > 0 ? (
             <section>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -487,12 +613,6 @@ export default async function AdminFavoritesPage({
                   );
                 })}
               </div>
-              {filteredGroups.length > pagedGroups.length ? (
-                <p className="mt-3 text-sm text-gray-400">
-                  Affichage des {pagedGroups.length} premiers groupes de cartes.
-                  Utilise la recherche pour cibler une carte ou une série.
-                </p>
-              ) : null}
             </section>
           ) : null}
 
@@ -513,14 +633,16 @@ export default async function AdminFavoritesPage({
                   <SleeveFavoriteGroupCard key={group.key} group={group} />
                 ))}
               </div>
-              {filteredSleeveGroups.length > pagedSleeveGroups.length ? (
-                <p className="mt-3 text-sm text-gray-400">
-                  Affichage des {pagedSleeveGroups.length} premiers groupes de
-                  sleeves. Utilise la recherche pour cibler un produit.
-                </p>
-              ) : null}
             </section>
           ) : null}
+
+          <div className="flex justify-center rounded-2xl border border-white/10 bg-zinc-950/65 p-4">
+            <AdminFavoritesPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              paginationHref={paginationHref}
+            />
+          </div>
         </div>
       )}
     </div>
