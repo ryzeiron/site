@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import FavoriteRemoveButton from "@/components/FavoriteRemoveButton";
 import { getCard, resolveVariant } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { favoriteCards, favoriteSleeves } from "@/lib/db/schema";
@@ -146,54 +147,66 @@ export default async function FavorisPage({
                   const outOfStock = variant.stock <= 0;
 
                   return (
-                    <Link
+                    <article
                       key={`${favorite.cardId}-${favorite.variant}`}
-                      href={`/carte/${card.id}`}
                       className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200 transition hover:border-violet-300/70 hover:shadow-[0_0_18px_rgba(139,92,246,0.4)]"
                     >
-                      <div className="aspect-[3/4] overflow-hidden rounded bg-zinc-950">
-                        {card.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={card.image}
-                            alt={card.name}
-                            className={`h-full w-full object-contain ${
-                              outOfStock ? "opacity-50 grayscale" : ""
-                            }`}
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center px-4 text-center text-sm">
-                            {card.name}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mt-3 text-xs text-gray-400">
-                        {card.number}
-                      </div>
-                      <div className="font-semibold text-white">{card.name}</div>
-
-                      <div className="mt-2 flex items-center justify-between gap-2 text-sm">
-                        <span className="rounded-full bg-violet-500/15 px-2 py-1 text-xs text-violet-200">
-                          {formatRarityLabel(variant.rarity)}
-                        </span>
-                        <span className="font-bold text-brand-500">
-                          {formatPrice(variant.price)}
-                        </span>
-                      </div>
-
-                      <div
-                        className={`mt-3 rounded px-2 py-1 text-center text-xs font-medium ${
-                          outOfStock
-                            ? "bg-red-500/15 text-red-200"
-                            : "bg-emerald-500/15 text-emerald-200"
-                        }`}
+                      <Link
+                        href={`/carte/${card.id}`}
+                        className="block"
                       >
-                        {outOfStock
-                          ? "Alerte active en cas de retour"
-                          : `${variant.stock} en stock`}
-                      </div>
-                    </Link>
+                        <div className="aspect-[3/4] overflow-hidden rounded bg-zinc-950">
+                          {card.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={card.image}
+                              alt={card.name}
+                              className={`h-full w-full object-contain ${
+                                outOfStock ? "opacity-50 grayscale" : ""
+                              }`}
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center px-4 text-center text-sm">
+                              {card.name}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-3 text-xs text-gray-400">
+                          {card.number}
+                        </div>
+                        <div className="font-semibold text-white">
+                          {card.name}
+                        </div>
+
+                        <div className="mt-2 flex items-center justify-between gap-2 text-sm">
+                          <span className="rounded-full bg-violet-500/15 px-2 py-1 text-xs text-violet-200">
+                            {formatRarityLabel(variant.rarity)}
+                          </span>
+                          <span className="font-bold text-brand-500">
+                            {formatPrice(variant.price)}
+                          </span>
+                        </div>
+
+                        <div
+                          className={`mt-3 rounded px-2 py-1 text-center text-xs font-medium ${
+                            outOfStock
+                              ? "bg-red-500/15 text-red-200"
+                              : "bg-emerald-500/15 text-emerald-200"
+                          }`}
+                        >
+                          {outOfStock
+                            ? "Alerte active en cas de retour"
+                            : `${variant.stock} en stock`}
+                        </div>
+                      </Link>
+
+                      <FavoriteRemoveButton
+                        type="card"
+                        cardId={card.id}
+                        variant={favorite.variant}
+                      />
+                    </article>
                   );
                 })}
               </div>
@@ -219,54 +232,57 @@ export default async function FavorisPage({
                   const outOfStock = sleeve.stock <= 0;
 
                   return (
-                    <Link
+                    <article
                       key={`sleeve-${sleeve.id}`}
-                      href="/sleeve"
                       className="rounded-lg border border-white/10 bg-zinc-900/70 p-4 text-gray-200 transition hover:border-violet-300/70 hover:shadow-[0_0_18px_rgba(139,92,246,0.4)]"
                     >
-                      <div className="aspect-[3/4] overflow-hidden rounded bg-zinc-950">
-                        {sleeve.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={sleeve.image}
-                            alt={sleeve.name}
-                            className={`h-full w-full object-contain p-2 ${
-                              outOfStock ? "opacity-50 grayscale" : ""
-                            }`}
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center px-4 text-center text-sm font-bold uppercase tracking-[0.18em] text-violet-200">
+                      <Link href="/sleeve" className="block">
+                        <div className="aspect-[3/4] overflow-hidden rounded bg-zinc-950">
+                          {sleeve.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={sleeve.image}
+                              alt={sleeve.name}
+                              className={`h-full w-full object-contain p-2 ${
+                                outOfStock ? "opacity-50 grayscale" : ""
+                              }`}
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center px-4 text-center text-sm font-bold uppercase tracking-[0.18em] text-violet-200">
+                              Sleeve
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-3 text-xs text-gray-400">
+                          Accessoire
+                        </div>
+                        <div className="font-semibold text-white">
+                          {sleeve.name}
+                        </div>
+
+                        <div className="mt-2 flex items-center justify-between gap-2 text-sm">
+                          <span className="rounded-full bg-violet-500/15 px-2 py-1 text-xs text-violet-200">
                             Sleeve
-                          </div>
-                        )}
-                      </div>
+                          </span>
+                          <span className="font-bold text-brand-500">
+                            {formatPrice(sleeve.priceCents / 100)}
+                          </span>
+                        </div>
 
-                      <div className="mt-3 text-xs text-gray-400">
-                        Accessoire
-                      </div>
-                      <div className="font-semibold text-white">
-                        {sleeve.name}
-                      </div>
+                        <div
+                          className={`mt-3 rounded px-2 py-1 text-center text-xs font-medium ${
+                            outOfStock
+                              ? "bg-red-500/15 text-red-200"
+                              : "bg-emerald-500/15 text-emerald-200"
+                          }`}
+                        >
+                          {outOfStock ? "Rupture" : `${sleeve.stock} en stock`}
+                        </div>
+                      </Link>
 
-                      <div className="mt-2 flex items-center justify-between gap-2 text-sm">
-                        <span className="rounded-full bg-violet-500/15 px-2 py-1 text-xs text-violet-200">
-                          Sleeve
-                        </span>
-                        <span className="font-bold text-brand-500">
-                          {formatPrice(sleeve.priceCents / 100)}
-                        </span>
-                      </div>
-
-                      <div
-                        className={`mt-3 rounded px-2 py-1 text-center text-xs font-medium ${
-                          outOfStock
-                            ? "bg-red-500/15 text-red-200"
-                            : "bg-emerald-500/15 text-emerald-200"
-                        }`}
-                      >
-                        {outOfStock ? "Rupture" : `${sleeve.stock} en stock`}
-                      </div>
-                    </Link>
+                      <FavoriteRemoveButton type="sleeve" sleeveId={sleeve.id} />
+                    </article>
                   );
                 })}
               </div>
