@@ -7,6 +7,7 @@ import { getDb } from "@/lib/db/client";
 import {
   favoriteCards,
   favoriteSleeves,
+  cartSnapshots,
   orders,
   processedEvents,
   stockOverrides,
@@ -69,6 +70,13 @@ function decodeSleeves(metadata: Stripe.Metadata | null): CompactSleeveItem[] {
 
 function metadataValue(value: string | null | undefined): string | null {
   return value && value.trim() ? value : null;
+}
+
+async function removeCartSnapshotFromSession(session: Stripe.Checkout.Session) {
+  const cartId = metadataValue(session.metadata?.cart_id);
+  if (!cartId) return;
+
+  await getDb().delete(cartSnapshots).where(eq(cartSnapshots.cartId, cartId));
 }
 
 function formatAmount(cents: number | null) {
@@ -417,6 +425,7 @@ export async function POST(request: Request) {
         // order was saved. Continue so a manual Stripe resend can repair it.
       } else {
         await removePurchasedFavoritesFromSession(session).catch(() => {});
+        await removeCartSnapshotFromSession(session).catch(() => {});
         return NextResponse.json({ received: true, duplicate: true });
       }
     } else {
@@ -520,6 +529,8 @@ export async function POST(request: Request) {
           ? error.message
           : "Erreur suppression favoris achetes.";
     });
+
+    await removeCartSnapshotFromSession(session).catch(() => {});
 
     if (items.length === 0 || reservationId) {
       const sleeveStockUpdates = await decrementSleeveStock(

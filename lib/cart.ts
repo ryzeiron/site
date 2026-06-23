@@ -47,13 +47,52 @@ function makeCartId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-function scheduleSync(_cartId: string, _items: CartItem[]) {
-  // Le checkout reserve et valide le stock. On evite de reveiller Neon
-  // pendant que le client construit simplement son panier.
+let snapshotTimer: ReturnType<typeof setTimeout> | null = null;
+let lastSnapshotPayload = "";
+
+function sendSnapshot(cartId: string, items: CartItem[]) {
+  if (typeof window === "undefined") return;
+
+  if (items.length === 0) {
+    clearOnServer(cartId);
+    return;
+  }
+
+  const payload = JSON.stringify({ cartId, items });
+  if (payload === lastSnapshotPayload) return;
+
+  lastSnapshotPayload = payload;
+
+  fetch("/api/cart/snapshot", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: payload,
+  }).catch(() => {});
 }
 
-function clearOnServer(_cartId: string) {
-  // Voir scheduleSync : aucune reservation n'est gardee avant le paiement.
+function scheduleSync(cartId: string, items: CartItem[]) {
+  if (typeof window === "undefined") return;
+
+  if (snapshotTimer) {
+    clearTimeout(snapshotTimer);
+  }
+
+  snapshotTimer = setTimeout(() => {
+    sendSnapshot(cartId, items);
+  }, 8000);
+}
+
+function clearOnServer(cartId: string) {
+  if (typeof window === "undefined") return;
+
+  lastSnapshotPayload = "";
+
+  fetch("/api/cart/snapshot", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cartId }),
+    keepalive: true,
+  }).catch(() => {});
 }
 
 export const useCart = create<CartState>()(
@@ -142,6 +181,7 @@ export const useCart = create<CartState>()(
                 ...state.items,
                 { type: "sleeve" as const, sleeveId, quantity: cap(quantity) },
               ];
+          scheduleSync(state.cartId, nextItems);
           return { items: nextItems };
         }),
       removeSleeve: (sleeveId) =>
@@ -149,6 +189,7 @@ export const useCart = create<CartState>()(
           const nextItems = state.items.filter(
             (i) => !(isSleeveCartItem(i) && i.sleeveId === sleeveId),
           );
+          scheduleSync(state.cartId, nextItems);
           return { items: nextItems };
         }),
       setSleeveQuantity: (sleeveId, quantity, maxStock) =>
@@ -167,13 +208,12 @@ export const useCart = create<CartState>()(
                 : i,
             );
           }
+          scheduleSync(state.cartId, nextItems);
           return { items: nextItems };
         }),
       clear: () => {
-        const { cartId, items } = get();
-        if (items.some(isCardCartItem)) {
-          clearOnServer(cartId);
-        }
+        const { cartId } = get();
+        clearOnServer(cartId);
         set({ items: [] });
       },
       totalItems: () => get().items.reduce((s, i) => s + i.quantity, 0),

@@ -96,8 +96,7 @@ export async function POST(request: Request) {
       status === "shipped" &&
       (body.sendShippingEmail === true || existingOrder.status !== "shipped");
     const shouldSendReviewEmail =
-      status === "picked_up" &&
-      (body.sendReviewEmail === true || existingOrder.status !== "picked_up");
+      status === "picked_up" && body.sendReviewEmail === true;
 
     if (shouldSendShippingEmail || shouldSendReviewEmail) {
       if (!existingOrder.customerEmail) {
@@ -150,8 +149,14 @@ export async function POST(request: Request) {
           : "orders";
 
       await sendDiscordNotification(channel, {
-        title: "Statut de commande modifie",
-        description: `[Ouvrir les commandes admin](${discordAdminUrl("/admin/commandes")})`,
+        title:
+          status === "picked_up"
+            ? "Colis retire par le client"
+            : "Statut de commande modifie",
+        description:
+          status === "picked_up"
+            ? `Le colis est bien dans les mains du destinataire. [Ouvrir les commandes admin](${discordAdminUrl("/admin/commandes")})`
+            : `[Ouvrir les commandes admin](${discordAdminUrl("/admin/commandes")})`,
         fields: [
           { name: "Commande", value: orderId, inline: false },
           {

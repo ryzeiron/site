@@ -85,6 +85,8 @@ export default function AdminOrderShippingForm({
         setNotice("Email colis à retirer envoyé au client.");
       } else if (data.reviewEmailSent) {
         setNotice("Email d'avis envoyé au client.");
+      } else if (statusToSave === "picked_up") {
+        setNotice("Commande marquée comme colis retiré.");
       }
 
       setTimeout(() => setSaved(false), 1600);
@@ -175,12 +177,12 @@ export default function AdminOrderShippingForm({
           <button
             type="button"
             onClick={() =>
-              save({ nextStatus: "picked_up", sendReviewEmail: true })
+              save({ nextStatus: "picked_up" })
             }
             disabled={saving}
             className="rounded bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Colis retiré + mail avis
+            Marquer colis retiré
           </button>
         ) : (
           <button
@@ -189,7 +191,7 @@ export default function AdminOrderShippingForm({
             disabled={saving}
             className="rounded bg-white/10 border border-white/20 hover:bg-white/20 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Renvoyer le mail d'avis
+            Envoyer le mail d'avis
           </button>
         )}
       </div>

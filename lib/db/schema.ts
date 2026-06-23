@@ -1,4 +1,4 @@
-import { boolean, integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -139,6 +139,34 @@ export const orders = pgTable("orders", {
   mondialRelayError: text("mondial_relay_error"),
   status: text("status").notNull().default("paid"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type CartSnapshotItem = {
+  type: "card" | "sleeve";
+  id: string;
+  variant?: string;
+  name: string;
+  number?: string;
+  serieName?: string;
+  image?: string | null;
+  rarity?: string;
+  condition?: string;
+  quantity: number;
+  unitPriceCents: number;
+  lineTotalCents: number;
+  href: string;
+};
+
+export const cartSnapshots = pgTable("cart_snapshots", {
+  cartId: text("cart_id").primaryKey(),
+  userId: text("user_id"),
+  userEmail: text("user_email"),
+  userName: text("user_name"),
+  itemCount: integer("item_count").notNull().default(0),
+  totalCents: integer("total_cents").notNull().default(0),
+  items: jsonb("items").notNull().$type<CartSnapshotItem[]>().default([]),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const orderPreparationItems = pgTable(

@@ -1,9 +1,10 @@
 import Link from "next/link";
 
 type AdminCatalogTabsProps = {
-  active: "dashboard" | "cards" | "sleeves";
+  active: "dashboard" | "cards" | "sleeves" | "carts";
   cardsCount?: number;
   sleevesCount?: number;
+  cartsCount?: number;
 };
 
 function tabClass(active: boolean) {
@@ -19,6 +20,7 @@ export default function AdminCatalogTabs({
   active,
   cardsCount,
   sleevesCount,
+  cartsCount,
 }: AdminCatalogTabsProps) {
   return (
     <nav className="mb-6 rounded-2xl border border-violet-300/15 bg-zinc-950/75 p-2">
@@ -57,6 +59,19 @@ export default function AdminCatalogTabs({
           {typeof sleevesCount === "number" ? (
             <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs">
               {sleevesCount}
+            </span>
+          ) : null}
+        </Link>
+
+        <Link
+          href="/admin/paniers"
+          className={tabClass(active === "carts")}
+          aria-current={active === "carts" ? "page" : undefined}
+        >
+          <span>Paniers</span>
+          {typeof cartsCount === "number" ? (
+            <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs">
+              {cartsCount}
             </span>
           ) : null}
         </Link>

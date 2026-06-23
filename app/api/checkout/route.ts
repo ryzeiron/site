@@ -25,6 +25,7 @@ type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
 type Body = {
   items?: { cardId: string; variant: VariantKey; quantity: number }[];
   sleeveItems?: { sleeveId: string; quantity: number }[];
+  cartId?: string;
   promoCode?: string;
   country?: Country;
   relay?: {
@@ -504,6 +505,7 @@ export async function POST(request: Request) {
           ...relayMeta,
           country,
           reservation_id: reservationId,
+          ...(body.cartId ? { cart_id: body.cartId.slice(0, 64) } : {}),
           ...(sessionUser?.user?.id ? { user_id: sessionUser.user.id } : {}),
         },
         success_url: `${origin}/suivi-commande/{CHECKOUT_SESSION_ID}`,
