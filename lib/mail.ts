@@ -187,7 +187,7 @@ ${opts.relayName ? `Point relais : ${opts.relayName}\n${opts.relayAddress ?? ""}
 Vous recevrez un nouvel email avec le numéro de suivi dès l'expédition.
 ${opts.trackUrl ? `\nSuivi de votre commande : ${opts.trackUrl}` : ""}
 
-ì bientôt,
+A bientôt,
 L'équipe PokeDel
 `;
   return { text };
