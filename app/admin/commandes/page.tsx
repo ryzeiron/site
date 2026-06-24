@@ -31,6 +31,7 @@ type OrderStatus =
   | "label_to_create"
   | "label_created"
   | "shipped"
+  | "ready_for_pickup"
   | "picked_up";
 
 const PAGE_SIZE = 25;
@@ -39,7 +40,8 @@ const STATUS_LABELS: Record<string, string> = {
   paid: "Commande payée",
   label_to_create: "À préparer",
   label_created: "Prête à déposer",
-  shipped: "Colis à retirer",
+  shipped: "Colis expédié",
+  ready_for_pickup: "Colis à retirer",
   picked_up: "Colis retiré",
 };
 
@@ -49,6 +51,7 @@ function isOrderStatus(value?: string): value is OrderStatus {
     value === "label_to_create" ||
     value === "label_created" ||
     value === "shipped" ||
+    value === "ready_for_pickup" ||
     value === "picked_up"
   );
 }
@@ -75,6 +78,9 @@ function statusClass(status: string) {
     return "border-violet-400/35 bg-violet-500/15 text-violet-200";
   }
   if (status === "shipped") {
+    return "border-blue-400/35 bg-blue-500/15 text-blue-200";
+  }
+  if (status === "ready_for_pickup") {
     return "border-emerald-400/35 bg-emerald-500/15 text-emerald-200";
   }
   if (status === "picked_up") {
@@ -367,6 +373,7 @@ export default async function AdminOrdersPage({
     ).length,
     labelCreated: statusRows.filter((order) => order.status === "label_created").length,
     shipped: statusRows.filter((order) => order.status === "shipped").length,
+    readyForPickup: statusRows.filter((order) => order.status === "ready_for_pickup").length,
     pickedUp: statusRows.filter((order) => order.status === "picked_up").length,
   };
 
@@ -427,7 +434,7 @@ export default async function AdminOrdersPage({
         </Link>
       </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <div className="rounded-xl border border-sky-400/20 bg-sky-500/10 p-4">
           <div className="text-sm text-sky-200">À préparer</div>
           <div className="mt-1 text-3xl font-bold text-white">{stats.toPrepare}</div>
@@ -438,10 +445,16 @@ export default async function AdminOrdersPage({
             {stats.labelCreated}
           </div>
         </div>
+        <div className="rounded-xl border border-blue-400/20 bg-blue-500/10 p-4">
+          <div className="text-sm text-blue-200">Expédiées</div>
+          <div className="mt-1 text-3xl font-bold text-white">
+            {stats.shipped}
+          </div>
+        </div>
         <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4">
           <div className="text-sm text-emerald-200">Colis à retirer</div>
           <div className="mt-1 text-3xl font-bold text-white">
-            {stats.shipped}
+            {stats.readyForPickup}
           </div>
         </div>
         <div className="rounded-xl border border-fuchsia-400/20 bg-fuchsia-500/10 p-4">
@@ -457,7 +470,8 @@ export default async function AdminOrdersPage({
           { value: "", label: "Toutes" },
           { value: "paid", label: "À préparer" },
           { value: "label_created", label: "Prêtes à déposer" },
-          { value: "shipped", label: "Colis à retirer" },
+          { value: "shipped", label: "Expédiées" },
+          { value: "ready_for_pickup", label: "Colis à retirer" },
           { value: "picked_up", label: "Retirées" },
         ].map((item) => (
           <Link

@@ -35,7 +35,8 @@ const STATUS_LABELS: Record<string, string> = {
   paid: "Commande payée",
   label_to_create: "À préparer",
   label_created: "Prête à déposer",
-  shipped: "Colis à retirer",
+  shipped: "Colis expédié",
+  ready_for_pickup: "Colis à retirer",
   picked_up: "Colis retiré",
 };
 

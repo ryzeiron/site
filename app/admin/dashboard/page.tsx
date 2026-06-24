@@ -25,7 +25,8 @@ const STATUS_LABELS: Record<string, string> = {
   paid: "Commande payée",
   label_to_create: "À préparer",
   label_created: "Prête à déposer",
-  shipped: "Colis à retirer",
+  shipped: "Colis expédié",
+  ready_for_pickup: "Colis à retirer",
   picked_up: "Colis retiré",
 };
 
@@ -48,6 +49,9 @@ function statusClass(status: string) {
     return "border-violet-400/35 bg-violet-500/15 text-violet-200";
   }
   if (status === "shipped") {
+    return "border-blue-400/35 bg-blue-500/15 text-blue-200";
+  }
+  if (status === "ready_for_pickup") {
     return "border-emerald-400/35 bg-emerald-500/15 text-emerald-200";
   }
   if (status === "picked_up") {
@@ -158,7 +162,13 @@ export default async function AdminDashboardPage() {
       db
         .select()
         .from(orders)
-        .where(and(ne(orders.status, "shipped"), ne(orders.status, "picked_up")))
+        .where(
+          and(
+            ne(orders.status, "shipped"),
+            ne(orders.status, "ready_for_pickup"),
+            ne(orders.status, "picked_up"),
+          ),
+        )
         .orderBy(desc(orders.createdAt))
         .limit(DASHBOARD_ORDER_LIMIT),
       db

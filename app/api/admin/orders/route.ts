@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db/client";
 import { orderPreparationItems, orders, stockReservations } from "@/lib/db/schema";
 import { discordAdminUrl, sendDiscordNotification } from "@/lib/discord";
 import {
+  sendOrderReadyForPickupEmail,
   sendOrderReviewRequestEmail,
   sendOrderShippedEmail,
 } from "@/lib/email";
@@ -14,6 +15,7 @@ type OrderStatus =
   | "label_to_create"
   | "label_created"
   | "shipped"
+  | "ready_for_pickup"
   | "picked_up";
 
 type Body = {
@@ -30,6 +32,7 @@ const ALLOWED_STATUSES: OrderStatus[] = [
   "label_to_create",
   "label_created",
   "shipped",
+  "ready_for_pickup",
   "picked_up",
 ];
 
@@ -37,7 +40,8 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   paid: "Commande payee",
   label_to_create: "A preparer",
   label_created: "Prete a deposer",
-  shipped: "Colis a retirer",
+  shipped: "Colis expedie",
+  ready_for_pickup: "Colis a retirer",
   picked_up: "Colis retire",
 };
 
@@ -95,10 +99,18 @@ export async function POST(request: Request) {
     const shouldSendShippingEmail =
       status === "shipped" &&
       (body.sendShippingEmail === true || existingOrder.status !== "shipped");
+    const shouldSendReadyForPickupEmail =
+      status === "ready_for_pickup" &&
+      (body.sendShippingEmail === true ||
+        existingOrder.status !== "ready_for_pickup");
     const shouldSendReviewEmail =
       status === "picked_up" && body.sendReviewEmail === true;
 
-    if (shouldSendShippingEmail || shouldSendReviewEmail) {
+    if (
+      shouldSendShippingEmail ||
+      shouldSendReadyForPickupEmail ||
+      shouldSendReviewEmail
+    ) {
       if (!existingOrder.customerEmail) {
         return NextResponse.json(
           { error: "Email client introuvable pour cette commande." },
@@ -110,12 +122,29 @@ export async function POST(request: Request) {
     if (shouldSendShippingEmail) {
       if (!expeditionNumber) {
         return NextResponse.json(
-          { error: "Numéro de suivi obligatoire pour passer la commande en colis à retirer." },
+          { error: "Numéro de suivi obligatoire pour passer la commande en colis expédié." },
           { status: 400 },
         );
       }
 
       await sendOrderShippedEmail({
+        to: existingOrder.customerEmail!,
+        customerName: existingOrder.customerName,
+        orderId: existingOrder.stripeSessionId,
+        trackingNumber: expeditionNumber,
+        labelUrl,
+      });
+    }
+
+    if (shouldSendReadyForPickupEmail) {
+      if (!expeditionNumber) {
+        return NextResponse.json(
+          { error: "Numéro de suivi obligatoire pour passer la commande en colis à retirer." },
+          { status: 400 },
+        );
+      }
+
+      await sendOrderReadyForPickupEmail({
         to: existingOrder.customerEmail!,
         customerName: existingOrder.customerName,
         orderId: existingOrder.stripeSessionId,
@@ -173,6 +202,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       emailSent: shouldSendShippingEmail,
+      readyForPickupEmailSent: shouldSendReadyForPickupEmail,
       reviewEmailSent: shouldSendReviewEmail,
     });
   } catch (e) {

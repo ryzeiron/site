@@ -9,7 +9,9 @@ type OrderStatus =
   | "paid"
   | "label_to_create"
   | "label_created"
-  | "shipped";
+  | "shipped"
+  | "ready_for_pickup"
+  | "picked_up";
 
 type Body = {
   orderId?: string;
@@ -23,6 +25,8 @@ const ALLOWED_STATUSES: OrderStatus[] = [
   "label_to_create",
   "label_created",
   "shipped",
+  "ready_for_pickup",
+  "picked_up",
 ];
 
 export async function POST(request: Request) {
@@ -89,7 +93,7 @@ export async function POST(request: Request) {
 
       if (!expeditionNumber) {
         return NextResponse.json(
-          { error: "Numéro de suivi obligatoire pour passer la commande en colis à retirer." },
+          { error: "Numéro de suivi obligatoire pour passer la commande en colis expédié." },
           { status: 400 },
         );
       }

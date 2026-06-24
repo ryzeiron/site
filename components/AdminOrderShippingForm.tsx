@@ -8,12 +8,14 @@ type OrderStatus =
   | "label_to_create"
   | "label_created"
   | "shipped"
+  | "ready_for_pickup"
   | "picked_up";
 
 const STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
   { value: "paid", label: "Commande payée" },
   { value: "label_created", label: "Prête à déposer" },
-  { value: "shipped", label: "Colis à retirer" },
+  { value: "shipped", label: "Colis expédié" },
+  { value: "ready_for_pickup", label: "Colis à retirer" },
   { value: "picked_up", label: "Colis retiré" },
 ];
 
@@ -82,6 +84,8 @@ export default function AdminOrderShippingForm({
       setStatus(statusToSave);
 
       if (data.emailSent) {
+        setNotice("Email colis expédié envoyé au client.");
+      } else if (data.readyForPickupEmailSent) {
         setNotice("Email colis à retirer envoyé au client.");
       } else if (data.reviewEmailSent) {
         setNotice("Email d'avis envoyé au client.");
@@ -162,6 +166,17 @@ export default function AdminOrderShippingForm({
       </div>
 
       {status === "shipped" ? (
+        <button
+          type="button"
+          onClick={() => save({ sendShippingEmail: true })}
+          disabled={saving || !expeditionNumber.trim()}
+          className="mt-3 rounded bg-white/10 border border-white/20 hover:bg-white/20 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Renvoyer le mail colis expédié
+        </button>
+      ) : null}
+
+      {status === "ready_for_pickup" ? (
         <button
           type="button"
           onClick={() => save({ sendShippingEmail: true })}

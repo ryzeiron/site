@@ -26,6 +26,10 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
     color: "bg-violet-500/20 text-violet-200",
   },
   shipped: {
+    label: "Expédiée",
+    color: "bg-blue-500/20 text-blue-200",
+  },
+  ready_for_pickup: {
     label: "Colis à retirer",
     color: "bg-violet-500/20 text-violet-200",
   },

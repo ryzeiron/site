@@ -37,6 +37,10 @@ const STATUS_LABELS: Record<string, { title: string; detail: string }> = {
     detail: "La commande est préparée et va être déposée en point relais.",
   },
   shipped: {
+    title: "Colis expédié",
+    detail: "Le colis a été expédié. Le suivi Mondial Relay est disponible.",
+  },
+  ready_for_pickup: {
     title: "Colis à retirer",
     detail: "Le colis est disponible au point relais choisi.",
   },
@@ -50,7 +54,8 @@ const STATUS_STEPS = [
   { key: "paid", label: "Payée" },
   { key: "label_to_create", label: "Préparation" },
   { key: "label_created", label: "Prête" },
-  { key: "shipped", label: "À retirer" },
+  { key: "shipped", label: "Expédiée" },
+  { key: "ready_for_pickup", label: "À retirer" },
   { key: "picked_up", label: "Retirée" },
 ];
 
