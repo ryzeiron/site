@@ -87,14 +87,18 @@ function formatAmount(cents: number | null) {
   }).format((cents ?? 0) / 100);
 }
 
+function centsToEuros(cents: number | null | undefined) {
+  return typeof cents === "number" ? cents / 100 : null;
+}
+
 async function saveOrderAnalyticsFromSession(session: Stripe.Checkout.Session) {
   const values = {
     orderId: session.id,
     stripeSessionId: session.id,
-    amountSubtotalCents: session.amount_subtotal ?? null,
-    amountTotalCents: session.amount_total ?? null,
-    shippingTotalCents: session.shipping_cost?.amount_total ?? null,
-    discountTotalCents: session.total_details?.amount_discount ?? 0,
+    amountSubtotalEuros: centsToEuros(session.amount_subtotal),
+    amountTotalEuros: centsToEuros(session.amount_total),
+    shippingTotalEuros: centsToEuros(session.shipping_cost?.amount_total),
+    discountTotalEuros: centsToEuros(session.total_details?.amount_discount) ?? 0,
     currency: session.currency ?? "eur",
   };
 

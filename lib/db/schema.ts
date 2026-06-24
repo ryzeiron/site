@@ -1,4 +1,13 @@
-import { boolean, integer, jsonb, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  jsonb,
+  numeric,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -144,10 +153,26 @@ export const orders = pgTable("orders", {
 export const orderAnalytics = pgTable("order_analytics", {
   orderId: text("order_id").primaryKey(),
   stripeSessionId: text("stripe_session_id").notNull(),
-  amountSubtotalCents: integer("amount_subtotal_cents"),
-  amountTotalCents: integer("amount_total_cents"),
-  shippingTotalCents: integer("shipping_total_cents"),
-  discountTotalCents: integer("discount_total_cents"),
+  amountSubtotalEuros: numeric("amount_subtotal_euros", {
+    precision: 10,
+    scale: 2,
+    mode: "number",
+  }),
+  amountTotalEuros: numeric("amount_total_euros", {
+    precision: 10,
+    scale: 2,
+    mode: "number",
+  }),
+  shippingTotalEuros: numeric("shipping_total_euros", {
+    precision: 10,
+    scale: 2,
+    mode: "number",
+  }),
+  discountTotalEuros: numeric("discount_total_euros", {
+    precision: 10,
+    scale: 2,
+    mode: "number",
+  }),
   currency: text("currency").notNull().default("eur"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

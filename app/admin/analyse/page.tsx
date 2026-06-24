@@ -412,12 +412,12 @@ function summarizePeriod(
       const analytics = analyticsByOrderId.get(order.id);
       summary.orderCount += 1;
 
-      if (analytics?.amountTotalCents != null) {
+      if (analytics?.amountTotalEuros != null) {
         summary.knownOrderCount += 1;
-        summary.totalCents += analytics.amountTotalCents;
-        summary.subtotalCents += analytics.amountSubtotalCents ?? 0;
-        summary.shippingCents += analytics.shippingTotalCents ?? 0;
-        summary.discountCents += analytics.discountTotalCents ?? 0;
+        summary.totalCents += eurosToCents(analytics.amountTotalEuros);
+        summary.subtotalCents += eurosToCents(analytics.amountSubtotalEuros);
+        summary.shippingCents += eurosToCents(analytics.shippingTotalEuros);
+        summary.discountCents += eurosToCents(analytics.discountTotalEuros);
       } else {
         summary.unknownAmountCount += 1;
       }
@@ -499,9 +499,9 @@ function buildTopCustomers(
     const analytics = analyticsByOrderId.get(order.id);
 
     current.orderCount += 1;
-    if (analytics?.amountTotalCents != null) {
+    if (analytics?.amountTotalEuros != null) {
       current.knownOrderCount += 1;
-      current.totalCents += analytics.amountTotalCents;
+      current.totalCents += eurosToCents(analytics.amountTotalEuros);
     }
     if (new Date(order.createdAt) > new Date(current.lastOrderAt)) {
       current.lastOrderAt = order.createdAt;
@@ -566,6 +566,10 @@ function filterOrdersSince(orderRows: OrderRow[], from: Date) {
 function getAverage(summary: PeriodSummary) {
   if (summary.knownOrderCount === 0) return 0;
   return Math.round(summary.totalCents / summary.knownOrderCount);
+}
+
+function eurosToCents(value: number | null | undefined) {
+  return typeof value === "number" ? Math.round(value * 100) : 0;
 }
 
 function getGrowthPercent(previous: number, current: number) {
