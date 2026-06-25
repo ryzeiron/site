@@ -11,6 +11,8 @@ import {
   cartSnapshots,
   orderAnalytics,
   orders,
+  visitorDailyStats,
+  visitorHourlyStats,
 } from "@/lib/db/schema";
 import { formatCents } from "@/lib/format";
 
@@ -27,6 +29,8 @@ type OrderRow = {
 type OrderAnalyticsRow = typeof orderAnalytics.$inferSelect;
 type ActiveVisitorRow = typeof activeVisitors.$inferSelect;
 type CartSnapshotRow = typeof cartSnapshots.$inferSelect;
+type VisitorDailyRow = typeof visitorDailyStats.$inferSelect;
+type VisitorHourlyRow = typeof visitorHourlyStats.$inferSelect;
 
 type PeriodSummary = {
   orderCount: number;
@@ -51,6 +55,26 @@ type CustomerSummary = {
   knownOrderCount: number;
   totalCents: number;
   lastOrderAt: Date | string;
+};
+
+type VisitorDaySummary = {
+  key: string;
+  label: string;
+  uniqueVisitors: number;
+  pings: number;
+};
+
+type VisitorHourSummary = {
+  key: string;
+  label: string;
+  uniqueVisitors: number;
+  pings: number;
+};
+
+type VisitorPageSummary = {
+  path: string;
+  uniqueVisitors: number;
+  pings: number;
 };
 
 const ONLINE_AFTER_MS = 2 * 60 * 1000;
@@ -79,7 +103,7 @@ export default async function AdminAnalyticsPage() {
   if (!(await isAdmin())) redirect("/admin/login");
 
   const db = getDb();
-  const [orderRows, analyticsResult, visitorsResult, cartsResult] =
+  const [orderRows, analyticsResult, visitorsResult, cartsResult, visitorHistoryResult] =
     await Promise.all([
       db
         .select({
@@ -94,6 +118,7 @@ export default async function AdminAnalyticsPage() {
       getOrderAnalyticsRows(),
       getActiveVisitorRows(),
       getCartRows(),
+      getVisitorHistoryRows(),
     ]);
 
   const analyticsByOrderId = new Map(
@@ -132,6 +157,11 @@ export default async function AdminAnalyticsPage() {
   const statusStats = buildStatusStats(orderRows);
   const dailySummaries = buildDailySummaries(orderRows, analyticsByOrderId, 14);
   const cartStats = buildCartStats(cartsResult.rows);
+  const visitorStats = buildVisitorStats(
+    visitorHistoryResult.dailyRows,
+    visitorHistoryResult.hourlyRows,
+    now,
+  );
 
   return (
     <div className="py-6">
@@ -176,13 +206,20 @@ export default async function AdminAnalyticsPage() {
         </Notice>
       ) : null}
 
+      {!visitorHistoryResult.tableReady ? (
+        <Notice>
+          La table d&apos;historique visiteurs n&apos;est pas encore crÃ©Ã©e dans Neon. Les
+          records visiteurs resteront vides tant que le SQL n&apos;est pas ajoutÃ©.
+        </Notice>
+      ) : null}
+
       <section className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <StatCard label="Ventes totales" value={formatCents(total.totalCents)} />
         <StatCard label="Aujourd'hui" value={formatCents(today.totalCents)} tone="emerald" />
         <StatCard label="7 jours" value={formatCents(last7Days.totalCents)} tone="sky" />
         <StatCard label="30 jours" value={formatCents(last30Days.totalCents)} tone="blue" />
         <StatCard label="Panier moyen" value={formatCents(getAverage(total))} tone="violet" />
-        <StatCard label="En ligne" value={visitorsResult.rows.length.toString()} tone="fuchsia" />
+        <StatCard label="Visiteurs totaux" value={visitorStats.totalUniqueVisitors.toString()} tone="amber" />
       </section>
 
       <section className="mb-6 grid gap-4 xl:grid-cols-3">
@@ -216,6 +253,50 @@ export default async function AdminAnalyticsPage() {
           <InfoLine label="Récents" value={cartStats.recentCount} />
           <InfoLine label="Abandonnés" value={cartStats.abandonedCount} tone={cartStats.abandonedCount > 0 ? "warn" : "muted"} />
         </InfoPanel>
+      </section>
+
+      <section className="mb-6 grid gap-4 xl:grid-cols-3">
+        <InfoPanel title="Visiteurs">
+          <InfoLine label="En ligne maintenant" value={visitorsResult.rows.length} tone="good" />
+          <InfoLine label="Aujourd'hui" value={visitorStats.todayUniqueVisitors} />
+          <InfoLine label="7 jours" value={visitorStats.last7DaysUniqueVisitors} />
+          <InfoLine label="30 jours" value={visitorStats.last30DaysUniqueVisitors} />
+        </InfoPanel>
+
+        <InfoPanel title="Records visiteurs">
+          <InfoLine label="Meilleur jour" value={visitorStats.bestDay?.label ?? "-"} />
+          <InfoLine
+            label="Visiteurs ce jour"
+            value={visitorStats.bestDay?.uniqueVisitors ?? 0}
+            tone={visitorStats.bestDay ? "good" : "muted"}
+          />
+          <InfoLine label="Heure la plus active" value={visitorStats.bestHour?.label ?? "-"} />
+          <InfoLine
+            label="Visiteurs cette heure"
+            value={visitorStats.bestHour?.uniqueVisitors ?? 0}
+            tone={visitorStats.bestHour ? "good" : "muted"}
+          />
+        </InfoPanel>
+
+        <Panel title="Pages les plus actives">
+          {visitorStats.topPages.length === 0 ? (
+            <p className="text-sm text-gray-400">Pas encore d&apos;historique visiteurs.</p>
+          ) : (
+            <div className="space-y-2">
+              {visitorStats.topPages.slice(0, 6).map((page) => (
+                <div
+                  key={page.path}
+                  className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.04] p-2 text-sm"
+                >
+                  <span className="min-w-0 truncate text-gray-200">{page.path}</span>
+                  <span className="shrink-0 font-semibold text-white">
+                    {page.uniqueVisitors}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Panel>
       </section>
 
       <section className="mb-6 grid gap-4 xl:grid-cols-[1fr_1fr]">
@@ -330,7 +411,7 @@ export default async function AdminAnalyticsPage() {
         </Panel>
       </section>
 
-      <section className="mb-6 grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+      <section className="mb-6 grid gap-4 xl:grid-cols-[0.8fr_1.1fr_1.1fr]">
         <InfoPanel title="Record">
           <InfoLine label="Meilleur mois" value={bestMonth?.label ?? "-"} />
           <InfoLine
@@ -344,7 +425,7 @@ export default async function AdminAnalyticsPage() {
           />
         </InfoPanel>
 
-        <Panel title="14 derniers jours">
+        <Panel title="Ventes - 14 derniers jours">
           <ResponsiveTable
             empty="Aucune commande récente."
             minWidth="560px"
@@ -356,6 +437,22 @@ export default async function AdminAnalyticsPage() {
                 <td className="py-3 pr-4">{day.orderCount}</td>
                 <td className="py-3 pr-4">{formatCents(day.totalCents)}</td>
                 <td className="py-3">{formatCents(getAverage(day))}</td>
+              </tr>
+            ))}
+          </ResponsiveTable>
+        </Panel>
+
+        <Panel title="Visiteurs - 14 derniers jours">
+          <ResponsiveTable
+            empty="Pas encore d&apos;historique visiteurs."
+            minWidth="420px"
+            headers={["Jour", "Visiteurs", "Activite"]}
+          >
+            {visitorStats.dailySummaries.map((day) => (
+              <tr key={day.key} className="border-b border-white/5 text-gray-200">
+                <td className="py-3 pr-4 font-semibold text-white">{day.label}</td>
+                <td className="py-3 pr-4">{day.uniqueVisitors}</td>
+                <td className="py-3">{day.pings}</td>
               </tr>
             ))}
           </ResponsiveTable>
@@ -400,6 +497,28 @@ async function getCartRows() {
     return { rows, tableReady: true };
   } catch {
     return { rows: [] as CartSnapshotRow[], tableReady: false };
+  }
+}
+
+async function getVisitorHistoryRows() {
+  try {
+    const db = getDb();
+    const [dailyRows, hourlyRows] = await Promise.all([
+      db.select().from(visitorDailyStats).orderBy(desc(visitorDailyStats.day)).limit(20000),
+      db
+        .select()
+        .from(visitorHourlyStats)
+        .orderBy(desc(visitorHourlyStats.hour))
+        .limit(50000),
+    ]);
+
+    return { dailyRows, hourlyRows, tableReady: true };
+  } catch {
+    return {
+      dailyRows: [] as VisitorDailyRow[],
+      hourlyRows: [] as VisitorHourlyRow[],
+      tableReady: false,
+    };
   }
 }
 
@@ -559,6 +678,133 @@ function buildCartStats(rows: CartSnapshotRow[]) {
   return stats;
 }
 
+function buildVisitorStats(
+  dailyRows: VisitorDailyRow[],
+  hourlyRows: VisitorHourlyRow[],
+  now: Date,
+) {
+  const todayKey = getDayKey(now);
+  const sevenDaysAgoKey = getDayKey(daysAgo(now, 6));
+  const thirtyDaysAgoKey = getDayKey(daysAgo(now, 29));
+  const daySummaries = buildVisitorDaySummaries(dailyRows);
+  const hourSummaries = buildVisitorHourSummaries(hourlyRows);
+
+  return {
+    totalUniqueVisitors: new Set(dailyRows.map((row) => row.visitorId)).size,
+    todayUniqueVisitors: dailyRows.filter((row) => row.day === todayKey).length,
+    last7DaysUniqueVisitors: countUniqueVisitorsSince(dailyRows, sevenDaysAgoKey),
+    last30DaysUniqueVisitors: countUniqueVisitorsSince(dailyRows, thirtyDaysAgoKey),
+    bestDay: daySummaries.reduce<VisitorDaySummary | null>(
+      (best, day) =>
+        !best || day.uniqueVisitors > best.uniqueVisitors ? day : best,
+      null,
+    ),
+    bestHour: hourSummaries.reduce<VisitorHourSummary | null>(
+      (best, hour) =>
+        !best || hour.uniqueVisitors > best.uniqueVisitors ? hour : best,
+      null,
+    ),
+    dailySummaries: buildRecentVisitorDailySummaries(dailyRows, 14, now),
+    topPages: buildTopVisitorPages(dailyRows),
+  };
+}
+
+function countUniqueVisitorsSince(rows: VisitorDailyRow[], fromDay: string) {
+  return new Set(
+    rows.filter((row) => row.day >= fromDay).map((row) => row.visitorId),
+  ).size;
+}
+
+function buildVisitorDaySummaries(rows: VisitorDailyRow[]) {
+  const grouped = new Map<string, VisitorDaySummary>();
+
+  for (const row of rows) {
+    const current =
+      grouped.get(row.day) ??
+      ({
+        key: row.day,
+        label: formatVisitorDayLabel(row.day),
+        uniqueVisitors: 0,
+        pings: 0,
+      } satisfies VisitorDaySummary);
+
+    current.uniqueVisitors += 1;
+    current.pings += row.pingCount;
+    grouped.set(row.day, current);
+  }
+
+  return Array.from(grouped.values()).sort((a, b) => b.key.localeCompare(a.key));
+}
+
+function buildRecentVisitorDailySummaries(
+  rows: VisitorDailyRow[],
+  days: number,
+  now: Date,
+) {
+  const today = startOfDay(now);
+
+  return Array.from({ length: days }, (_, index) => {
+    const date = daysAgo(today, index);
+    const key = getDayKey(date);
+    const dayRows = rows.filter((row) => row.day === key);
+
+    return {
+      key,
+      label: formatShortDate(date),
+      uniqueVisitors: dayRows.length,
+      pings: dayRows.reduce((total, row) => total + row.pingCount, 0),
+    } satisfies VisitorDaySummary;
+  });
+}
+
+function buildVisitorHourSummaries(rows: VisitorHourlyRow[]) {
+  const grouped = new Map<string, VisitorHourSummary>();
+
+  for (const row of rows) {
+    const current =
+      grouped.get(row.hour) ??
+      ({
+        key: row.hour,
+        label: formatVisitorHourLabel(row.hour),
+        uniqueVisitors: 0,
+        pings: 0,
+      } satisfies VisitorHourSummary);
+
+    current.uniqueVisitors += 1;
+    current.pings += row.pingCount;
+    grouped.set(row.hour, current);
+  }
+
+  return Array.from(grouped.values()).sort((a, b) => b.key.localeCompare(a.key));
+}
+
+function buildTopVisitorPages(rows: VisitorDailyRow[]) {
+  const grouped = new Map<string, VisitorPageSummary>();
+
+  for (const row of rows) {
+    const path = row.lastPath || row.firstPath || "/";
+    const current =
+      grouped.get(path) ??
+      ({
+        path,
+        uniqueVisitors: 0,
+        pings: 0,
+      } satisfies VisitorPageSummary);
+
+    current.uniqueVisitors += 1;
+    current.pings += row.pingCount;
+    grouped.set(path, current);
+  }
+
+  return Array.from(grouped.values()).sort((a, b) => {
+    if (b.uniqueVisitors !== a.uniqueVisitors) {
+      return b.uniqueVisitors - a.uniqueVisitors;
+    }
+
+    return b.pings - a.pings;
+  });
+}
+
 function filterOrdersSince(orderRows: OrderRow[], from: Date) {
   return orderRows.filter((order) => new Date(order.createdAt) >= from);
 }
@@ -613,6 +859,33 @@ function formatShortDate(value: Date) {
     day: "2-digit",
     month: "short",
   });
+}
+
+function formatVisitorDayLabel(key: string) {
+  const [year, month, day] = key.split("-").map(Number);
+
+  if (!year || !month || !day) return key;
+
+  return new Date(year, month - 1, day).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatVisitorHourLabel(key: string) {
+  const [datePart, timePart = "00:00"] = key.split(" ");
+  const [year, month, day] = datePart.split("-").map(Number);
+
+  if (!year || !month || !day) return key;
+
+  const dateLabel = new Date(year, month - 1, day).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+  });
+  const hour = timePart.slice(0, 2);
+
+  return `${dateLabel} a ${hour}h`;
 }
 
 function formatTime(value: Date | string) {

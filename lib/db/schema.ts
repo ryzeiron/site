@@ -188,6 +188,47 @@ export const activeVisitors = pgTable("active_visitors", {
     .defaultNow(),
 });
 
+export const visitorDailyStats = pgTable(
+  "visitor_daily_stats",
+  {
+    visitorId: text("visitor_id").notNull(),
+    day: text("day").notNull(),
+    userId: text("user_id"),
+    userEmail: text("user_email"),
+    firstPath: text("first_path"),
+    lastPath: text("last_path"),
+    pingCount: integer("ping_count").notNull().default(1),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.visitorId, t.day] })],
+);
+
+export const visitorHourlyStats = pgTable(
+  "visitor_hourly_stats",
+  {
+    visitorId: text("visitor_id").notNull(),
+    hour: text("hour").notNull(),
+    day: text("day").notNull(),
+    userId: text("user_id"),
+    userEmail: text("user_email"),
+    firstPath: text("first_path"),
+    lastPath: text("last_path"),
+    pingCount: integer("ping_count").notNull().default(1),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.visitorId, t.hour] })],
+);
+
 export type CartSnapshotItem = {
   type: "card" | "sleeve";
   id: string;

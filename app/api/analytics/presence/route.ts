@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
-import { lt } from "drizzle-orm";
+import { lt, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db/client";
-import { activeVisitors } from "@/lib/db/schema";
+import {
+  activeVisitors,
+  visitorDailyStats,
+  visitorHourlyStats,
+} from "@/lib/db/schema";
 
 export const runtime = "nodejs";
 
@@ -33,29 +37,83 @@ export async function POST(request: Request) {
   const path = rawPath.startsWith("/") ? rawPath.slice(0, MAX_PATH_LENGTH) : "/";
   const session = await auth().catch(() => null);
   const now = new Date();
+  const { day, hour } = getParisVisitorKeys(now);
+  const userId = session?.user?.id ?? null;
+  const userEmail = session?.user?.email ?? null;
 
   try {
-    await getDb()
+    const db = getDb();
+
+    await db
       .insert(activeVisitors)
       .values({
         visitorId,
-        userId: session?.user?.id ?? null,
-        userEmail: session?.user?.email ?? null,
+        userId,
+        userEmail,
         path,
         lastSeenAt: now,
       })
       .onConflictDoUpdate({
         target: activeVisitors.visitorId,
         set: {
-          userId: session?.user?.id ?? null,
-          userEmail: session?.user?.email ?? null,
+          userId,
+          userEmail,
           path,
           lastSeenAt: now,
         },
       });
 
+    await db
+      .insert(visitorDailyStats)
+      .values({
+        visitorId,
+        day,
+        userId,
+        userEmail,
+        firstPath: path,
+        lastPath: path,
+        firstSeenAt: now,
+        lastSeenAt: now,
+        pingCount: 1,
+      })
+      .onConflictDoUpdate({
+        target: [visitorDailyStats.visitorId, visitorDailyStats.day],
+        set: {
+          userId,
+          userEmail,
+          lastPath: path,
+          lastSeenAt: now,
+          pingCount: sql`${visitorDailyStats.pingCount} + 1`,
+        },
+      });
+
+    await db
+      .insert(visitorHourlyStats)
+      .values({
+        visitorId,
+        hour,
+        day,
+        userId,
+        userEmail,
+        firstPath: path,
+        lastPath: path,
+        firstSeenAt: now,
+        lastSeenAt: now,
+        pingCount: 1,
+      })
+      .onConflictDoUpdate({
+        target: [visitorHourlyStats.visitorId, visitorHourlyStats.hour],
+        set: {
+          userId,
+          userEmail,
+          lastPath: path,
+          lastSeenAt: now,
+          pingCount: sql`${visitorHourlyStats.pingCount} + 1`,
+        },
+      });
+
     if (Math.random() < 0.02) {
-      await getDb()
+      await db
         .delete(activeVisitors)
         .where(lt(activeVisitors.lastSeenAt, new Date(Date.now() - CLEANUP_AFTER_MS)))
         .catch(() => {});
@@ -65,4 +123,26 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+function getParisVisitorKeys(date: Date) {
+  const parts = new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+  const day = `${values.year}-${values.month}-${values.day}`;
+
+  return {
+    day,
+    hour: `${day} ${values.hour}:00`,
+  };
 }
