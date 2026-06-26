@@ -74,6 +74,17 @@ export default async function BlocPage({
         selon le stock.
       </p>
 
+      {series.length > 0 && (
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link
+            href={`/blocs/${bloc.id}/tout`}
+            className="inline-flex items-center justify-center rounded-full bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-900/30 transition hover:bg-brand-500"
+          >
+            Voir tout le bloc
+          </Link>
+        </div>
+      )}
+
       <h2 className="mt-8 text-xl font-bold text-white">Séries</h2>
       {series.length === 0 ? (
         <p className="text-gray-400 mt-2">Aucune série pour le moment.</p>
