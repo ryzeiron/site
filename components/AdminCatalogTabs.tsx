@@ -1,7 +1,13 @@
 import Link from "next/link";
 
 type AdminCatalogTabsProps = {
-  active: "dashboard" | "cards" | "sleeves" | "carts" | "analytics";
+  active:
+    | "dashboard"
+    | "cards"
+    | "sleeves"
+    | "carts"
+    | "analytics"
+    | "promos";
   cardsCount?: number;
   sleevesCount?: number;
   cartsCount?: number;
@@ -82,6 +88,14 @@ export default function AdminCatalogTabs({
           aria-current={active === "analytics" ? "page" : undefined}
         >
           <span>Analyse</span>
+        </Link>
+
+        <Link
+          href="/admin/promos"
+          className={tabClass(active === "promos")}
+          aria-current={active === "promos" ? "page" : undefined}
+        >
+          <span>Codes promo</span>
         </Link>
       </div>
     </nav>
