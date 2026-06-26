@@ -275,6 +275,41 @@ export async function releaseStockReservation(reservationId: string) {
       WHERE card_id = ${r.card_id} AND variant = ${r.variant}
     `;
   }
+
+  return released.length;
+}
+
+export async function attachStockReservationSession(
+  reservationId: string,
+  stripeSessionId: string,
+) {
+  const sql = getReservationSql();
+
+  await sql`
+    UPDATE stock_reservations
+    SET stripe_session_id = ${stripeSessionId},
+        updated_at = now()
+    WHERE reservation_id = ${reservationId}
+      AND status = 'reserved'
+  `;
+}
+
+export async function getReservedStockReservationSessionIds(
+  reservationId: string,
+): Promise<string[]> {
+  const sql = getReservationSql();
+
+  const rows = (await sql`
+    SELECT DISTINCT stripe_session_id
+    FROM stock_reservations
+    WHERE reservation_id = ${reservationId}
+      AND status = 'reserved'
+      AND stripe_session_id IS NOT NULL
+  `) as { stripe_session_id: string | null }[];
+
+  return rows
+    .map((row) => row.stripe_session_id)
+    .filter((sessionId): sessionId is string => Boolean(sessionId));
 }
 
 /**

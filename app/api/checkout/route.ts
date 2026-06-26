@@ -15,6 +15,8 @@ import {
 } from "@/lib/mondial-relay-shipping";
 import { isPromoExcludedCard } from "@/lib/promo-exclusions";
 import {
+  attachStockReservationSession,
+  getReservedStockReservationSessionIds,
   releaseStockReservation,
   reserveStockItems,
 } from "@/lib/stock-reservations";
@@ -64,6 +66,7 @@ type CheckoutLineItem = {
 
 const MIN_STRIPE_TOTAL_CENTS = 50;
 const STRIPE_GROUPED_LINE_ITEM_THRESHOLD = 95;
+const CART_ID_RE = /^[a-z0-9-]{8,64}$/i;
 
 const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
   FR: 490,
@@ -88,6 +91,44 @@ const ALLOWED_COUNTRIES: Country[] = [
   "IT",
   "AT",
 ];
+
+function normalizeCartId(value: unknown) {
+  const cartId = typeof value === "string" ? value.trim() : "";
+  return CART_ID_RE.test(cartId) ? cartId : null;
+}
+
+async function expirePreviousCheckoutForCart(
+  stripe: ReturnType<typeof getStripe>,
+  cartId: string,
+) {
+  const sessionIds = await getReservedStockReservationSessionIds(cartId);
+
+  for (const sessionId of sessionIds) {
+    const session = await stripe.checkout.sessions
+      .retrieve(sessionId)
+      .catch(() => null);
+
+    if (!session) continue;
+
+    if (session.payment_status === "paid" || session.status === "complete") {
+      throw new Error(
+        "Un paiement est deja valide pour ce panier. Si la commande n'apparait pas, attends quelques secondes puis actualise.",
+      );
+    }
+
+    if (session.status === "open") {
+      await stripe.checkout.sessions.expire(sessionId).catch((error) => {
+        const message =
+          error instanceof Error ? error.message.toLowerCase() : "";
+        if (!message.includes("expired")) {
+          throw error;
+        }
+      });
+    }
+  }
+
+  return releaseStockReservation(cartId);
+}
 
 function encodeItems(
   items: {
@@ -199,6 +240,18 @@ export async function POST(request: Request) {
     }
 
     const sessionUser = await auth().catch(() => null);
+    const checkoutCartId = normalizeCartId(body.cartId);
+    const stripe = getStripe();
+
+    if (checkoutCartId) {
+      const releasedPrevious = await expirePreviousCheckoutForCart(
+        stripe,
+        checkoutCartId,
+      );
+      if (releasedPrevious > 0) {
+        revalidatePublicStockCache();
+      }
+    }
 
     if (!body.relay?.code?.trim()) {
       return NextResponse.json(
@@ -431,7 +484,7 @@ export async function POST(request: Request) {
 
     const itemsMeta = encodeItems(pricedCardItems);
     const sleeveMeta = encodeSleeves(pricedSleeveItems);
-    const reservationId = randomUUID();
+    const reservationId = checkoutCartId ?? randomUUID();
     const relayMeta: Record<string, string> = {};
 
     relayMeta.relay_code = body.relay.code.trim();
@@ -477,8 +530,6 @@ export async function POST(request: Request) {
       },
     };
 
-    const stripe = getStripe();
-
     const reservationItems = Array.from(reservationItemsByKey.values());
 
     for (const item of reservationItems) {
@@ -505,7 +556,7 @@ export async function POST(request: Request) {
           ...relayMeta,
           country,
           reservation_id: reservationId,
-          ...(body.cartId ? { cart_id: body.cartId.slice(0, 64) } : {}),
+          ...(checkoutCartId ? { cart_id: checkoutCartId } : {}),
           ...(sessionUser?.user?.id ? { user_id: sessionUser.user.id } : {}),
         },
         success_url: `${origin}/suivi-commande/{CHECKOUT_SESSION_ID}`,
@@ -521,7 +572,11 @@ export async function POST(request: Request) {
             ? {}
             : { allow_promotion_codes: true }),
       });
+      await attachStockReservationSession(reservationId, session.id);
     } catch (e) {
+      if (session?.id) {
+        await stripe.checkout.sessions.expire(session.id).catch(() => {});
+      }
       await releaseStockReservation(reservationId);
       if (reservationItems.length > 0) {
         revalidatePublicStockCache();
