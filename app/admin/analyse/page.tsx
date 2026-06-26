@@ -80,6 +80,7 @@ type VisitorPageSummary = {
 const ONLINE_AFTER_MS = 2 * 60 * 1000;
 const ACTIVE_CART_AFTER_MS = 30 * 60 * 1000;
 const RECENT_CART_AFTER_MS = 3 * 60 * 60 * 1000;
+const PARIS_TIME_ZONE = "Europe/Paris";
 
 const STATUS_LABELS: Record<string, string> = {
   paid: "Payées",
@@ -849,6 +850,7 @@ function getDayKey(value: Date | string) {
 function getMonthLabel(key: string) {
   const [year, month] = key.split("-").map(Number);
   return new Date(year, month - 1, 1).toLocaleDateString("fr-FR", {
+    timeZone: PARIS_TIME_ZONE,
     month: "long",
     year: "numeric",
   });
@@ -856,6 +858,7 @@ function getMonthLabel(key: string) {
 
 function formatShortDate(value: Date) {
   return value.toLocaleDateString("fr-FR", {
+    timeZone: PARIS_TIME_ZONE,
     day: "2-digit",
     month: "short",
   });
@@ -867,6 +870,7 @@ function formatVisitorDayLabel(key: string) {
   if (!year || !month || !day) return key;
 
   return new Date(year, month - 1, day).toLocaleDateString("fr-FR", {
+    timeZone: PARIS_TIME_ZONE,
     day: "2-digit",
     month: "long",
     year: "numeric",
@@ -880,6 +884,7 @@ function formatVisitorHourLabel(key: string) {
   if (!year || !month || !day) return key;
 
   const dateLabel = new Date(year, month - 1, day).toLocaleDateString("fr-FR", {
+    timeZone: PARIS_TIME_ZONE,
     day: "2-digit",
     month: "short",
   });
@@ -890,6 +895,7 @@ function formatVisitorHourLabel(key: string) {
 
 function formatTime(value: Date | string) {
   return new Date(value).toLocaleTimeString("fr-FR", {
+    timeZone: PARIS_TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
   });
