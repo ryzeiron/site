@@ -77,6 +77,20 @@ type VisitorPageSummary = {
   pings: number;
 };
 
+type VisitorPersonSummary = {
+  key: string;
+  label: string;
+  email: string | null;
+  visitDays: number;
+  todayVisits: number;
+  last7DaysVisits: number;
+  last30DaysVisits: number;
+  pings: number;
+  lastPath: string;
+  lastSeenAt: Date | string;
+  isOnline: boolean;
+};
+
 const ONLINE_AFTER_MS = 2 * 60 * 1000;
 const ACTIVE_CART_AFTER_MS = 30 * 60 * 1000;
 const RECENT_CART_AFTER_MS = 3 * 60 * 60 * 1000;
@@ -162,6 +176,7 @@ export default async function AdminAnalyticsPage() {
     visitorHistoryResult.dailyRows,
     visitorHistoryResult.hourlyRows,
     now,
+    visitorsResult.rows,
   );
 
   return (
@@ -256,13 +271,16 @@ export default async function AdminAnalyticsPage() {
         </InfoPanel>
       </section>
 
-      <section className="mb-6 grid gap-4 xl:grid-cols-3">
-        <InfoPanel title="Visiteurs">
-          <InfoLine label="En ligne maintenant" value={visitorsResult.rows.length} tone="good" />
-          <InfoLine label="Aujourd'hui" value={visitorStats.todayUniqueVisitors} />
-          <InfoLine label="7 jours" value={visitorStats.last7DaysUniqueVisitors} />
-          <InfoLine label="30 jours" value={visitorStats.last30DaysUniqueVisitors} />
-        </InfoPanel>
+      <section className="mb-6 grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+        <Panel title="Visiteurs">
+          <div className="mb-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <MiniMetric label="En ligne" value={visitorsResult.rows.length} tone="good" />
+            <MiniMetric label="Aujourd'hui" value={visitorStats.todayUniqueVisitors} />
+            <MiniMetric label="7 jours" value={visitorStats.last7DaysUniqueVisitors} />
+            <MiniMetric label="30 jours" value={visitorStats.last30DaysUniqueVisitors} />
+          </div>
+          <VisitorBarChart days={visitorStats.last7DaysChart} />
+        </Panel>
 
         <InfoPanel title="Records visiteurs">
           <InfoLine label="Meilleur jour" value={visitorStats.bestDay?.label ?? "-"} />
@@ -278,7 +296,9 @@ export default async function AdminAnalyticsPage() {
             tone={visitorStats.bestHour ? "good" : "muted"}
           />
         </InfoPanel>
+      </section>
 
+      <section className="mb-6 grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
         <Panel title="Pages les plus actives">
           {visitorStats.topPages.length === 0 ? (
             <p className="text-sm text-gray-400">Pas encore d&apos;historique visiteurs.</p>
@@ -297,6 +317,45 @@ export default async function AdminAnalyticsPage() {
               ))}
             </div>
           )}
+        </Panel>
+
+        <Panel title="Historique par visiteur">
+          <ResponsiveTable
+            empty="Pas encore de visiteurs à afficher."
+            minWidth="760px"
+            headers={[
+              "Visiteur",
+              "Jours",
+              "Aujourd'hui",
+              "7 jours",
+              "30 jours",
+              "Activité",
+              "Dernière page",
+            ]}
+          >
+            {visitorStats.visitorPeople.slice(0, 12).map((visitor) => (
+              <tr key={visitor.key} className="border-b border-white/5 text-gray-200">
+                <td className="py-3 pr-4">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-white">{visitor.label}</span>
+                    {visitor.isOnline ? (
+                      <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-200">
+                        en ligne
+                      </span>
+                    ) : null}
+                  </div>
+                </td>
+                <td className="py-3 pr-4">{visitor.visitDays}</td>
+                <td className="py-3 pr-4">{visitor.todayVisits}</td>
+                <td className="py-3 pr-4">{visitor.last7DaysVisits}</td>
+                <td className="py-3 pr-4">{visitor.last30DaysVisits}</td>
+                <td className="py-3 pr-4">{visitor.pings}</td>
+                <td className="max-w-[240px] truncate py-3 text-gray-400">
+                  {visitor.lastPath}
+                </td>
+              </tr>
+            ))}
+          </ResponsiveTable>
         </Panel>
       </section>
 
@@ -320,26 +379,23 @@ export default async function AdminAnalyticsPage() {
               Personne en ligne sur les 2 dernières minutes.
             </p>
           ) : (
-            <div className="space-y-2">
-              {visitorsResult.rows.slice(0, 8).map((visitor) => (
-                <div
-                  key={visitor.visitorId}
-                  className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.04] p-2"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold text-white">
-                      {visitor.userEmail || "Visiteur anonyme"}
-                    </div>
-                    <div className="truncate text-xs text-gray-500">
-                      {visitor.path || "/"}
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-xs text-gray-400">
-                    {formatTime(visitor.lastSeenAt)}
-                  </div>
-                </div>
+            <ResponsiveTable
+              empty="Personne en ligne sur les 2 dernières minutes."
+              minWidth="560px"
+              headers={["Visiteur", "Page", "Dernière activité"]}
+            >
+              {visitorsResult.rows.slice(0, 12).map((visitor) => (
+                <tr key={visitor.visitorId} className="border-b border-white/5 text-gray-200">
+                  <td className="py-3 pr-4 font-semibold text-white">
+                    {visitor.userEmail || "Visiteur anonyme"}
+                  </td>
+                  <td className="max-w-[280px] truncate py-3 pr-4 text-gray-400">
+                    {visitor.path || "/"}
+                  </td>
+                  <td className="py-3">{formatTime(visitor.lastSeenAt)}</td>
+                </tr>
               ))}
-            </div>
+            </ResponsiveTable>
           )}
         </Panel>
       </section>
@@ -683,12 +739,14 @@ function buildVisitorStats(
   dailyRows: VisitorDailyRow[],
   hourlyRows: VisitorHourlyRow[],
   now: Date,
+  activeRows: ActiveVisitorRow[],
 ) {
   const todayKey = getDayKey(now);
-  const sevenDaysAgoKey = getDayKey(daysAgo(now, 6));
-  const thirtyDaysAgoKey = getDayKey(daysAgo(now, 29));
+  const sevenDaysAgoKey = getDayKey(daysAgoInParis(now, 6));
+  const thirtyDaysAgoKey = getDayKey(daysAgoInParis(now, 29));
   const daySummaries = buildVisitorDaySummaries(dailyRows);
   const hourSummaries = buildVisitorHourSummaries(hourlyRows);
+  const dailySummaries = buildRecentVisitorDailySummaries(dailyRows, 14, now);
 
   return {
     totalUniqueVisitors: new Set(dailyRows.map((row) => row.visitorId)).size,
@@ -705,9 +763,84 @@ function buildVisitorStats(
         !best || hour.uniqueVisitors > best.uniqueVisitors ? hour : best,
       null,
     ),
-    dailySummaries: buildRecentVisitorDailySummaries(dailyRows, 14, now),
+    dailySummaries,
+    last7DaysChart: dailySummaries.slice(0, 7).reverse(),
     topPages: buildTopVisitorPages(dailyRows),
+    visitorPeople: buildVisitorPeople(
+      dailyRows,
+      activeRows,
+      todayKey,
+      sevenDaysAgoKey,
+      thirtyDaysAgoKey,
+    ),
   };
+}
+
+function buildVisitorPeople(
+  rows: VisitorDailyRow[],
+  activeRows: ActiveVisitorRow[],
+  todayKey: string,
+  sevenDaysAgoKey: string,
+  thirtyDaysAgoKey: string,
+) {
+  const activeKeys = new Set(
+    activeRows.map((row) => getVisitorPersonKey(row.visitorId, row.userEmail)),
+  );
+  const grouped = new Map<string, VisitorPersonSummary>();
+
+  for (const row of rows) {
+    const key = getVisitorPersonKey(row.visitorId, row.userEmail);
+    const label = row.userEmail?.trim() || `Visiteur ${row.visitorId.slice(0, 8)}`;
+    const current =
+      grouped.get(key) ??
+      ({
+        key,
+        label,
+        email: row.userEmail ?? null,
+        visitDays: 0,
+        todayVisits: 0,
+        last7DaysVisits: 0,
+        last30DaysVisits: 0,
+        pings: 0,
+        lastPath: row.lastPath || row.firstPath || "/",
+        lastSeenAt: row.lastSeenAt,
+        isOnline: activeKeys.has(key),
+      } satisfies VisitorPersonSummary);
+
+    current.visitDays += 1;
+    current.pings += row.pingCount;
+
+    if (row.day === todayKey) current.todayVisits += 1;
+    if (row.day >= sevenDaysAgoKey) current.last7DaysVisits += 1;
+    if (row.day >= thirtyDaysAgoKey) current.last30DaysVisits += 1;
+
+    if (new Date(row.lastSeenAt) > new Date(current.lastSeenAt)) {
+      current.lastSeenAt = row.lastSeenAt;
+      current.lastPath = row.lastPath || row.firstPath || "/";
+    }
+
+    current.isOnline = current.isOnline || activeKeys.has(key);
+    grouped.set(key, current);
+  }
+
+  return Array.from(grouped.values()).sort((a, b) => {
+    if (Number(b.isOnline) !== Number(a.isOnline)) {
+      return Number(b.isOnline) - Number(a.isOnline);
+    }
+
+    if (b.last30DaysVisits !== a.last30DaysVisits) {
+      return b.last30DaysVisits - a.last30DaysVisits;
+    }
+
+    if (b.pings !== a.pings) return b.pings - a.pings;
+
+    return new Date(b.lastSeenAt).getTime() - new Date(a.lastSeenAt).getTime();
+  });
+}
+
+function getVisitorPersonKey(visitorId: string, email: string | null) {
+  const normalizedEmail = email?.trim().toLowerCase();
+  return normalizedEmail ? `email:${normalizedEmail}` : `visitor:${visitorId}`;
 }
 
 function countUniqueVisitorsSince(rows: VisitorDailyRow[], fromDay: string) {
@@ -742,16 +875,14 @@ function buildRecentVisitorDailySummaries(
   days: number,
   now: Date,
 ) {
-  const today = startOfDay(now);
-
   return Array.from({ length: days }, (_, index) => {
-    const date = daysAgo(today, index);
+    const date = daysAgoInParis(now, index);
     const key = getDayKey(date);
     const dayRows = rows.filter((row) => row.day === key);
 
     return {
       key,
-      label: formatShortDate(date),
+      label: formatShortVisitorDayLabel(key),
       uniqueVisitors: dayRows.length,
       pings: dayRows.reduce((total, row) => total + row.pingCount, 0),
     } satisfies VisitorDaySummary;
@@ -838,13 +969,41 @@ function daysAgo(value: Date, days: number) {
 }
 
 function getMonthKey(value: Date | string) {
-  const date = new Date(value);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  const { year, month } = getParisDateParts(value);
+  return `${year}-${month}`;
 }
 
 function getDayKey(value: Date | string) {
-  const date = new Date(value);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const { year, month, day } = getParisDateParts(value);
+  return `${year}-${month}-${day}`;
+}
+
+function getParisDateParts(value: Date | string) {
+  const parts = new Intl.DateTimeFormat("fr-FR", {
+    timeZone: PARIS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(value));
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return {
+    year: values.year,
+    month: values.month,
+    day: values.day,
+  };
+}
+
+function daysAgoInParis(value: Date, days: number) {
+  const { year, month, day } = getParisDateParts(value);
+
+  return new Date(
+    Date.UTC(Number(year), Number(month) - 1, Number(day) - days, 12),
+  );
 }
 
 function getMonthLabel(key: string) {
@@ -858,6 +1017,18 @@ function getMonthLabel(key: string) {
 
 function formatShortDate(value: Date) {
   return value.toLocaleDateString("fr-FR", {
+    timeZone: PARIS_TIME_ZONE,
+    day: "2-digit",
+    month: "short",
+  });
+}
+
+function formatShortVisitorDayLabel(key: string) {
+  const [year, month, day] = key.split("-").map(Number);
+
+  if (!year || !month || !day) return key;
+
+  return new Date(Date.UTC(year, month - 1, day, 12)).toLocaleDateString("fr-FR", {
     timeZone: PARIS_TIME_ZONE,
     day: "2-digit",
     month: "short",
@@ -953,6 +1124,70 @@ function StatusPill({
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm">{label}</span>
         <span className="text-xl font-bold text-white">{value}</span>
+      </div>
+    </div>
+  );
+}
+
+function MiniMetric({
+  label,
+  value,
+  tone = "normal",
+}: {
+  label: string;
+  value: number | string;
+  tone?: "normal" | "good";
+}) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+      <div className="text-xs uppercase tracking-[0.14em] text-gray-500">{label}</div>
+      <div
+        className={`mt-1 text-2xl font-bold ${
+          tone === "good" ? "text-emerald-200" : "text-white"
+        }`}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function VisitorBarChart({ days }: { days: VisitorDaySummary[] }) {
+  const maxVisitors = Math.max(1, ...days.map((day) => day.uniqueVisitors));
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-white">Graphique 7 jours</div>
+          <div className="text-xs text-gray-500">Visiteurs uniques par jour</div>
+        </div>
+        <div className="text-xs text-gray-500">max {maxVisitors}</div>
+      </div>
+
+      <div className="flex h-48 items-end gap-3">
+        {days.map((day) => {
+          const height = Math.max(
+            day.uniqueVisitors > 0 ? 10 : 2,
+            Math.round((day.uniqueVisitors / maxVisitors) * 100),
+          );
+
+          return (
+            <div key={day.key} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+              <div className="flex h-36 w-full items-end rounded-lg bg-white/[0.03] px-1">
+                <div
+                  className="w-full rounded-t-md bg-gradient-to-t from-violet-600 to-fuchsia-400"
+                  style={{ height: `${height}%` }}
+                  title={`${day.label}: ${day.uniqueVisitors} visiteur(s)`}
+                />
+              </div>
+              <div className="text-xs font-semibold text-white">{day.uniqueVisitors}</div>
+              <div className="w-full truncate text-center text-[11px] text-gray-500">
+                {day.label}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
