@@ -35,6 +35,12 @@ export async function reserveStockItems(
 
   const sql = getReservationSql();
 
+  await sql`
+    DELETE FROM stock_reservations
+    WHERE reservation_id = ${reservationId}
+      AND status = 'released'
+  `;
+
   type DoneItem = { cardId: string; variant: string; quantity: number };
   const done: DoneItem[] = [];
 
