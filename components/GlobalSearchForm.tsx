@@ -1,15 +1,18 @@
 "use client";
 
 import { useRef } from "react";
+import type { SearchSortMode } from "@/lib/card-sort";
 
 type GlobalSearchFormProps = {
   query: string;
   onlyInStock: boolean;
+  sortMode: SearchSortMode;
 };
 
 export default function GlobalSearchForm({
   query,
   onlyInStock,
+  sortMode,
 }: GlobalSearchFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -40,6 +43,22 @@ export default function GlobalSearchForm({
           className="h-4 w-4 accent-violet-500"
         />
         En stock uniquement
+      </label>
+      <label className="flex w-full max-w-xs flex-col gap-1 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
+        Trier
+        <select
+          name="sort"
+          defaultValue={sortMode}
+          onChange={() => formRef.current?.requestSubmit()}
+          className="min-h-11 rounded-full border border-white/10 bg-black/45 px-4 text-sm font-semibold normal-case tracking-normal text-white outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30"
+        >
+          <option value="relevance">Pertinence</option>
+          <option value="newest">Plus récent</option>
+          <option value="oldest">Plus ancien</option>
+          <option value="price-asc">Prix croissant</option>
+          <option value="price-desc">Prix décroissant</option>
+          <option value="name">Nom</option>
+        </select>
       </label>
     </form>
   );

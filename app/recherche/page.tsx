@@ -6,6 +6,12 @@ import GlobalSearchForm from "@/components/GlobalSearchForm";
 import SleeveAddToCartButton from "@/components/SleeveAddToCartButton";
 import StockBadge from "@/components/StockBadge";
 import {
+  compareCardsBySortMode,
+  compareSeriesBySortMode,
+  normalizeSearchSortMode,
+  type SearchSortMode,
+} from "@/lib/card-sort";
+import {
   CARDS,
   SERIES,
   getBloc,
@@ -25,7 +31,7 @@ export const metadata: Metadata = {
   title: "Recherche",
 };
 
-type Search = { q?: string; inStock?: string };
+type Search = { q?: string; inStock?: string; sort?: string };
 
 const MAX_CARD_RESULTS = 160;
 const MAX_SERIE_RESULTS = 24;
@@ -75,14 +81,36 @@ function hasAvailableVariant(card: Card) {
   return listVariants(card).some(({ variant }) => variant.stock > 0);
 }
 
+function sortSleeves(
+  sleeves: SleeveProduct[],
+  sortMode: SearchSortMode,
+): SleeveProduct[] {
+  if (sortMode === "price-asc") {
+    return [...sleeves].sort((a, b) => a.priceCents - b.priceCents);
+  }
+
+  if (sortMode === "price-desc") {
+    return [...sleeves].sort((a, b) => b.priceCents - a.priceCents);
+  }
+
+  if (sortMode === "name") {
+    return [...sleeves].sort((a, b) =>
+      a.name.localeCompare(b.name, "fr", { sensitivity: "base" }),
+    );
+  }
+
+  return sleeves;
+}
+
 export default async function SearchPage({
   searchParams,
 }: {
   searchParams: Promise<Search>;
 }) {
-  const { q = "", inStock } = await searchParams;
+  const { q = "", inStock, sort } = await searchParams;
   const query = q.trim();
   const onlyInStock = inStock === "1" || inStock === "on" || inStock === "true";
+  const sortMode = normalizeSearchSortMode(sort);
   const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
   const useLiveData = await shouldUseLivePublicData();
 
@@ -91,29 +119,42 @@ export default async function SearchPage({
       ? CARDS.filter((card) => matchesTerms(searchableCardText(card), terms))
       : [];
 
-  const serieResults =
+  const matchingSeries =
     terms.length > 0
-      ? SERIES.filter((serie) => matchesTerms(searchableSerieText(serie), terms)).slice(
-          0,
-          MAX_SERIE_RESULTS,
-        )
+      ? SERIES.filter((serie) => matchesTerms(searchableSerieText(serie), terms))
       : [];
+  const serieResults =
+    sortMode === "relevance" ||
+    sortMode === "price-asc" ||
+    sortMode === "price-desc"
+      ? matchingSeries.slice(0, MAX_SERIE_RESULTS)
+      : [...matchingSeries]
+          .sort((a, b) => compareSeriesBySortMode(a, b, sortMode))
+          .slice(0, MAX_SERIE_RESULTS);
 
   const sleeveResults =
     terms.length > 0 && useLiveData
-      ? (await getSleeves({ activeOnly: true, cache: true }))
-          .filter((sleeve) => matchesTerms(searchableSleeveText(sleeve), terms))
-          .filter((sleeve) => !onlyInStock || sleeve.stock > 0)
-          .slice(0, MAX_SLEEVE_RESULTS)
+      ? sortSleeves(
+          (await getSleeves({ activeOnly: true, cache: true }))
+            .filter((sleeve) => matchesTerms(searchableSleeveText(sleeve), terms))
+            .filter((sleeve) => !onlyInStock || sleeve.stock > 0),
+          sortMode,
+        ).slice(0, MAX_SLEEVE_RESULTS)
       : [];
 
   const cardsWithStock =
     rawCardResults.length > 0 && useLiveData
       ? await applyStockOverrides(rawCardResults, { cache: true })
       : rawCardResults;
-  const cardResults = onlyInStock
+  const filteredCardResults = onlyInStock
     ? cardsWithStock.filter(hasAvailableVariant)
     : cardsWithStock;
+  const cardResults =
+    sortMode === "relevance"
+      ? filteredCardResults
+      : [...filteredCardResults].sort((a, b) =>
+          compareCardsBySortMode(a, b, sortMode),
+        );
   const cards = cardResults.slice(0, MAX_CARD_RESULTS);
   const totalResults =
     cardResults.length + serieResults.length + sleeveResults.length;
@@ -128,7 +169,11 @@ export default async function SearchPage({
           Recherche une carte, une série ou une sleeve dans tout le site.
         </p>
 
-        <GlobalSearchForm query={query} onlyInStock={onlyInStock} />
+        <GlobalSearchForm
+          query={query}
+          onlyInStock={onlyInStock}
+          sortMode={sortMode}
+        />
       </div>
 
       {terms.length === 0 ? (

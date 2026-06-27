@@ -11,6 +11,10 @@ import {
   type Rarity,
   type VariantKey,
 } from "@/lib/catalog";
+import {
+  compareCardsBySortMode,
+  type CardSortMode,
+} from "@/lib/card-sort";
 import { formatRarityLabel, orderDisplayVariants } from "@/lib/display-variants";
 
 const RARITY_ORDER: Rarity[] = [
@@ -28,10 +32,7 @@ const RARITY_ORDER: Rarity[] = [
   "Secrete",
 ];
 
-type SortMode = "number" | "name" | "price-asc" | "price-desc" | "rarity";
 type ListedVariant = { key: VariantKey; variant: CardVariant };
-
-const RARITY_RANK = new Map(RARITY_ORDER.map((rarity, index) => [rarity, index]));
 
 function normalizeText(value: string) {
   return value
@@ -46,7 +47,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   const [selectedConditions, setSelectedConditions] = useState<Condition[]>([]);
   const [query, setQuery] = useState("");
   const [onlyInStock, setOnlyInStock] = useState(false);
-  const [sortMode, setSortMode] = useState<SortMode>("number");
+  const [sortMode, setSortMode] = useState<CardSortMode>("number");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -148,31 +149,14 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
       return true;
     });
 
-    return result.sort((a, b) => {
-      const aVariant = selectedDisplayVariant(a)?.variant;
-      const bVariant = selectedDisplayVariant(b)?.variant;
-
-      if (sortMode === "name") {
-        return a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
-      }
-
-      if (sortMode === "price-asc" || sortMode === "price-desc") {
-        const aPrice = aVariant?.price ?? 0;
-        const bPrice = bVariant?.price ?? 0;
-        return sortMode === "price-asc" ? aPrice - bPrice : bPrice - aPrice;
-      }
-
-      if (sortMode === "rarity") {
-        const aRank = RARITY_RANK.get(aVariant?.rarity ?? "Commune") ?? 999;
-        const bRank = RARITY_RANK.get(bVariant?.rarity ?? "Commune") ?? 999;
-        return (
-          aRank - bRank ||
-          a.number.localeCompare(b.number, "fr", { numeric: true })
-        );
-      }
-
-      return a.number.localeCompare(b.number, "fr", { numeric: true });
-    });
+    return result.sort((a, b) =>
+      compareCardsBySortMode(
+        a,
+        b,
+        sortMode,
+        (card) => selectedDisplayVariant(card)?.variant,
+      ),
+    );
   }, [
     cards,
     selectedRarities,
@@ -293,11 +277,13 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
 
             <select
               value={sortMode}
-              onChange={(e) => setSortMode(e.target.value as SortMode)}
+              onChange={(e) => setSortMode(e.target.value as CardSortMode)}
               className="min-h-10 rounded-lg border border-white/10 bg-zinc-900 px-3 text-sm text-white"
             >
               <option value="number">Numéro</option>
               <option value="name">Nom</option>
+              <option value="newest">Plus récent</option>
+              <option value="oldest">Plus ancien</option>
               <option value="price-asc">Prix croissant</option>
               <option value="price-desc">Prix décroissant</option>
               <option value="rarity">Rareté</option>
