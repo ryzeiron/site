@@ -77,6 +77,17 @@ type VisitorPageSummary = {
   pings: number;
 };
 
+type VisitorWeekdaySummary = {
+  key: string;
+  label: string;
+  daysCount: number;
+  totalUniqueVisitors: number;
+  averageUniqueVisitors: number;
+  totalPings: number;
+  averagePings: number;
+  bestUniqueVisitors: number;
+};
+
 type VisitorPersonSummary = {
   key: string;
   label: string;
@@ -95,6 +106,15 @@ const ONLINE_AFTER_MS = 2 * 60 * 1000;
 const ACTIVE_CART_AFTER_MS = 30 * 60 * 1000;
 const RECENT_CART_AFTER_MS = 3 * 60 * 60 * 1000;
 const PARIS_TIME_ZONE = "Europe/Paris";
+const WEEKDAY_LABELS = [
+  "Lundi",
+  "Mardi",
+  "Mercredi",
+  "Jeudi",
+  "Vendredi",
+  "Samedi",
+  "Dimanche",
+];
 
 const STATUS_LABELS: Record<string, string> = {
   paid: "Payées",
@@ -298,7 +318,7 @@ export default async function AdminAnalyticsPage() {
         </InfoPanel>
       </section>
 
-      <section className="mb-6 grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
+      <section className="mb-6 grid gap-4 xl:grid-cols-[0.75fr_0.75fr_1.2fr]">
         <Panel title="Pages les plus actives">
           {visitorStats.topPages.length === 0 ? (
             <p className="text-sm text-gray-400">Pas encore d&apos;historique visiteurs.</p>
@@ -317,6 +337,10 @@ export default async function AdminAnalyticsPage() {
               ))}
             </div>
           )}
+        </Panel>
+
+        <Panel title="Moyenne par jour">
+          <WeekdayAverageList days={visitorStats.weekdayAverages} />
         </Panel>
 
         <Panel title="Historique par visiteur">
@@ -765,6 +789,7 @@ function buildVisitorStats(
     ),
     dailySummaries,
     last7DaysChart: dailySummaries.slice(0, 7).reverse(),
+    weekdayAverages: buildVisitorWeekdayAverages(dailyRows, now),
     topPages: buildTopVisitorPages(dailyRows),
     visitorPeople: buildVisitorPeople(
       dailyRows,
@@ -868,6 +893,65 @@ function buildVisitorDaySummaries(rows: VisitorDailyRow[]) {
   }
 
   return Array.from(grouped.values()).sort((a, b) => b.key.localeCompare(a.key));
+}
+
+function buildVisitorWeekdayAverages(rows: VisitorDailyRow[], now: Date) {
+  const byDay = new Map<string, VisitorDaySummary>();
+  for (const day of buildVisitorDaySummaries(rows)) {
+    byDay.set(day.key, day);
+  }
+
+  const todayKey = getDayKey(now);
+  const dayKeys = rows.map((row) => row.day);
+  const firstKey =
+    dayKeys.length > 0
+      ? dayKeys.reduce((first, key) => (key < first ? key : first))
+      : todayKey;
+  const lastKey =
+    dayKeys.length > 0
+      ? dayKeys.reduce((last, key) => (key > last ? key : last), todayKey)
+      : todayKey;
+
+  const summaries = WEEKDAY_LABELS.map((label, index) => ({
+    key: String(index),
+    label,
+    daysCount: 0,
+    totalUniqueVisitors: 0,
+    averageUniqueVisitors: 0,
+    totalPings: 0,
+    averagePings: 0,
+    bestUniqueVisitors: 0,
+  } satisfies VisitorWeekdaySummary));
+
+  const cursor = parseDayKeyAtNoonUtc(firstKey);
+  const end = parseDayKeyAtNoonUtc(lastKey);
+
+  while (cursor <= end) {
+    const key = getDayKey(cursor);
+    const weekdayIndex = (cursor.getUTCDay() + 6) % 7;
+    const summary = summaries[weekdayIndex];
+    const day = byDay.get(key);
+
+    summary.daysCount += 1;
+    summary.totalUniqueVisitors += day?.uniqueVisitors ?? 0;
+    summary.totalPings += day?.pings ?? 0;
+    summary.bestUniqueVisitors = Math.max(
+      summary.bestUniqueVisitors,
+      day?.uniqueVisitors ?? 0,
+    );
+
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+
+  return summaries.map((summary) => ({
+    ...summary,
+    averageUniqueVisitors:
+      summary.daysCount > 0
+        ? summary.totalUniqueVisitors / summary.daysCount
+        : 0,
+    averagePings:
+      summary.daysCount > 0 ? summary.totalPings / summary.daysCount : 0,
+  }));
 }
 
 function buildRecentVisitorDailySummaries(
@@ -1004,6 +1088,11 @@ function daysAgoInParis(value: Date, days: number) {
   return new Date(
     Date.UTC(Number(year), Number(month) - 1, Number(day) - days, 12),
   );
+}
+
+function parseDayKeyAtNoonUtc(key: string) {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, 12));
 }
 
 function getMonthLabel(key: string) {
@@ -1191,6 +1280,60 @@ function VisitorBarChart({ days }: { days: VisitorDaySummary[] }) {
       </div>
     </div>
   );
+}
+
+function WeekdayAverageList({ days }: { days: VisitorWeekdaySummary[] }) {
+  const hasData = days.some((day) => day.daysCount > 0);
+  const maxAverage = Math.max(
+    1,
+    ...days.map((day) => day.averageUniqueVisitors),
+  );
+
+  if (!hasData) {
+    return (
+      <p className="text-sm text-gray-400">
+        Pas encore assez d&apos;historique visiteurs.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {days.map((day) => {
+        const width = Math.max(
+          day.averageUniqueVisitors > 0 ? 8 : 2,
+          Math.round((day.averageUniqueVisitors / maxAverage) * 100),
+        );
+
+        return (
+          <div key={day.key} className="rounded-lg bg-white/[0.04] p-2">
+            <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+              <span className="font-semibold text-white">{day.label}</span>
+              <span className="text-gray-300">
+                {formatAverageNumber(day.averageUniqueVisitors)} / jour
+              </span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-400"
+                style={{ width: `${width}%` }}
+              />
+            </div>
+            <div className="mt-1 flex items-center justify-between gap-3 text-[11px] text-gray-500">
+              <span>{day.daysCount} jour(s) comptes</span>
+              <span>record {day.bestUniqueVisitors}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function formatAverageNumber(value: number) {
+  return value.toLocaleString("fr-FR", {
+    maximumFractionDigits: 1,
+  });
 }
 
 function Panel({ title, children }: { title: string; children: ReactNode }) {
