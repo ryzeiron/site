@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { getStripe } from "@/lib/stripe";
 import { auth } from "@/lib/auth";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
+import { getFirstOrderPromoError } from "@/lib/first-order-promo";
 import { applyStockOverrides, revalidatePublicStockCache } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
 import { sendDiscordErrorNotification } from "@/lib/discord";
@@ -240,6 +241,18 @@ export async function POST(request: Request) {
     }
 
     const sessionUser = await auth().catch(() => null);
+
+    const firstOrderPromoError = await getFirstOrderPromoError(body.promoCode, {
+      userId: sessionUser?.user?.id,
+      email: sessionUser?.user?.email,
+    });
+    if (firstOrderPromoError) {
+      return NextResponse.json(
+        { error: firstOrderPromoError },
+        { status: 403 },
+      );
+    }
+
     const checkoutCartId = normalizeCartId(body.cartId);
     const stripe = getStripe();
 
@@ -562,7 +575,11 @@ export async function POST(request: Request) {
         success_url: `${origin}/suivi-commande/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/annule`,
         expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
-        ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
+        ...(stripeCustomerId
+          ? { customer: stripeCustomerId }
+          : sessionUser?.user?.email
+            ? { customer_email: sessionUser.user.email }
+            : {}),
         shipping_address_collection: { allowed_countries: [country] },
         phone_number_collection: { enabled: true },
         shipping_options: [relayShippingOption],

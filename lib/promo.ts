@@ -1,5 +1,7 @@
 import "server-only";
 
+import { isFirstOrderPromoCode } from "@/lib/first-order-promo";
+
 export type PromoEffect =
   | { code: string; type: "percent_off"; percent: number; label: string }
   | { code: string; type: "free_shipping"; label: string };
@@ -7,11 +9,17 @@ export type PromoEffect =
 function buildPromos(): Record<string, PromoEffect> {
   const map: Record<string, PromoEffect> = {};
 
-  const percentCode = (process.env.PROMO_PERCENT_CODE ?? "BIENVENUE").trim();
+  const percentCode = (process.env.PROMO_PERCENT_CODE ?? "").trim();
   const percentValue = Number.parseFloat(
     process.env.PROMO_PERCENT_VALUE ?? "10",
   );
-  if (percentCode && Number.isFinite(percentValue) && percentValue > 0 && percentValue < 100) {
+  if (
+    percentCode &&
+    !isFirstOrderPromoCode(percentCode) &&
+    Number.isFinite(percentValue) &&
+    percentValue > 0 &&
+    percentValue < 100
+  ) {
     map[percentCode.toUpperCase()] = {
       code: percentCode,
       type: "percent_off",
@@ -36,6 +44,7 @@ export function getPromo(code: string | undefined | null): PromoEffect | null {
   if (!code) return null;
   const cleaned = code.trim().toUpperCase();
   if (!cleaned) return null;
+  if (isFirstOrderPromoCode(cleaned)) return null;
   const promos = buildPromos();
   return promos[cleaned] ?? null;
 }

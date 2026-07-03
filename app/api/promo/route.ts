@@ -1,18 +1,30 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getFirstOrderPromoError } from "@/lib/first-order-promo";
 import { getPromo } from "@/lib/promo";
 import { getStripePromoEffect } from "@/lib/stripe-promo";
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { code?: string };
+    const session = await auth().catch(() => null);
+
+    const firstOrderPromoError = await getFirstOrderPromoError(body.code, {
+      userId: session?.user?.id,
+      email: session?.user?.email,
+    });
+    if (firstOrderPromoError) {
+      return NextResponse.json(
+        { error: firstOrderPromoError },
+        { status: 403 },
+      );
+    }
 
     const promo = getPromo(body.code);
     if (promo) {
       return NextResponse.json({ promo: { ...promo, source: "local" } });
     }
 
-    const session = await auth().catch(() => null);
     const stripePromo = await getStripePromoEffect(
       body.code,
       session?.user?.email,
