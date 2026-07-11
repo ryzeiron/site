@@ -11,6 +11,7 @@ import { DIAMANT_ET_PERLE_CARDS } from "./catalog/cards/diamant-et-perle";
 import { EX_CARDS } from "./catalog/cards/ex";
 import { MCDO_CARDS } from "./catalog/cards/mcdo";
 import { TRAINER_KIT_CARDS } from "./catalog/cards/trainer-kit";
+import { DETECTIVE_PIKACHU_CARDS } from "./catalog/cards/detective-pikachu";
 
 // Catalogue : blocs > series > cartes 
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
@@ -312,6 +313,14 @@ export const BLOCS: Bloc[] = [
     tagline: "Coffrets d'initiation",
     coverColor: "from-violet-600 to-fuchsia-700",
   },
+  {
+    id: "detective-pikachu",
+    name: "Détective Pikachu",
+    tagline: "2019",
+    coverColor: "from-yellow-300 to-amber-600",
+    image: "/series/detective-pikachu/det1.webp",
+    imageFit: "contain",
+  },
 ];
 
 export const SERIES: Serie[] = [
@@ -486,6 +495,9 @@ export const SERIES: Serie[] = [
   { id: "trainer-kit-sablaireau-alola-feunard-alola", blocId: "trainer-kit", code: "Kit 2018", name: "Sablaireau d'Alola et Feunard d'Alola", releaseYear: 2018 },
   { id: "trainer-kit-pikachu-evoli", blocId: "trainer-kit", code: "Kit 2020", name: "Let's Play Pokémon - Pikachu et Évoli", releaseYear: 2020 },
 
+  // Detective Pikachu
+  { id: "det1", blocId: "detective-pikachu", code: "DET", name: "Détective Pikachu", releaseYear: 2019, image: "/series/detective-pikachu/det1.webp" },
+
 ];
 
 export const CARDS: Card[] = [
@@ -501,7 +513,8 @@ export const CARDS: Card[] = [
   ...ADL_CARDS,
   ...DIAMANT_ET_PERLE_CARDS,
   ...EX_CARDS,
-  ...TRAINER_KIT_CARDS
+  ...TRAINER_KIT_CARDS,
+  ...DETECTIVE_PIKACHU_CARDS
 ];
 
 // Helpers
