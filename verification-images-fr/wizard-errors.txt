@@ -1,0 +1,40 @@
+basep 002/053 - Electabuzz: aucune image FR declaree par TCGdex
+basep 003/053 - Deuxmiaou: aucune image FR declaree par TCGdex
+basep 004/053 - Pikachu: aucune image FR declaree par TCGdex
+basep 005/053 - Dragonite: aucune image FR declaree par TCGdex
+basep 006/053 - Arcanin: aucune image FR declaree par TCGdex
+basep 008/053 - Mew: aucune image FR declaree par TCGdex
+basep 009/053 - Mew: aucune image FR declaree par TCGdex
+basep 014/053 - Mewtwo: aucune image FR declaree par TCGdex
+basep 020/053 - Psykokwak: aucune image FR declaree par TCGdex
+basep 021/053 - Sulfura: aucune image FR declaree par TCGdex
+basep 022/053 - Artikodin: aucune image FR declaree par TCGdex
+basep 023/053 - Électhor: aucune image FR declaree par TCGdex
+basep 024/053 - Pikachu de ________: aucune image FR declaree par TCGdex
+basep 025/053 - Pikachu volant: aucune image FR declaree par TCGdex
+basep 026/053 - Pikachu: aucune image FR declaree par TCGdex
+basep 028/053 - Pikachu surfeur: aucune image FR declaree par TCGdex
+basep 029/053 - Marill: aucune image FR declaree par TCGdex
+basep 030/053 - Togepi: aucune image FR declaree par TCGdex
+basep 031/053 - Mélo: aucune image FR declaree par TCGdex
+basep 032/053 - Queulorior: aucune image FR declaree par TCGdex
+basep 033/053 - Cizayox: aucune image FR declaree par TCGdex
+basep 035/053 - Pichu: aucune image FR declaree par TCGdex
+basep 036/053 - Toudoudou: aucune image FR declaree par TCGdex
+basep 037/053 - Kapoera: aucune image FR declaree par TCGdex
+basep 038/053 - Zarbi J: aucune image FR declaree par TCGdex
+basep 039/053 - Feuforêve: aucune image FR declaree par TCGdex
+ecard2 H01 - Pharamp: aucune image FR declaree par TCGdex
+ecard2 H02 - Arcanin: aucune image FR declaree par TCGdex
+ecard2 H03 - Migalos: aucune image FR declaree par TCGdex
+ecard2 H04 - Azumarill: aucune image FR declaree par TCGdex
+ecard2 H05 - Joliflor: aucune image FR declaree par TCGdex
+ecard2 H06 - Leuphorie: aucune image FR declaree par TCGdex
+ecard2 H07 - Électrode: aucune image FR declaree par TCGdex
+ecard2 H08 - Entei: aucune image FR declaree par TCGdex
+ecard2 H09 - Mentali: aucune image FR declaree par TCGdex
+ecard2 H14 - Hyporoi: aucune image FR declaree par TCGdex
+ecard2 H16 - Magneton: aucune image FR declaree par TCGdex
+ecard2 H17 - Grotadmorv: aucune image FR declaree par TCGdex
+ecard2 H24 - Simularbre: aucune image FR declaree par TCGdex
+ecard2 H32 - Electhor: aucune image FR declaree par TCGdex

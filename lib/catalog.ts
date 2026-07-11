@@ -9,6 +9,7 @@ import { PLATINE_CARDS } from "./catalog/cards/platine";
 import { ADL_CARDS } from "./catalog/cards/adl"; 
 import { DIAMANT_ET_PERLE_CARDS } from "./catalog/cards/diamant-et-perle";
 import { EX_CARDS } from "./catalog/cards/ex";
+import { WIZARD_CARDS, WIZARD_SERIES } from "./catalog/cards/wizard";
 import { MCDO_CARDS } from "./catalog/cards/mcdo";
 import { TRAINER_KIT_CARDS } from "./catalog/cards/trainer-kit";
 import { DETECTIVE_PIKACHU_CARDS } from "./catalog/cards/detective-pikachu";
@@ -34,6 +35,8 @@ export function isCondition(value: string): value is Condition {
 export const RARITIES = [
   "Promo",
   "Commune",
+  "Peu Commune",
+  "Rare",
   "Reverse",
   "Reverse Pokéball",
   "Reverse Masterball",
@@ -301,6 +304,14 @@ export const BLOCS: Bloc[] = [
     imageFit: "contain",
   },
   {
+    id: "wizard",
+    name: "Wizard",
+    tagline: "1999 - 2003",
+    coverColor: "from-amber-300 to-yellow-700",
+    image: "/cartes/wizard/base1/4.webp",
+    imageFit: "contain",
+  },
+  {
     id: "mcdo",
     name: "McDo",
     tagline: "2011 - 2024",
@@ -467,6 +478,9 @@ export const SERIES: Serie[] = [
   { id: "EX014", blocId: "ex", code: "EX14", name: "Île des Dragons", releaseYear: 2007, image: "/series/EX/DF.webp",  },
   { id: "EX015", blocId: "ex", code: "EX15", name: "Gardiens du Pouvoir", releaseYear: 2007, image: "/series/EX/PK.webp",  },
 
+  // Wizard
+  ...WIZARD_SERIES,
+
   { id: "2011bw", blocId: "mcdo", code: "McDo 2011", name: "Collection McDonald's 2011", releaseYear: 2011, image: "/series/mcdo/2011.webp", },
   { id: "2012bw", blocId: "mcdo", code: "McDo 2012", name: "Collection McDonald's 2012", releaseYear: 2012, image: "/series/mcdo/2012.webp", },
   { id: "2013bw", blocId: "mcdo", code: "McDo 2013", name: "Collection McDonald's 2013", releaseYear: 2013, image: "/series/mcdo/2013.webp", },
@@ -513,6 +527,7 @@ export const CARDS: Card[] = [
   ...ADL_CARDS,
   ...DIAMANT_ET_PERLE_CARDS,
   ...EX_CARDS,
+  ...WIZARD_CARDS,
   ...TRAINER_KIT_CARDS,
   ...DETECTIVE_PIKACHU_CARDS
 ];
