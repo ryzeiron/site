@@ -7,7 +7,7 @@ export const WIZARD_SERIES = [
     "code": "W01",
     "name": "Set de Base",
     "releaseYear": 1999,
-    "image": "/cartes/wizard/base1/4.webp"
+    "image": "/series/wizard/set-de-base.webp"
   },
   {
     "id": "base2",

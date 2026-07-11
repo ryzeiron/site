@@ -56,7 +56,7 @@ const SERIES_CODES = new Map([
 ]);
 
 const SERIES_IMAGE_FALLBACKS = new Map([
-  ["base1", "/cartes/wizard/base1/4.webp"],
+  ["base1", "/series/wizard/set-de-base.webp"],
 ]);
 
 async function fetchJson(url) {
