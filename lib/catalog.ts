@@ -308,7 +308,7 @@ export const BLOCS: Bloc[] = [
     name: "Wizard",
     tagline: "1999 - 2003",
     coverColor: "from-amber-300 to-yellow-700",
-    image: "/cartes/wizard/base1/4.webp",
+    image: "/blocs/set-de-base.webp",
     imageFit: "contain",
   },
   {
