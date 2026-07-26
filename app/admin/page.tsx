@@ -613,7 +613,13 @@ export default async function AdminPage({
   }
 
   const serieGroups = getAdminSerieGroups();
-  const totalCards = CARDS.length;
+  const [cardsCountRow] = await getDb()
+  .select({
+    count: countDistinct(stockOverrides.cardId),
+  })
+  .from(stockOverrides);
+
+  const totalCards = cardsCountRow?.count ?? 0;
   const inventoryValueSummary = await getInventoryValueSummary();
   const totalFilteredCards = filteredCards.length;
   const totalPages = Math.max(1, Math.ceil(totalFilteredCards / ADMIN_PAGE_SIZE));
