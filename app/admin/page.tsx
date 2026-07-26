@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { lte } from "drizzle-orm";
+import { countDistinct, lte } from "drizzle-orm";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import AdminSerieBulkActions from "@/components/AdminSerieBulkActions";
 import { formatRarityLabel } from "@/lib/display-variants";
