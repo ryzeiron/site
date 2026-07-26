@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { countDistinct, lte } from "drizzle-orm";
+import { lte } from "drizzle-orm";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import AdminSerieBulkActions from "@/components/AdminSerieBulkActions";
 import { formatRarityLabel } from "@/lib/display-variants";
@@ -34,7 +34,9 @@ type Search = {
   quick?: string;
   page?: string;
 };
+
 type QuickFilter = "out" | "modified" | "hidden" | "premium";
+
 type AdminHrefParams = {
   serieId: string;
   query: string;
@@ -57,7 +59,6 @@ type InventoryValueSummary = {
   totalVariantLines: number;
 };
 
-// Change l'ordre ici pour ranger les groupes et les series dans le menu admin.
 const ADMIN_SERIE_GROUPS: readonly AdminSerieGroup[] = [
   {
     label: "ME",
@@ -116,101 +117,6 @@ const ADMIN_SERIE_GROUPS: readonly AdminSerieGroup[] = [
       "crown-zenith",
     ],
   },
-  {
-    label: "SL",
-    seriesIds: [
-      "PRSM",
-      "sl01",
-      "sl02",
-      "sl03",
-      "sl03.5",
-      "sl04",
-      "sl05",
-      "sl06",
-      "sl07",
-      "sl07.5",
-      "sl08",
-      "sl09",
-      "sl10",
-      "sl11",
-      "sl11.5",
-      "sl12",
-    ],
-  },
-  {
-    label: "XY",
-    seriesIds: [
-      "prxy",
-      "xy00",
-      "xy01",
-      "xy02",
-      "xy03",
-      "xy04",
-      "xy05",
-      "xy05.5",
-      "xy06",
-      "xy07",
-      "xy08",
-      "xy09",
-      "xy09.5",
-      "xy10",
-      "xy11",
-      "xy12",
-    ],
-  },
-  {
-    label: "NB",
-    seriesIds: [
-      "prbw",
-      "nb01",
-      "nb02",
-      "nb03",
-      "nb04",
-      "nb05",
-      "nb06",
-      "nb07",
-      "nb07.5",
-      "nb08",
-      "nb09",
-      "nb10",
-    ],
-  },
-  {
-    label: "ADL",
-    seriesIds: ["adl"],
-  },
-  {
-    label: "HGSS",
-    seriesIds: ["prhgss", "HGSS01", "HGSS02", "HGSS03", "HGSS04"],
-  },
-  {
-    label: "PT",
-    seriesIds: ["PT01", "PT02", "PT03", "PT04"],
-  },
-  {
-    label: "DP",
-    seriesIds: ["PRDP", "DP01", "DP02", "DP03", "DP04", "DP05", "DP06", "DP07"],
-  },
-  {
-    label: "EX",
-    seriesIds: [
-      "EX01",
-      "EX02",
-      "EX03",
-      "EX04",
-      "EX05",
-      "EX06",
-      "EX07",
-      "EX08",
-      "EX09",
-      "EX010",
-      "EX011",
-      "EX012",
-      "EX013",
-      "EX014",
-      "EX015",
-    ],
-  },
 ];
 
 function normalizeSearch(value: string) {
@@ -250,97 +156,6 @@ function isQuickFilter(value?: string): value is QuickFilter {
   );
 }
 
-function AdminPagination({
-  currentPage,
-  totalPages,
-  paginationHref,
-}: {
-  currentPage: number;
-  totalPages: number;
-  paginationHref: (page: number) => string;
-}) {
-  const firstPage = Math.max(1, currentPage - 2);
-  const lastPage = Math.min(totalPages, currentPage + 2);
-  const pages = Array.from(
-    { length: lastPage - firstPage + 1 },
-    (_, index) => firstPage + index,
-  );
-
-  return (
-    <nav
-      className="flex flex-wrap items-center gap-2"
-      aria-label="Pagination admin"
-    >
-      <Link
-        href={paginationHref(Math.max(1, currentPage - 1))}
-        aria-disabled={currentPage === 1}
-        className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-          currentPage === 1
-            ? "pointer-events-none bg-white/5 text-gray-600"
-            : "bg-white/10 text-white hover:bg-white/20"
-        }`}
-      >
-        Précédent
-      </Link>
-
-      {firstPage > 1 ? (
-        <>
-          <Link
-            href={paginationHref(1)}
-            className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
-          >
-            1
-          </Link>
-          {firstPage > 2 ? (
-            <span className="px-1 text-gray-500">...</span>
-          ) : null}
-        </>
-      ) : null}
-
-      {pages.map((page) => (
-        <Link
-          key={page}
-          href={paginationHref(page)}
-          aria-current={page === currentPage ? "page" : undefined}
-          className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-            page === currentPage
-              ? "bg-violet-600 text-white"
-              : "bg-white/10 text-white hover:bg-white/20"
-          }`}
-        >
-          {page}
-        </Link>
-      ))}
-
-      {lastPage < totalPages ? (
-        <>
-          {lastPage < totalPages - 1 ? (
-            <span className="px-1 text-gray-500">...</span>
-          ) : null}
-          <Link
-            href={paginationHref(totalPages)}
-            className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
-          >
-            {totalPages}
-          </Link>
-        </>
-      ) : null}
-
-      <Link
-        href={paginationHref(Math.min(totalPages, currentPage + 1))}
-        aria-disabled={currentPage === totalPages}
-        className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-          currentPage === totalPages
-            ? "pointer-events-none bg-white/5 text-gray-600"
-            : "bg-white/10 text-white hover:bg-white/20"
-        }`}
-      >
-        Suivant
-      </Link>
-    </nav>
-  );
-}
-
 function variantSignature(card: Card) {
   return listVariants(card, { includeHidden: true })
     .map(
@@ -373,7 +188,8 @@ function cardMatchesQuickFilter(
   if (quick === "premium") {
     return variants.some(
       ({ variant }) =>
-        variant.rarity === "Ultra Rare" || variant.rarity === "Secrete",
+        variant.rarity === "Ultra Rare" ||
+        variant.rarity === "Secrete",
     );
   }
 
@@ -421,27 +237,6 @@ async function getQuickOverrideCardIds(quick: QuickFilter) {
   return [];
 }
 
-async function getQuickCandidateCards(
-  quick: QuickFilter,
-  catalogById: Map<string, Card>,
-) {
-  const ids = new Set<string>();
-
-  for (const card of CARDS) {
-    if (cardMatchesQuickFilter(card, quick, catalogById.get(card.id))) {
-      ids.add(card.id);
-    }
-  }
-
-  for (const cardId of await getQuickOverrideCardIds(quick)) {
-    ids.add(cardId);
-  }
-
-  return Array.from(ids)
-    .map((id) => catalogById.get(id))
-    .filter((card): card is Card => Boolean(card));
-}
-
 function cardMatchesTextAndRarity(
   card: Card,
   terms: string[],
@@ -449,7 +244,10 @@ function cardMatchesTextAndRarity(
 ) {
   if (terms.length > 0) {
     const text = searchableText(card);
-    if (!terms.every((term) => text.includes(term))) return false;
+
+    if (!terms.every((term) => text.includes(term))) {
+      return false;
+    }
   }
 
   if (rarity) {
@@ -463,7 +261,69 @@ function cardMatchesTextAndRarity(
 
 function parsePage(value?: string) {
   const page = Number.parseInt(value ?? "1", 10);
+
   return Number.isFinite(page) && page > 0 ? page : 1;
+}
+
+function centsFromEuros(value: number) {
+  return Math.round(value * 100);
+}
+
+function inventoryLineKey(cardId: string, variant: string) {
+  return `${cardId}::${variant}`;
+}
+
+
+// ✅ Compteur réel des cartes physiques en stock
+// Exemple :
+// Pikachu stock 5 = +5
+// Dracaufeu stock 2 = +2
+async function getTotalStockCount() {
+  const rows = await getDb()
+    .select({
+      cardId: stockOverrides.cardId,
+      variant: stockOverrides.variant,
+      stock: stockOverrides.stock,
+    })
+    .from(stockOverrides);
+
+  const overrideByLine = new Map(
+    rows.map((row) => [
+      inventoryLineKey(row.cardId, row.variant),
+      row.stock,
+    ]),
+  );
+
+  const countedLines = new Set<string>();
+
+  let total = 0;
+
+  for (const card of CARDS) {
+    for (const { key, variant } of listVariants(card, {
+      includeHidden: true,
+    })) {
+      const lineKey = inventoryLineKey(card.id, key);
+
+      const stock =
+        overrideByLine.get(lineKey) ?? variant.stock;
+
+      countedLines.add(lineKey);
+
+      if (stock > 0) {
+        total += stock;
+      }
+    }
+  }
+
+  for (const row of rows) {
+    const lineKey = inventoryLineKey(row.cardId, row.variant);
+
+    if (!countedLines.has(lineKey) && row.stock > 0) {
+      total += row.stock;
+    }
+  }
+
+  return total;
 }
 
 function adminHref({
@@ -482,92 +342,8 @@ function adminHref({
   if (page && page > 1) params.set("page", String(page));
 
   const search = params.toString();
+
   return search ? `/admin?${search}` : "/admin";
-}
-
-function getAdminSerieGroups() {
-  const groupedSerieIds = new Set(
-    ADMIN_SERIE_GROUPS.flatMap((group) => group.seriesIds),
-  );
-  const groups = ADMIN_SERIE_GROUPS.map((group) => ({
-    label: group.label,
-    series: group.seriesIds
-      .map((id) => SERIES.find((serie) => serie.id === id))
-      .filter((serie): serie is Serie => Boolean(serie)),
-  })).filter((group) => group.series.length > 0);
-  const otherSeries = SERIES.filter((serie) => !groupedSerieIds.has(serie.id))
-    .sort((a, b) => a.code.localeCompare(b.code, "fr", { numeric: true }));
-
-  if (otherSeries.length === 0) return groups;
-
-  return [...groups, { label: "Autres", series: otherSeries }];
-}
-
-function centsFromEuros(value: number) {
-  return Math.round(value * 100);
-}
-
-function inventoryLineKey(cardId: string, variant: string) {
-  return `${cardId}::${variant}`;
-}
-
-async function getInventoryValueSummary(): Promise<InventoryValueSummary> {
-  const catalogById = new Map(CARDS.map((card) => [card.id, card]));
-  const rows = await getDb()
-    .select({
-      cardId: stockOverrides.cardId,
-      variant: stockOverrides.variant,
-      stock: stockOverrides.stock,
-      priceCents: stockOverrides.priceCents,
-    })
-    .from(stockOverrides);
-
-  const overrideByLine = new Map(
-    rows.map((row) => [inventoryLineKey(row.cardId, row.variant), row]),
-  );
-  const countedLines = new Set<string>();
-  const cardsWithStock = new Set<string>();
-  let totalValueCents = 0;
-  let totalUnits = 0;
-  let totalVariantLines = 0;
-
-  for (const card of CARDS) {
-    for (const { key, variant } of listVariants(card, { includeHidden: true })) {
-      const lineKey = inventoryLineKey(card.id, key);
-      const override = overrideByLine.get(lineKey);
-      const stock = override?.stock ?? variant.stock;
-      const priceCents = override?.priceCents ?? centsFromEuros(variant.price);
-      countedLines.add(lineKey);
-
-      if (stock <= 0) continue;
-
-      totalUnits += stock;
-      totalValueCents += stock * priceCents;
-      totalVariantLines++;
-      cardsWithStock.add(card.id);
-    }
-  }
-
-  for (const row of rows) {
-    const lineKey = inventoryLineKey(row.cardId, row.variant);
-    if (countedLines.has(lineKey) || row.stock <= 0) continue;
-
-    const card = catalogById.get(row.cardId);
-    if (!card && row.priceCents === null) continue;
-
-    const priceCents = row.priceCents ?? centsFromEuros(card?.price ?? 0);
-    totalUnits += row.stock;
-    totalValueCents += row.stock * priceCents;
-    totalVariantLines++;
-    cardsWithStock.add(row.cardId);
-  }
-
-  return {
-    totalValueCents,
-    totalUnits,
-    totalCards: cardsWithStock.size,
-    totalVariantLines,
-  };
 }
 
 export default async function AdminPage({
@@ -613,13 +389,7 @@ export default async function AdminPage({
   }
 
   const serieGroups = getAdminSerieGroups();
-  const [cardsCountRow] = await getDb()
-  .select({
-    count: countDistinct(stockOverrides.cardId),
-  })
-  .from(stockOverrides);
-
-  const totalCards = cardsCountRow?.count ?? 0;
+  const totalCards = await getTotalStockCount();
   const inventoryValueSummary = await getInventoryValueSummary();
   const totalFilteredCards = filteredCards.length;
   const totalPages = Math.max(1, Math.ceil(totalFilteredCards / ADMIN_PAGE_SIZE));
