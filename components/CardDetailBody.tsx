@@ -35,7 +35,7 @@ function VariantBlock({
           <span className="rounded-full bg-amber-500/20 px-2 py-1 text-xs text-amber-300">
             {formatRarityLabel(v.rarity)}
           </span>
-          <ConditionBadge condition={v.condition ?? card.condition} />
+          {/* <ConditionBadge condition={v.condition ?? card.condition} /> */}
         </div>
         <span className="text-lg font-extrabold text-brand-500 md:text-xl">
           {formatPrice(v.price)}
