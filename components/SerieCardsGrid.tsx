@@ -139,7 +139,6 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   }, [
     cards,
     selectedRarities,
-    selectedConditions,
     normalizedQuery,
     onlyInStock,
     minPrice,
