@@ -20,37 +20,42 @@ export default function CardTile({
   const preferredDisplay = variantKey
     ? { key: variantKey, variant: resolveVariant(card, variantKey) }
     : getPreferredDisplayVariant(card);
+
   const displayVariant = preferredDisplay.variant;
   const visibleVariants = orderDisplayVariants(card);
+
   const outOfStock = variantKey
     ? displayVariant.stock <= 0
     : visibleVariants.length === 0 ||
       visibleVariants.every(({ variant }) => variant.stock <= 0);
+
   const stockVariants = variantKey
     ? [preferredDisplay]
     : visibleVariants.length > 0
       ? visibleVariants
       : [preferredDisplay];
+
   const stockByRarity = stockVariants.reduce<
     { rarity: string; stock: number }[]
   >((items, { variant }) => {
     const rarityLabel = formatRarityLabel(variant.rarity);
-    const hasSameRarityWithOtherCondition =
-      stockVariants.some(
-        (item) =>
-          item.variant.rarity === variant.rarity &&
-          (item.variant.condition ?? card.condition) !==
-            (variant.condition ?? card.condition),
-      );
-    const label = rarityLabel;
-    const existing = items.find((item) => item.rarity === label);
+
+    const existing = items.find(
+      (item) => item.rarity === rarityLabel,
+    );
+
     if (existing) {
       existing.stock += variant.stock;
     } else {
-      items.push({ rarity: label, stock: variant.stock });
+      items.push({
+        rarity: rarityLabel,
+        stock: variant.stock,
+      });
     }
+
     return items;
   }, []);
+
   const price = displayVariant.price;
   const displayImage = displayVariant.image ?? card.image;
 
@@ -88,7 +93,9 @@ export default function CardTile({
         </div>
 
         <div className="p-2.5 md:p-3">
-          <div className="text-xs text-gray-500 truncate">{card.number}</div>
+          <div className="text-xs text-gray-500 truncate">
+            {card.number}
+          </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-1 md:gap-1.5">
             {stockByRarity.map((item) => (
@@ -103,10 +110,6 @@ export default function CardTile({
                 {item.rarity} : {item.stock}
               </span>
             ))}
-<<<<<<< HEAD
-            {/* <ConditionBadge condition={displayVariant.condition ?? card.condition} /> */}
-=======
->>>>>>> eeb26f332989eb5724f5b382b04db1b8c70158f6
           </div>
 
           <div className="mt-1.5 truncate text-sm font-semibold text-white md:mt-2 md:text-base">
