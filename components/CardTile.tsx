@@ -1,6 +1,5 @@
 import Link from "next/link";
 import CardImage from "@/components/CardImage";
-import ConditionBadge from "@/components/ConditionBadge";
 import FavoriteHeartButton from "@/components/FavoriteHeartButton";
 import QuickAddCardButton from "@/components/QuickAddCardButton";
 import { resolveVariant, type Card, type VariantKey } from "@/lib/catalog";
@@ -43,9 +42,7 @@ export default function CardTile({
           (item.variant.condition ?? card.condition) !==
             (variant.condition ?? card.condition),
       );
-    const label = hasSameRarityWithOtherCondition
-      ? `${rarityLabel} - ${variant.condition ?? card.condition}`
-      : rarityLabel;
+    const label = rarityLabel;
     const existing = items.find((item) => item.rarity === label);
     if (existing) {
       existing.stock += variant.stock;
@@ -106,7 +103,10 @@ export default function CardTile({
                 {item.rarity} : {item.stock}
               </span>
             ))}
+<<<<<<< HEAD
             {/* <ConditionBadge condition={displayVariant.condition ?? card.condition} /> */}
+=======
+>>>>>>> eeb26f332989eb5724f5b382b04db1b8c70158f6
           </div>
 
           <div className="mt-1.5 truncate text-sm font-semibold text-white md:mt-2 md:text-base">

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import CardImage from "@/components/CardImage";
-import ConditionBadge from "@/components/ConditionBadge";
 import FavoriteCardButton from "@/components/FavoriteCardButton";
 import StockBadge from "@/components/StockBadge";
 import { useCart } from "@/lib/cart";
@@ -35,7 +34,6 @@ function VariantBlock({
           <span className="rounded-full bg-amber-500/20 px-2 py-1 text-xs text-amber-300">
             {formatRarityLabel(v.rarity)}
           </span>
-          <ConditionBadge condition={v.condition ?? card.condition} />
         </div>
         <span className="text-lg font-extrabold text-brand-500 md:text-xl">
           {formatPrice(v.price)}
@@ -99,9 +97,7 @@ export default function CardDetailBody({ card }: { card: Card }) {
   const prices = variants.map(({ variant }) => variant.price);
   const minPrice = prices.length > 0 ? Math.min(...prices) : card.price;
   const maxPrice = prices.length > 0 ? Math.max(...prices) : card.price;
-  const conditionLabels = Array.from(
-    new Set(variants.map(({ variant }) => variant.condition ?? card.condition)),
-  );
+
   const gridCols =
     variants.length === 1
       ? ""
@@ -229,23 +225,6 @@ export default function CardDetailBody({ card }: { card: Card }) {
         {card.description && (
           <p className="mt-4 text-gray-300">{card.description}</p>
         )}
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 md:mt-5">
-          <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-3 md:p-4">
-            <div className="text-xs text-gray-500">État</div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {conditionLabels.map((condition) => (
-                <ConditionBadge key={condition} condition={condition} />
-              ))}
-            </div>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-3 md:p-4">
-            <div className="text-xs text-gray-500">Envoi</div>
-            <div className="mt-1 text-sm font-semibold text-white">
-              Protégée pour l’expédition
-            </div>
-          </div>
-        </div>
 
         {variants.length === 0 ? (
           <p className="mt-6 rounded-lg border border-white/10 bg-zinc-900/60 p-4 text-sm text-gray-300">

@@ -3,11 +3,9 @@
 import { useMemo, useState } from "react";
 import CardTile from "@/components/CardTile";
 import {
-  CONDITIONS,
   listVariants,
   type Card,
   type CardVariant,
-  type Condition,
   type Rarity,
   type VariantKey,
 } from "@/lib/catalog";
@@ -44,7 +42,6 @@ function normalizeText(value: string) {
 
 export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   const [selectedRarities, setSelectedRarities] = useState<Rarity[]>([]);
-  const [selectedConditions, setSelectedConditions] = useState<Condition[]>([]);
   const [query, setQuery] = useState("");
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [sortMode, setSortMode] = useState<CardSortMode>("number");
@@ -64,17 +61,6 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
     return RARITY_ORDER.filter((rarity) => present.has(rarity));
   }, [cards]);
 
-  const availableConditions = useMemo(() => {
-    const present = new Set<Condition>();
-
-    for (const card of cards) {
-      for (const { variant } of listVariants(card)) {
-        present.add(variant.condition ?? card.condition);
-      }
-    }
-
-    return CONDITIONS.filter((condition) => present.has(condition));
-  }, [cards]);
 
   const normalizedQuery = normalizeText(query);
 
@@ -109,12 +95,6 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
         if (!matchRarity) return false;
       }
 
-      if (selectedConditions.length > 0) {
-        const matchCondition = variants.some(({ variant }) =>
-          selectedConditions.includes(variant.condition ?? card.condition),
-        );
-        if (!matchCondition) return false;
-      }
 
       const variantForFilters =
         selectedDisplayVariant(card)?.variant ?? variants[0]?.variant;
@@ -137,10 +117,9 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
             card.name,
             card.number,
             card.language,
-            ...variants.flatMap(({ variant }) => [
-              variant.rarity,
-              variant.condition ?? card.condition,
-            ]),
+           ...variants.flatMap(({ variant }) => [
+            variant.rarity,
+          ]),
           ].join(" "),
         );
         if (!haystack.includes(normalizedQuery)) return false;
@@ -160,7 +139,6 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   }, [
     cards,
     selectedRarities,
-    selectedConditions,
     normalizedQuery,
     onlyInStock,
     minPrice,
@@ -176,21 +154,12 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
     );
   }
 
-  function toggleCondition(condition: Condition) {
-    setSelectedConditions((current) =>
-      current.includes(condition)
-        ? current.filter((item) => item !== condition)
-        : [...current, condition],
-    );
-  }
-
   function showPremiumCards() {
     setSelectedRarities(["Ultra Rare", "Secrete"]);
   }
 
   function resetFilters() {
     setSelectedRarities([]);
-    setSelectedConditions([]);
     setQuery("");
     setOnlyInStock(false);
     setMinPrice("");
@@ -204,7 +173,6 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   const pillActive = "border-violet-400 bg-violet-600 text-white";
   const activeFilterCount =
     selectedRarities.length +
-    selectedConditions.length +
     (onlyInStock ? 1 : 0) +
     (minPrice ? 1 : 0) +
     (maxPrice ? 1 : 0) +
@@ -219,7 +187,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Nom, numéro, rareté ou état"
+              placeholder="Nom, numéro ou rareté"
               className="h-11 w-full rounded-lg border border-white/10 bg-zinc-900 py-2 pl-9 pr-9 text-sm text-white placeholder-gray-500 focus:border-violet-400 focus:outline-none"
             />
             <svg
@@ -341,24 +309,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
             filtersOpen ? "grid" : "hidden lg:grid"
           }`}
         >
-          <div className="flex flex-wrap gap-2">
-            <span className="self-center text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
-              État
-            </span>
-            {availableConditions.map((condition) => (
-              <button
-                key={condition}
-                type="button"
-                onClick={() => toggleCondition(condition)}
-                className={`${pillBase} ${
-                  selectedConditions.includes(condition) ? pillActive : pillIdle
-                }`}
-              >
-                {condition}
-              </button>
-            ))}
-          </div>
-
+          
           <div className="flex flex-wrap gap-2">
             <input
               type="number"

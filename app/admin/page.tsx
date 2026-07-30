@@ -466,6 +466,53 @@ function parsePage(value?: string) {
   return Number.isFinite(page) && page > 0 ? page : 1;
 }
 
+async function getTotalStockCount() {
+  const rows = await getDb()
+    .select({
+      cardId: stockOverrides.cardId,
+      variant: stockOverrides.variant,
+      stock: stockOverrides.stock,
+    })
+    .from(stockOverrides);
+
+  const overrideByLine = new Map(
+    rows.map((row) => [
+      inventoryLineKey(row.cardId, row.variant),
+      row.stock,
+    ]),
+  );
+
+  const countedLines = new Set<string>();
+  let total = 0;
+
+  for (const card of CARDS) {
+    for (const { key, variant } of listVariants(card, {
+      includeHidden: true,
+    })) {
+      const lineKey = inventoryLineKey(card.id, key);
+
+      const stock =
+        overrideByLine.get(lineKey) ?? variant.stock;
+
+      countedLines.add(lineKey);
+
+      if (stock > 0) {
+        total += stock;
+      }
+    }
+  }
+
+  for (const row of rows) {
+    const lineKey = inventoryLineKey(row.cardId, row.variant);
+
+    if (!countedLines.has(lineKey) && row.stock > 0) {
+      total += row.stock;
+    }
+  }
+
+  return total;
+}
+
 function adminHref({
   serieId,
   query,
