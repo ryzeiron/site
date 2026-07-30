@@ -106,7 +106,7 @@ export default function CardTile({
                 {item.rarity} : {item.stock}
               </span>
             ))}
-            <ConditionBadge condition={displayVariant.condition ?? card.condition} />
+            {/* <ConditionBadge condition={displayVariant.condition ?? card.condition} /> */}
           </div>
 
           <div className="mt-1.5 truncate text-sm font-semibold text-white md:mt-2 md:text-base">
