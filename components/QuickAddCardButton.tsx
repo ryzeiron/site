@@ -9,7 +9,6 @@ import { useCart } from "@/lib/cart";
 type AvailableVariant = {
   key: VariantKey;
   rarity: string;
-  condition: string;
   price: number;
   stock: number;
 };
@@ -35,7 +34,6 @@ export default function QuickAddCardButton({
       .map(({ key, variant }) => ({
         key,
         rarity: formatRarityLabel(variant.rarity),
-        condition: variant.condition ?? card.condition,
         price: variant.price,
         stock: variant.stock,
       }));
@@ -102,8 +100,7 @@ export default function QuickAddCardButton({
         >
           {availableVariants.map((variant) => (
             <option key={variant.key} value={variant.key}>
-              {variant.rarity} - {variant.condition} -{" "}
-              {formatPrice(variant.price)} - {variant.stock}
+              {variant.rarity} - {formatPrice(variant.price)} - {variant.stock}
             </option>
           ))}
         </select>
