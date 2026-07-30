@@ -173,7 +173,6 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
   const pillActive = "border-violet-400 bg-violet-600 text-white";
   const activeFilterCount =
     selectedRarities.length +
-    selectedConditions.length +
     (onlyInStock ? 1 : 0) +
     (minPrice ? 1 : 0) +
     (maxPrice ? 1 : 0) +
@@ -188,7 +187,7 @@ export default function SerieCardsGrid({ cards }: { cards: Card[] }) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Nom, numéro, rareté ou état"
+              placeholder="Nom, numéro ou rareté"
               className="h-11 w-full rounded-lg border border-white/10 bg-zinc-900 py-2 pl-9 pr-9 text-sm text-white placeholder-gray-500 focus:border-violet-400 focus:outline-none"
             />
             <svg
