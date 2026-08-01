@@ -342,11 +342,40 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
+
+      // Un palier en % sur un panier 100 % exclu des promos gaspillerait les points.
+      if (loyaltyTier.type === "percent") {
+        const hasEligibleItem =
+          rawSleeveItems.length > 0 ||
+          cardItems.some((item) => !isPromoExcludedCard(item.cardId));
+
+        if (!hasEligibleItem) {
+          return NextResponse.json(
+            {
+              error:
+                "Aucun article du panier n'est éligible à une remise en pourcentage.",
+            },
+            { status: 400 },
+          );
+        }
+      }
     }
 
+    const loyaltyPercent =
+      loyaltyTier?.type === "percent" ? loyaltyTier.percent : 0;
+    const hasPercentDiscount =
+      promo?.type === "percent_off" || loyaltyPercent > 0;
+
     const percentMultiplier =
-      promo?.type === "percent_off" ? 1 - promo.percent / 100 : 1;
-    const shippingMultiplier = promo?.type === "free_shipping" ? 0 : 1;
+      promo?.type === "percent_off"
+        ? 1 - promo.percent / 100
+        : loyaltyPercent > 0
+          ? 1 - loyaltyPercent / 100
+          : 1;
+    const shippingMultiplier =
+      promo?.type === "free_shipping" || loyaltyTier?.type === "free_shipping"
+        ? 0
+        : 1;
 
     const rawCards = cardItems
       .map((i) => getCard(i.cardId))
@@ -380,7 +409,7 @@ export async function POST(request: Request) {
 
       const v = resolveVariant(card, item.variant);
       const itemPercentMultiplier =
-        promo?.type === "percent_off" && !isPromoExcludedCard(card.id)
+        hasPercentDiscount && !isPromoExcludedCard(card.id)
           ? percentMultiplier
           : 1;
 
@@ -524,21 +553,24 @@ export async function POST(request: Request) {
     const chargedInsuranceFeeCents = Math.round(
       insuranceFeeCents * shippingMultiplier,
     );
-    // La remise fidelite ne peut pas rendre le total inferieur au minimum Stripe.
-    const loyaltyDiscountCents = loyaltyTier
-      ? Math.min(
-          loyaltyTier.rewardCents,
-          Math.max(
-            0,
-            itemsTotalCents +
-              relayCents +
-              chargedInsuranceFeeCents -
-              MIN_STRIPE_TOTAL_CENTS,
-          ),
-        )
-      : 0;
+    // Seul le type "amount" passe par un coupon Stripe : le pourcentage est deja
+    // applique sur les prix unitaires, et free_shipping sur les frais de port.
+    // La remise ne peut pas rendre le total inferieur au minimum Stripe.
+    const loyaltyDiscountCents =
+      loyaltyTier?.type === "amount"
+        ? Math.min(
+            loyaltyTier.rewardCents,
+            Math.max(
+              0,
+              itemsTotalCents +
+                relayCents +
+                chargedInsuranceFeeCents -
+                MIN_STRIPE_TOTAL_CENTS,
+            ),
+          )
+        : 0;
 
-    if (loyaltyTier && loyaltyDiscountCents <= 0) {
+    if (loyaltyTier?.type === "amount" && loyaltyDiscountCents <= 0) {
       return NextResponse.json(
         {
           error:
@@ -629,7 +661,7 @@ export async function POST(request: Request) {
 
     let loyaltyCouponId: string | null = null;
 
-    if (loyaltyTier && loyaltyDiscountCents > 0) {
+    if (loyaltyTier?.type === "amount" && loyaltyDiscountCents > 0) {
       const loyaltyCoupon = await stripe.coupons.create({
         amount_off: loyaltyDiscountCents,
         currency: "eur",

@@ -1,20 +1,31 @@
-// Paliers de fidelite. Pour changer une recompense, edite uniquement ce tableau :
-// "points" = cout en points, "rewardCents" = remise obtenue au panier.
+// Paliers de fidelite. Pour changer une recompense, edite uniquement ce tableau.
+//
+// Trois types de recompense :
+//   { type: "amount", rewardCents }  -> remise fixe en euros
+//   { type: "percent", percent }     -> % de remise (hors cartes exclues des promos)
+//   { type: "free_shipping" }        -> frais de port + assurance offerts
 export type LoyaltyTier = {
   points: number;
-  rewardCents: number;
   label: string;
-};
+} & (
+  | { type: "amount"; rewardCents: number }
+  | { type: "percent"; percent: number }
+  | { type: "free_shipping" }
+);
 
 export const LOYALTY_TIERS: LoyaltyTier[] = [
-  { points: 50, rewardCents: 100, label: "1 € de remise" },
-  { points: 100, rewardCents: 200, label: "2 € de remise" },
-  { points: 150, rewardCents: 350, label: "3,50 € de remise" },
-  { points: 250, rewardCents: 600, label: "6 € de remise" },
-  { points: 350, rewardCents: 900, label: "9 € de remise" },
-  { points: 450, rewardCents: 1200, label: "12 € de remise" },
-  { points: 600, rewardCents: 1700, label: "17 € de remise" },
-  { points: 750, rewardCents: 2200, label: "22 € de remise" },
+  { points: 50, type: "amount", rewardCents: 100, label: "1 € de remise" },
+  { points: 100, type: "percent", percent: 5, label: "5 % de remise" },
+  {
+    points: 150,
+    type: "free_shipping",
+    label: "Frais de port + assurance offerts",
+  },
+  { points: 250, type: "amount", rewardCents: 600, label: "6 € de remise" },
+  { points: 350, type: "percent", percent: 8, label: "8 % de remise" },
+  { points: 450, type: "amount", rewardCents: 1200, label: "12 € de remise" },
+  { points: 600, type: "percent", percent: 10, label: "10 % de remise" },
+  { points: 750, type: "amount", rewardCents: 2200, label: "22 € de remise" },
 ];
 
 export function getTierByPoints(points: number): LoyaltyTier | null {
