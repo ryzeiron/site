@@ -21,11 +21,11 @@ export const LOYALTY_TIERS: LoyaltyTier[] = [
     type: "free_shipping",
     label: "Frais de port + assurance offerts",
   },
-  { points: 250, type: "amount", rewardCents: 600, label: "5 € de remise" },
-  { points: 350, type: "percent", percent: 8, label: "10 % de remise" },
-  { points: 450, type: "amount", rewardCents: 1200, label: "10 € de remise" },
-  { points: 600, type: "amount", percent: 10, label: "15 € de remise" },
-  { points: 750, type: "percent", rewardCents: 2200, label: "15 % de remise" },
+  { points: 250, type: "amount", rewardCents: 500, label: "5 € de remise" },
+  { points: 350, type: "percent", percent: 10, label: "10 % de remise" },
+  { points: 450, type: "amount", rewardCents: 1000, label: "10 € de remise" },
+  { points: 600, type: "amount", rewardCents: 1500, label: "15 € de remise" },
+  { points: 750, type: "percent", percent: 15, label: "15 % de remise" },
 ];
 
 export function getTierByPoints(points: number): LoyaltyTier | null {
