@@ -10,9 +10,6 @@ export default function PromoBanner() {
         <span className="font-semibold">
           -10% de réduction sur ta première commande*
         </span>
-        <span className="text-[11px] text-violet-100/80 sm:text-xs">
-          *Sauf Amphinobi alt ME04 116/086
-        </span>
         <Link
           href="/panier"
           className="font-bold text-white underline decoration-white/60 underline-offset-4 transition hover:decoration-white"
