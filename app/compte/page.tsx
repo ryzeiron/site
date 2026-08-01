@@ -24,6 +24,7 @@ import {
   getPointsBalance,
   type LoyaltyEntry,
 } from "@/lib/loyalty";
+import { LOYALTY_TIERS } from "@/lib/loyalty-tiers";
 
 export const dynamic = "force-dynamic";
 
@@ -624,9 +625,64 @@ export default async function ComptePage({
                 </div>
                 <p className="mt-3 text-sm text-gray-300">
                   Vous gagnez <strong>1 point par euro dépensé</strong> sur
-                  chaque commande payée (livraison incluse). Les utilisations
-                  seront disponibles prochainement.
+                  chaque commande payée (livraison incluse). Utilisez vos points
+                  directement dans le panier. Non cumulable avec un code promo.
                 </p>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-violet-200">
+                  Paliers
+                </h3>
+
+                <div className="grid gap-2">
+                  {LOYALTY_TIERS.map((tier) => {
+                    const unlocked = pointsBalance >= tier.points;
+                    const progress = Math.min(
+                      100,
+                      Math.round((pointsBalance / tier.points) * 100),
+                    );
+
+                    return (
+                      <div
+                        key={tier.points}
+                        className={`rounded-xl border p-3 ${
+                          unlocked
+                            ? "border-emerald-400/40 bg-emerald-500/10"
+                            : "border-white/10 bg-zinc-900/70"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div
+                            className={`font-semibold ${
+                              unlocked ? "text-emerald-100" : "text-white"
+                            }`}
+                          >
+                            {tier.label}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {unlocked ? "Débloqué" : `${tier.points} pts`}
+                          </div>
+                        </div>
+
+                        {!unlocked && (
+                          <>
+                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                              <div
+                                className="h-full rounded-full bg-violet-500"
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                            <div className="mt-1 text-xs text-gray-500">
+                              Encore {tier.points - pointsBalance} point
+                              {tier.points - pointsBalance > 1 ? "s" : ""}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="mt-6">

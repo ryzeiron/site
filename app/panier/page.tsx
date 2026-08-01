@@ -13,6 +13,7 @@ import {
   getMondialRelayInsurance,
 } from "@/lib/mondial-relay-shipping";
 import { isPromoExcludedCard } from "@/lib/promo-exclusions";
+import { getAffordableTiers, getTierByPoints } from "@/lib/loyalty-tiers";
 
 type AppliedPromo =
   | {
@@ -110,6 +111,10 @@ export default function CartPage() {
   const [promoError, setPromoError] = useState<string | null>(null);
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
 
+  const [loyaltyBalance, setLoyaltyBalance] = useState(0);
+  const [loyaltyConnected, setLoyaltyConnected] = useState(false);
+  const [selectedTierPoints, setSelectedTierPoints] = useState(0);
+
   const [showRelayPicker, setShowRelayPicker] = useState(false);
   const [relayPostcode, setRelayPostcode] = useState("");
   const [selectedRelay, setSelectedRelay] = useState<SelectedRelay | null>(
@@ -174,6 +179,25 @@ export default function CartPage() {
           });
           setShowRelayPicker(false);
         }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    let cancelled = false;
+
+    fetch("/api/loyalty")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { balance?: number; connected?: boolean } | null) => {
+        if (cancelled || !data) return;
+        setLoyaltyBalance(data.balance ?? 0);
+        setLoyaltyConnected(Boolean(data.connected));
       })
       .catch(() => {});
 
@@ -291,9 +315,18 @@ export default function CartPage() {
         ? Math.min(subtotal, appliedPromo.amountOffCents / 100)
         : 0;
 
+  const selectedTier = getTierByPoints(selectedTierPoints);
+  const affordableTiers = getAffordableTiers(loyaltyBalance);
+
   const subtotalCents = Math.round(subtotal * 100);
   const discountCents = Math.round(discount * 100);
-  const totalCents = Math.max(0, subtotalCents - discountCents);
+  const loyaltyDiscountCents = selectedTier
+    ? Math.min(selectedTier.rewardCents, subtotalCents)
+    : 0;
+  const totalCents = Math.max(
+    0,
+    subtotalCents - discountCents - loyaltyDiscountCents,
+  );
   const shippingBaseCents = MR_PRICE_BY_COUNTRY[country];
   const shippingCents =
     appliedPromo?.type === "free_shipping" ? 0 : shippingBaseCents;
@@ -353,6 +386,7 @@ export default function CartPage() {
       }
 
       setAppliedPromo(promo);
+      setSelectedTierPoints(0);
       setPromoError(null);
     } catch (e) {
       setAppliedPromo(null);
@@ -398,6 +432,7 @@ export default function CartPage() {
             appliedPromo?.type === "percent_off" && !hasPromoEligibleItems
               ? undefined
               : appliedPromo?.code,
+          loyaltyTierPoints: selectedTierPoints || undefined,
           relay: selectedRelay,
           country,
           acceptedCgv,
@@ -778,6 +813,72 @@ export default function CartPage() {
             )}
           </div>
 
+          {loyaltyConnected && affordableTiers.length > 0 && (
+            <div className="mb-3 border-t border-white/10 pt-3">
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-sm text-gray-300">
+                  Points de fidélité
+                </label>
+                <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-semibold text-violet-100">
+                  {loyaltyBalance} pts
+                </span>
+              </div>
+
+              {appliedPromo ? (
+                <p className="mt-2 text-xs text-amber-200">
+                  Les points ne sont pas cumulables avec un code promo. Retire
+                  le code pour les utiliser.
+                </p>
+              ) : (
+                <>
+                  <div className="mt-2 grid gap-2">
+                    {affordableTiers.map((tier) => {
+                      const active = selectedTierPoints === tier.points;
+
+                      return (
+                        <button
+                          key={tier.points}
+                          type="button"
+                          onClick={() =>
+                            setSelectedTierPoints(active ? 0 : tier.points)
+                          }
+                          className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-sm transition ${
+                            active
+                              ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-100"
+                              : "border-white/10 bg-zinc-900 text-gray-200 hover:border-violet-400/40 hover:bg-violet-600/15"
+                          }`}
+                        >
+                          <span className="font-medium">{tier.label}</span>
+                          <span className="text-xs text-gray-400">
+                            {tier.points} pts
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {selectedTier && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTierPoints(0)}
+                      className="mt-2 text-xs text-gray-400 transition hover:text-red-400"
+                    >
+                      Retirer les points
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {loyaltyConnected && affordableTiers.length === 0 && (
+            <div className="mb-3 border-t border-white/10 pt-3 text-xs text-gray-400">
+              Tu as <strong className="text-violet-200">{loyaltyBalance}</strong>{" "}
+              point{loyaltyBalance > 1 ? "s" : ""} de fidélité. Continue tes
+              achats pour débloquer ton premier palier.
+            </div>
+          )}
+
           <div className="mb-3 border-t border-white/10 pt-3">
             <label className="text-sm text-gray-300">Pays de livraison</label>
 
@@ -933,6 +1034,13 @@ export default function CartPage() {
               <div className="flex items-center justify-between text-emerald-300">
                 <span>Reduction ({appliedPromo?.code})</span>
                 <span>- {formatPrice(discount)}</span>
+              </div>
+            )}
+
+            {loyaltyDiscountCents > 0 && (
+              <div className="flex items-center justify-between text-emerald-300">
+                <span>Fidélité ({selectedTierPoints} pts)</span>
+                <span>- {formatPrice(loyaltyDiscountCents / 100)}</span>
               </div>
             )}
 

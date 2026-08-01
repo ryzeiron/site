@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { loyaltyLedger, users } from "@/lib/db/schema";
 
@@ -67,6 +67,55 @@ export async function awardOrderPoints({
   });
 
   return { awarded: delta, balance: updated.balance };
+}
+
+// Debite les points seulement si le solde est suffisant (verifie en SQL pour
+// eviter qu'un double checkout depense deux fois les memes points).
+export async function redeemPoints({
+  userId,
+  orderId,
+  points,
+}: {
+  userId: string;
+  orderId: string;
+  points: number;
+}): Promise<{ spent: number; balance: number } | null> {
+  if (points <= 0) return null;
+
+  const db = getDb();
+
+  const [existing] = await db
+    .select({ id: loyaltyLedger.id })
+    .from(loyaltyLedger)
+    .where(
+      and(
+        eq(loyaltyLedger.userId, userId),
+        eq(loyaltyLedger.orderId, orderId),
+        eq(loyaltyLedger.reason, "redeem"),
+      ),
+    )
+    .limit(1);
+
+  if (existing) return null;
+
+  const [updated] = await db
+    .update(users)
+    .set({ pointsBalance: sql`${users.pointsBalance} - ${points}` })
+    .where(and(eq(users.id, userId), gte(users.pointsBalance, points)))
+    .returning({ balance: users.pointsBalance });
+
+  if (!updated) return null;
+
+  await db.insert(loyaltyLedger).values({
+    id: randomUUID(),
+    userId,
+    orderId,
+    delta: -points,
+    reason: "redeem",
+    balanceAfter: updated.balance,
+  });
+
+  return { spent: points, balance: updated.balance };
 }
 
 export async function getPointsBalance(userId: string): Promise<number> {

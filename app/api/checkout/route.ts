@@ -15,6 +15,8 @@ import {
   getMondialRelayInsurance,
 } from "@/lib/mondial-relay-shipping";
 import { isPromoExcludedCard } from "@/lib/promo-exclusions";
+import { getPointsBalance } from "@/lib/loyalty";
+import { getTierByPoints } from "@/lib/loyalty-tiers";
 import {
   attachStockReservationSession,
   getReservedStockReservationSessionIds,
@@ -30,6 +32,7 @@ type Body = {
   sleeveItems?: { sleeveId: string; quantity: number }[];
   cartId?: string;
   promoCode?: string;
+  loyaltyTierPoints?: number;
   country?: Country;
   relay?: {
     code: string;
@@ -300,6 +303,47 @@ export async function POST(request: Request) {
       }
     }
 
+    const requestedTierPoints =
+      typeof body.loyaltyTierPoints === "number" ? body.loyaltyTierPoints : 0;
+    let loyaltyTier = null;
+
+    if (requestedTierPoints > 0) {
+      if (promo || stripePromotionCodeId) {
+        return NextResponse.json(
+          {
+            error:
+              "Les points de fidélité ne sont pas cumulables avec un code promo.",
+          },
+          { status: 400 },
+        );
+      }
+
+      if (!sessionUser?.user?.id) {
+        return NextResponse.json(
+          { error: "Connecte-toi pour utiliser tes points de fidélité." },
+          { status: 401 },
+        );
+      }
+
+      loyaltyTier = getTierByPoints(requestedTierPoints);
+
+      if (!loyaltyTier) {
+        return NextResponse.json(
+          { error: "Palier de fidélité invalide." },
+          { status: 400 },
+        );
+      }
+
+      const balance = await getPointsBalance(sessionUser.user.id);
+
+      if (balance < loyaltyTier.points) {
+        return NextResponse.json(
+          { error: "Points de fidélité insuffisants." },
+          { status: 400 },
+        );
+      }
+    }
+
     const percentMultiplier =
       promo?.type === "percent_off" ? 1 - promo.percent / 100 : 1;
     const shippingMultiplier = promo?.type === "free_shipping" ? 0 : 1;
@@ -480,8 +524,35 @@ export async function POST(request: Request) {
     const chargedInsuranceFeeCents = Math.round(
       insuranceFeeCents * shippingMultiplier,
     );
+    // La remise fidelite ne peut pas rendre le total inferieur au minimum Stripe.
+    const loyaltyDiscountCents = loyaltyTier
+      ? Math.min(
+          loyaltyTier.rewardCents,
+          Math.max(
+            0,
+            itemsTotalCents +
+              relayCents +
+              chargedInsuranceFeeCents -
+              MIN_STRIPE_TOTAL_CENTS,
+          ),
+        )
+      : 0;
+
+    if (loyaltyTier && loyaltyDiscountCents <= 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Le panier est trop petit pour utiliser ce palier de fidélité.",
+        },
+        { status: 400 },
+      );
+    }
+
     const checkoutTotalCents =
-      itemsTotalCents + relayCents + chargedInsuranceFeeCents;
+      itemsTotalCents +
+      relayCents +
+      chargedInsuranceFeeCents -
+      loyaltyDiscountCents;
 
     if (checkoutTotalCents < MIN_STRIPE_TOTAL_CENTS) {
       return NextResponse.json(
@@ -556,6 +627,19 @@ export async function POST(request: Request) {
       revalidatePublicStockCache();
     }
 
+    let loyaltyCouponId: string | null = null;
+
+    if (loyaltyTier && loyaltyDiscountCents > 0) {
+      const loyaltyCoupon = await stripe.coupons.create({
+        amount_off: loyaltyDiscountCents,
+        currency: "eur",
+        duration: "once",
+        name: `Fidélité - ${loyaltyTier.points} points`,
+        max_redemptions: 1,
+      });
+      loyaltyCouponId = loyaltyCoupon.id;
+    }
+
     let session;
 
     try {
@@ -571,6 +655,9 @@ export async function POST(request: Request) {
           reservation_id: reservationId,
           ...(checkoutCartId ? { cart_id: checkoutCartId } : {}),
           ...(sessionUser?.user?.id ? { user_id: sessionUser.user.id } : {}),
+          ...(loyaltyTier
+            ? { loyalty_redeem_points: String(loyaltyTier.points) }
+            : {}),
         },
         success_url: `${origin}/suivi-commande/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/annule`,
@@ -583,11 +670,13 @@ export async function POST(request: Request) {
         shipping_address_collection: { allowed_countries: [country] },
         phone_number_collection: { enabled: true },
         shipping_options: [relayShippingOption],
-        ...(stripePromotionCodeId
-          ? { discounts: [{ promotion_code: stripePromotionCodeId }] }
-          : promo
-            ? {}
-            : { allow_promotion_codes: true }),
+        ...(loyaltyCouponId
+          ? { discounts: [{ coupon: loyaltyCouponId }] }
+          : stripePromotionCodeId
+            ? { discounts: [{ promotion_code: stripePromotionCodeId }] }
+            : promo
+              ? {}
+              : { allow_promotion_codes: true }),
       });
       await attachStockReservationSession(reservationId, session.id);
     } catch (e) {

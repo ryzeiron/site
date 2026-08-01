@@ -25,7 +25,7 @@ import {
   sendMail,
   sendToAdmin,
 } from "@/lib/mail";
-import { awardOrderPoints } from "@/lib/loyalty";
+import { awardOrderPoints, redeemPoints } from "@/lib/loyalty";
 import { normalizeSiteUrl } from "@/lib/site-url";
 import { decrementSleeveStock } from "@/lib/sleeves";
 import {
@@ -514,6 +514,19 @@ export async function POST(request: Request) {
     await saveOrderAnalyticsFromSession(session).catch(() => {});
 
     if (userId) {
+      const redeemedPoints = Number.parseInt(
+        metadata.loyalty_redeem_points ?? "0",
+        10,
+      );
+
+      if (redeemedPoints > 0) {
+        await redeemPoints({
+          userId,
+          orderId: session.id,
+          points: redeemedPoints,
+        }).catch(() => null);
+      }
+
       await awardOrderPoints({
         userId,
         orderId: session.id,
