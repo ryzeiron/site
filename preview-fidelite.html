@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Preview - Animation fidélité</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-zinc-950 p-6 font-sans text-white antialiased">
+    <div class="mx-auto max-w-3xl">
+      <p class="mb-4 text-xs uppercase tracking-[0.18em] text-gray-500">
+        Prévisualisation — composant LoyaltyRewardAnimation
+      </p>
+
+      <!-- Contexte : bloc statut, pour situer l'animation dans la page -->
+      <section class="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+        <div class="text-xs font-semibold uppercase tracking-wider text-emerald-300">
+          Statut
+        </div>
+        <h2 class="mt-2 text-2xl font-bold text-white">Paiement reçu</h2>
+        <p class="mt-2 text-emerald-100/80">
+          Ta commande est enregistrée et va être préparée.
+        </p>
+      </section>
+
+      <!-- Le composant anime -->
+      <section
+        id="card"
+        class="mt-6 translate-y-3 overflow-hidden rounded-2xl border border-violet-300/25 bg-gradient-to-br from-violet-600/25 via-fuchsia-500/10 to-transparent p-5 opacity-0 transition-all duration-700"
+      >
+        <div class="flex flex-wrap items-baseline justify-between gap-3">
+          <div class="text-xs font-semibold uppercase tracking-[0.18em] text-violet-200">
+            Points fidélité
+          </div>
+          <a href="#" class="text-xs font-semibold text-violet-200 transition hover:text-white">
+            Voir mes paliers
+          </a>
+        </div>
+
+        <div class="mt-3 flex items-baseline gap-2">
+          <span id="earned" class="text-5xl font-bold tabular-nums text-emerald-300">+0</span>
+          <span class="text-lg font-semibold text-emerald-100">points gagnés</span>
+        </div>
+
+        <div class="mt-4">
+          <div class="flex items-baseline justify-between gap-3 text-sm">
+            <span class="text-gray-300">Nouveau solde</span>
+            <span id="balance" class="text-xl font-bold tabular-nums text-white">0 pts</span>
+          </div>
+
+          <div class="mt-2 h-3 overflow-hidden rounded-full bg-black/40">
+            <div
+              id="bar"
+              class="h-full rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-[width] duration-1000 ease-out"
+              style="width: 0%"
+            ></div>
+          </div>
+
+          <p class="mt-2 text-sm text-violet-100">
+            Plus que <strong class="text-white">8 points</strong> pour débloquer
+            <strong class="text-white">Frais de port + assurance offerts</strong>.
+          </p>
+        </div>
+
+        <div id="chips" class="mt-4 flex flex-wrap gap-2"></div>
+
+        <p class="mt-3 text-xs text-gray-400">
+          2 paliers disponibles à utiliser sur ta prochaine commande.
+        </p>
+      </section>
+
+      <button
+        id="replay"
+        class="mt-6 rounded-full bg-violet-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-700"
+      >
+        Rejouer l'animation
+      </button>
+    </div>
+
+    <script>
+      // Valeurs de demonstration : commande de 42 EUR, solde porte a 142 points.
+      const EARNED = 42;
+      const BALANCE = 142;
+      const FLOOR = 100; // dernier palier atteint
+      const CEILING = 150; // palier suivant
+
+      const TIERS = [50, 100, 150, 250, 350, 450, 600, 750];
+      const LABELS = {
+        50: "1 € de remise",
+        100: "5 % de remise",
+        150: "Frais de port + assurance offerts",
+        250: "6 € de remise",
+        350: "8 % de remise",
+        450: "12 € de remise",
+        600: "10 % de remise",
+        750: "22 € de remise",
+      };
+
+      const COUNT_UP_MS = 1100;
+      const REVEAL_DELAY_MS = 250;
+
+      const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+      const card = document.getElementById("card");
+      const earnedEl = document.getElementById("earned");
+      const balanceEl = document.getElementById("balance");
+      const bar = document.getElementById("bar");
+      const chips = document.getElementById("chips");
+
+      function buildChips() {
+        chips.innerHTML = "";
+        TIERS.forEach((points, index) => {
+          const unlocked = points <= BALANCE;
+          const chip = document.createElement("span");
+          chip.title = LABELS[points];
+          chip.className =
+            "rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-500 translate-y-2 opacity-0 " +
+            (unlocked
+              ? "border-emerald-300/40 bg-emerald-400/20 text-emerald-100"
+              : "border-white/10 bg-black/20 text-gray-400");
+          chip.style.transitionDelay = 300 + index * 70 + "ms";
+          chip.textContent = (unlocked ? "✓ " : "") + points + " pts";
+          chips.appendChild(chip);
+        });
+      }
+
+      function countUp(el, target, suffix) {
+        const startedAt = performance.now();
+        function tick(now) {
+          const progress = Math.min(1, (now - startedAt) / COUNT_UP_MS);
+          const value = Math.round(target * easeOutCubic(progress));
+          el.textContent = suffix === "pts" ? value + " pts" : "+" + value;
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+
+      function play() {
+        // Remise a zero
+        card.classList.add("translate-y-3", "opacity-0");
+        card.classList.remove("translate-y-0", "opacity-100");
+        earnedEl.textContent = "+0";
+        balanceEl.textContent = "0 pts";
+        bar.style.width = "0%";
+        buildChips();
+
+        setTimeout(() => {
+          card.classList.remove("translate-y-3", "opacity-0");
+          card.classList.add("translate-y-0", "opacity-100");
+
+          countUp(earnedEl, EARNED, "earned");
+          countUp(balanceEl, BALANCE, "pts");
+
+          const ratio = (BALANCE - FLOOR) / (CEILING - FLOOR);
+          bar.style.width = ratio * 100 + "%";
+
+          Array.from(chips.children).forEach((chip) => {
+            chip.classList.remove("translate-y-2", "opacity-0");
+            chip.classList.add("translate-y-0", "opacity-100");
+          });
+        }, REVEAL_DELAY_MS);
+      }
+
+      document.getElementById("replay").addEventListener("click", play);
+      play();
+    </script>
+  </body>
+</html>
