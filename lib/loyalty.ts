@@ -128,6 +128,39 @@ export async function getPointsBalance(userId: string): Promise<number> {
   return row?.balance ?? 0;
 }
 
+// Recapitulatif fidelite d'une commande, pour l'animation post-paiement.
+export async function getOrderLoyaltySummary(orderId: string): Promise<{
+  earned: number;
+  spent: number;
+  balance: number;
+} | null> {
+  const rows = await getDb()
+    .select({
+      userId: loyaltyLedger.userId,
+      delta: loyaltyLedger.delta,
+      reason: loyaltyLedger.reason,
+      balanceAfter: loyaltyLedger.balanceAfter,
+      createdAt: loyaltyLedger.createdAt,
+    })
+    .from(loyaltyLedger)
+    .where(eq(loyaltyLedger.orderId, orderId));
+
+  if (rows.length === 0) return null;
+
+  const earned = rows
+    .filter((row) => row.delta > 0)
+    .reduce((total, row) => total + row.delta, 0);
+  const spent = rows
+    .filter((row) => row.delta < 0)
+    .reduce((total, row) => total - row.delta, 0);
+
+  // Le solde vient du compte, pas du ledger : d'autres commandes ont pu passer
+  // entre-temps et le solde fige dans balanceAfter serait perime.
+  const balance = await getPointsBalance(rows[0].userId);
+
+  return { earned, spent, balance };
+}
+
 export async function getLoyaltyHistory(
   userId: string,
   limit = 50,

@@ -5,7 +5,10 @@ import { getStripe } from "@/lib/stripe";
 import { getDb } from "@/lib/db/client";
 import { orders } from "@/lib/db/schema";
 import { formatPrice } from "@/lib/format";
+import { getOrderLoyaltySummary } from "@/lib/loyalty";
 import SuccessClearCart from "@/components/SuccessClearCart";
+import LoyaltyRewardAnimation from "@/components/LoyaltyRewardAnimation";
+import LoyaltyPendingRefresh from "@/components/LoyaltyPendingRefresh";
 
 type OrderRow = typeof orders.$inferSelect;
 
@@ -159,6 +162,17 @@ export default async function OrderStatus({
     order?.createdAt ??
     (session?.created ? new Date(session.created * 1000) : null);
 
+  // Les points sont credites par le webhook Stripe : sur un client sans compte,
+  // ou tant que le webhook n'est pas passe, il n'y a simplement rien a afficher.
+  const loyalty = order?.userId
+    ? await getOrderLoyaltySummary(order.id).catch(() => null)
+    : null;
+
+  // Le metadata Stripe dit si la commande vient d'un compte, meme avant que le
+  // webhook ait cree la ligne en base : c'est ce qui distingue "points a venir"
+  // d'une commande invite, qui n'en aura jamais.
+  const expectsLoyalty = Boolean(session?.metadata?.user_id) && !loyalty;
+
   if (!session && !order) {
     return (
       <div className="py-16 text-center">
@@ -255,6 +269,23 @@ export default async function OrderStatus({
           </a>
         ) : null}
       </section>
+
+      {loyalty ? (
+        <LoyaltyRewardAnimation
+          earned={loyalty.earned}
+          spent={loyalty.spent}
+          balance={loyalty.balance}
+        />
+      ) : null}
+
+      {expectsLoyalty ? (
+        <>
+          <LoyaltyPendingRefresh />
+          <section className="mt-6 rounded-2xl border border-violet-300/20 bg-violet-500/10 p-5 text-sm text-violet-100">
+            Calcul de tes points de fidélité en cours...
+          </section>
+        </>
+      ) : null}
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <section className="rounded-2xl border border-white/10 bg-zinc-900/70 p-5">
