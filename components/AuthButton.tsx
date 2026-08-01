@@ -97,6 +97,9 @@ export default function AuthButton({
                 <MenuLink href="/compte?section=favoris" onClick={() => setOpen(false)} icon={<HeartIcon />}>
                   Mes favoris
                 </MenuLink>
+                <MenuLink href="/compte?section=fidelite" onClick={() => setOpen(false)} icon={<LoyaltyIcon />}>
+                  Fidélité
+                </MenuLink>
                 <MenuLink href="/compte?section=avis" onClick={() => setOpen(false)} icon={<StarIcon />}>
                   Laisser un avis
                 </MenuLink>
@@ -259,6 +262,27 @@ function StarIcon() {
       strokeLinejoin="round"
     >
       <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+    </svg>
+  );
+}
+
+function LoyaltyIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 12v9H4v-9" />
+      <path d="M22 7H2v5h20V7Z" />
+      <path d="M12 22V7" />
+      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7Z" />
+      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7Z" />
     </svg>
   );
 }
