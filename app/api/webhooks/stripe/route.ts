@@ -25,6 +25,7 @@ import {
   sendMail,
   sendToAdmin,
 } from "@/lib/mail";
+import { awardOrderPoints } from "@/lib/loyalty";
 import { normalizeSiteUrl } from "@/lib/site-url";
 import { decrementSleeveStock } from "@/lib/sleeves";
 import {
@@ -511,6 +512,14 @@ export async function POST(request: Request) {
 
   if (insertedOrders.length > 0) {
     await saveOrderAnalyticsFromSession(session).catch(() => {});
+
+    if (userId) {
+      await awardOrderPoints({
+        userId,
+        orderId: session.id,
+        amountTotalCents: session.amount_total,
+      }).catch(() => null);
+    }
 
     await sendOrderNotifications({
       session,

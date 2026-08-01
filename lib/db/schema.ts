@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   name: text("name"),
+  pointsBalance: integer("points_balance").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -274,6 +275,16 @@ export const sleeveOverrides = pgTable("sleeve_overrides", {
   active: boolean("active").notNull().default(true),
   image: text("image"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const loyaltyLedger = pgTable("loyalty_ledger", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  orderId: text("order_id"),
+  delta: integer("delta").notNull(),
+  reason: text("reason").notNull(),
+  balanceAfter: integer("balance_after").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const tickets = pgTable("tickets", {

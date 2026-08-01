@@ -19,17 +19,23 @@ import {
   type OrderContent,
 } from "@/lib/order-contents";
 import { formatCents } from "@/lib/format";
+import {
+  getLoyaltyHistory,
+  getPointsBalance,
+  type LoyaltyEntry,
+} from "@/lib/loyalty";
 
 export const dynamic = "force-dynamic";
 
 type Search = { section?: string };
-type AccountSection = "infos" | "favoris" | "avis" | "commandes";
+type AccountSection = "infos" | "favoris" | "avis" | "commandes" | "fidelite";
 
 const ACCOUNT_SECTIONS: { id: AccountSection; label: string }[] = [
   { id: "infos", label: "Informations" },
   { id: "favoris", label: "Favoris" },
   { id: "avis", label: "Avis" },
   { id: "commandes", label: "Commandes" },
+  { id: "fidelite", label: "Fidélité" },
 ];
 
 function getAccountSection(section?: string): AccountSection {
@@ -309,6 +315,14 @@ export default async function ComptePage({
       ? await buildOrderContents(userOrders)
       : new Map<string, OrderContent>();
 
+  const [pointsBalance, loyaltyHistory] =
+    activeSection === "fidelite"
+      ? await Promise.all([
+          getPointsBalance(session.user.id),
+          getLoyaltyHistory(session.user.id),
+        ])
+      : [0, [] as LoyaltyEntry[]];
+
   return (
     <div className="space-y-6 py-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -587,6 +601,88 @@ export default async function ComptePage({
                   ))}
                 </div>
               )}
+            </section>
+          )}
+
+          {activeSection === "fidelite" && (
+            <section>
+              <h2 className="mb-3 text-xl font-bold text-white">
+                Mes points fidélité
+              </h2>
+
+              <div className="rounded-2xl border border-violet-300/25 bg-gradient-to-br from-violet-600/25 via-fuchsia-500/10 to-transparent p-6">
+                <div className="text-xs uppercase tracking-[0.18em] text-violet-200">
+                  Solde actuel
+                </div>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="text-5xl font-bold text-white">
+                    {pointsBalance}
+                  </span>
+                  <span className="text-lg font-semibold text-violet-100">
+                    point{pointsBalance > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm text-gray-300">
+                  Vous gagnez <strong>1 point par euro dépensé</strong> sur
+                  chaque commande payée (livraison incluse). Les utilisations
+                  seront disponibles prochainement.
+                </p>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-violet-200">
+                  Historique
+                </h3>
+
+                {loyaltyHistory.length === 0 ? (
+                  <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-6 text-center text-sm text-gray-400">
+                    Aucun mouvement pour le moment. Passez une commande pour
+                    commencer à cumuler des points.
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-white/10 rounded-lg border border-white/10 bg-zinc-900/70">
+                    {loyaltyHistory.map((entry) => (
+                      <li
+                        key={entry.id}
+                        className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
+                      >
+                        <div>
+                          <div className="font-semibold text-white">
+                            {entry.reason === "order"
+                              ? "Commande"
+                              : entry.reason === "redeem"
+                                ? "Utilisation"
+                                : entry.reason === "refund"
+                                  ? "Remboursement"
+                                  : "Ajustement"}
+                          </div>
+                          <div className="mt-0.5 text-xs text-gray-400">
+                            {formatDate(new Date(entry.createdAt))}
+                            {entry.orderId && (
+                              <>
+                                {" "}
+                                — <span className="font-mono">
+                                  N {entry.orderId.slice(-12)}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div
+                          className={`text-lg font-bold ${
+                            entry.delta >= 0
+                              ? "text-emerald-300"
+                              : "text-rose-300"
+                          }`}
+                        >
+                          {entry.delta >= 0 ? "+" : ""}
+                          {entry.delta}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </section>
           )}
         </div>
