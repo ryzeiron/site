@@ -116,7 +116,7 @@ export const catalogSleeves: CatalogSleeve[] = [
   {id: "pachirisu", name: "Pachirisu", description: "1 sleeve.", image: "/sleeves/pachi.webp", defaultPriceCents: 100, defaultStock: 1, active: true,},
   {id: "sleeve-9", name: "Sleeve 9", description: "1 sleeve.", image: "/sleeves/9.webp", defaultPriceCents: 100, defaultStock: 1, active: true,},
   {id: "tyranocif", name: "Tyranocif", description: "1 sleeve.", image: "/sleeves/tyra.webp", defaultPriceCents: 100, defaultStock: 1, active: true,},
-  {id: "arcanain", name: "Arcanain", description: "1 sleeve.", image: "/sleeves/arca.webp", defaultPriceCents: 100, defaultStock: 1, active: true,},
+  {id: "arcanin", name: "Arcanin", description: "1 sleeve.", image: "/sleeves/arca.webp", defaultPriceCents: 100, defaultStock: 1, active: true,},
   {id: "pokeball", name: "Pokeball", description: "1 sleeve.", image: "/sleeves/pokeball.webp", defaultPriceCents: 50, defaultStock: 3, active: true,},
   {id: "marisson", name: "Marisson", description: "1 sleeve.", image: "/sleeves/mari.webp", defaultPriceCents: 50, defaultStock: 2, active: true,},
   {id: "xerneas-yveltal", name: "Xerneas et Yveltal", description: "1 sleeve.", image: "/sleeves/xeryve.webp", defaultPriceCents: 100, defaultStock: 1, active: true,},
