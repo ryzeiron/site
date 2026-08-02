@@ -10,3 +10,7 @@ dist
 .vercel
 next-env.d.ts
 tsconfig.tsbuildinfo
+
+# Exports de contacts : donnees personnelles, ne jamais versionner
+contacts-resend.csv
+*.csv
