@@ -526,7 +526,9 @@ export async function POST(request: Request) {
     if (loyaltyTier?.type === "free_product") {
       const [freeSleeve] = await getSleevesByIds([loyaltyTier.sleeveId]);
 
-      if (!freeSleeve || !freeSleeve.active) {
+      // On n'exige pas active ici, contrairement aux sleeves achetees : un cadeau
+      // peut etre un produit volontairement masque de la boutique.
+      if (!freeSleeve) {
         return NextResponse.json(
           { error: "Le cadeau de fidélité est momentanément indisponible." },
           { status: 400 },

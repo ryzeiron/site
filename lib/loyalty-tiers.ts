@@ -20,9 +20,9 @@ export const LOYALTY_TIERS: LoyaltyTier[] = [
   {
     points: 50,
     type: "free_product",
-    sleeveId: "pikachu-celebration",
+    sleeveId: "paquet-sleeves-fidelite",
     quantity: 1,
-    label: "Une sleeve offerte",
+    label: "Un paquet de sleeves offert",
   },
   { points: 100, type: "percent", percent: 5, label: "5 % de remise" },
   {

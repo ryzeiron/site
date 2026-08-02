@@ -117,9 +117,11 @@ export const catalogSleeves: CatalogSleeve[] = [
   {id: "xerneas-yveltal", name: "Xerneas et Yveltal", description: "1 sleeve.", image: "/sleeves/xeryve.webp", defaultPriceCents: 100, defaultStock: 1, active: true,},
   {id: "melodelfe", name: "Mélodelfe", description: "1 sleeve.", image: "/sleeves/melode.webp", defaultPriceCents: 100, defaultStock: 2, active: true,},
   //{id: "mewtow-3", name: "Mewtwo 3", description: "1 sleeve.", image: "/sleeves/14.webp", defaultPriceCents: 50, defaultStock: 10, active: true,},
-  
-  
-  
+
+  // Cadeau du palier fidelite 50 points. active: false le masque de la boutique,
+  // de la recherche et des nouveautes : il ne s'obtient qu'avec des points.
+  // Ajuste defaultStock selon le nombre de paquets reellement disponibles.
+  {id: "paquet-sleeves-fidelite", name: "Paquet de sleeves", description: "Paquet de sleeves offert.", defaultPriceCents: 0, defaultStock: 20, active: false,},
 ];
 
 export function getCatalogSleeves() {
