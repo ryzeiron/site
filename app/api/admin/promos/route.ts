@@ -103,6 +103,54 @@ export async function POST(request: Request) {
   }
 }
 
+// Stripe ne permet pas de supprimer un code promo, seulement de le desactiver.
+// On desactive donc le code, puis on supprime le coupon associe pour qu'il ne
+// reste pas orphelin. Les commandes deja passees conservent leur remise.
+export async function DELETE(request: Request) {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: "Non autorise." }, { status: 401 });
+  }
+
+  const promotionCodeId = new URL(request.url).searchParams.get("id")?.trim();
+
+  if (!promotionCodeId) {
+    return NextResponse.json(
+      { error: "Identifiant du code promo manquant." },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const stripe = getStripe();
+    const promotionCode = await stripe.promotionCodes.update(promotionCodeId, {
+      active: false,
+    });
+
+    const coupon = promotionCode.promotion.coupon;
+    const couponId = typeof coupon === "string" ? coupon : coupon?.id;
+
+    // Le coupon peut avoir deja ete supprime : le code reste desactive.
+    let couponDeleted = false;
+    if (couponId) {
+      try {
+        await stripe.coupons.del(couponId);
+        couponDeleted = true;
+      } catch {
+        couponDeleted = false;
+      }
+    }
+
+    return NextResponse.json({
+      code: promotionCode.code,
+      deactivated: true,
+      couponDeleted,
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Erreur Stripe.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
 class PromoInputError extends Error {
   status: number;
 

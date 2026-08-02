@@ -11,6 +11,10 @@ import {
   type Card,
   type VariantKey,
 } from "@/lib/catalog";
+import { inArray } from "drizzle-orm";
+import { getDb } from "@/lib/db/client";
+import { loyaltyLedger } from "@/lib/db/schema";
+import { getTierByPoints } from "@/lib/loyalty-tiers";
 import { formatRarityLabel } from "@/lib/display-variants";
 import { getSleevesByIds, type SleeveProduct } from "@/lib/sleeves";
 import { applyStockOverrides } from "@/lib/stock";
@@ -71,8 +75,60 @@ export type OrderContent = {
   shippingTotalCents: number | null;
   discountTotalCents: number;
   orderTotalCents: number | null;
+  loyaltySpentPoints: number;
+  loyaltyEarnedPoints: number;
+  loyaltyTierLabel: string | null;
   error?: string;
 };
+
+type OrderLoyalty = {
+  spentPoints: number;
+  earnedPoints: number;
+  tierLabel: string | null;
+};
+
+// Le palier utilise n'est pas stocke : on le retrouve par son cout en points,
+// qui lui est unique. Un palier retire de la grille depuis n'est plus resolvable.
+async function getOrderLoyalty(orderIds: string[]) {
+  const empty = new Map<string, OrderLoyalty>();
+  if (orderIds.length === 0) return empty;
+
+  try {
+    const rows = await getDb()
+      .select({
+        orderId: loyaltyLedger.orderId,
+        delta: loyaltyLedger.delta,
+        reason: loyaltyLedger.reason,
+      })
+      .from(loyaltyLedger)
+      .where(inArray(loyaltyLedger.orderId, orderIds));
+
+    for (const row of rows) {
+      if (!row.orderId) continue;
+
+      const current = empty.get(row.orderId) ?? {
+        spentPoints: 0,
+        earnedPoints: 0,
+        tierLabel: null,
+      };
+
+      if (row.delta > 0) {
+        current.earnedPoints += row.delta;
+      } else if (row.reason === "redeem") {
+        const points = -row.delta;
+        current.spentPoints += points;
+        current.tierLabel =
+          getTierByPoints(points)?.label ?? `Palier supprimé (${points} pts)`;
+      }
+
+      empty.set(row.orderId, current);
+    }
+
+    return empty;
+  } catch {
+    return empty;
+  }
+}
 
 type StripeOrderMetadata = {
   metadata: Stripe.Metadata | null;
@@ -252,6 +308,7 @@ export async function buildOrderContents(rows: OrderContentSource[]) {
   );
   const sleeves = await getSleevesByIds(sleeveIds).catch(() => []);
   const sleeveMap = new Map(sleeves.map((sleeve) => [sleeve.id, sleeve]));
+  const loyaltyByOrder = await getOrderLoyalty(rows.map((order) => order.id));
 
   return new Map(
     decoded.map((entry) => [
@@ -264,6 +321,7 @@ export async function buildOrderContents(rows: OrderContentSource[]) {
         entry.shippingTotalCents,
         entry.discountTotalCents,
         entry.orderTotalCents,
+        loyaltyByOrder.get(entry.orderId) ?? null,
         entry.error,
       ),
     ]),
@@ -278,6 +336,7 @@ function buildOrderContent(
   shippingTotalCents: number | null,
   discountTotalCents: number,
   orderTotalCents: number | null,
+  loyalty: OrderLoyalty | null,
   error?: string,
 ): OrderContent {
   const cardLines: CardOrderLine[] = cardItems.map(([cardId, variant, quantity, paidUnitCents]) => {
@@ -366,6 +425,9 @@ function buildOrderContent(
     shippingTotalCents,
     discountTotalCents,
     orderTotalCents,
+    loyaltySpentPoints: loyalty?.spentPoints ?? 0,
+    loyaltyEarnedPoints: loyalty?.earnedPoints ?? 0,
+    loyaltyTierLabel: loyalty?.tierLabel ?? null,
     error,
   };
 }

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type Stripe from "stripe";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import AdminPromoCreator from "@/components/AdminPromoCreator";
+import AdminPromoDeleteButton from "@/components/AdminPromoDeleteButton";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
 import { getStripe } from "@/lib/stripe";
@@ -68,7 +69,8 @@ export default async function AdminPromosPage() {
                     <th className="py-3 pr-4">Client</th>
                     <th className="py-3 pr-4">Utilisations</th>
                     <th className="py-3 pr-4">Fin</th>
-                    <th className="py-3">Etat</th>
+                    <th className="py-3 pr-4">Etat</th>
+                    <th className="py-3 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -79,7 +81,7 @@ export default async function AdminPromosPage() {
                       <td className="py-3 pr-4">{promo.customer}</td>
                       <td className="py-3 pr-4">{promo.redemptions}</td>
                       <td className="py-3 pr-4">{promo.expiresAt}</td>
-                      <td className="py-3">
+                      <td className="py-3 pr-4">
                         <span
                           className={`rounded-full px-2 py-1 text-xs font-semibold ${
                             promo.active
@@ -89,6 +91,12 @@ export default async function AdminPromosPage() {
                         >
                           {promo.active ? "actif" : "inactif"}
                         </span>
+                      </td>
+                      <td className="py-3 text-right">
+                        <AdminPromoDeleteButton
+                          promotionCodeId={promo.id}
+                          code={promo.code}
+                        />
                       </td>
                     </tr>
                   ))}

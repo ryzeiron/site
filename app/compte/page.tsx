@@ -243,6 +243,22 @@ function AccountOrderContentDetails({ content }: { content?: OrderContent }) {
           <span>Total paye</span>
           <span>{formatCents(visibleTotalCents)}</span>
         </div>
+
+        {content.loyaltySpentPoints > 0 && (
+          <div className="mt-3 rounded-lg border border-violet-400/30 bg-violet-500/10 p-2 text-xs text-violet-100">
+            <div className="font-semibold text-white">Avantage fidélité</div>
+            <div className="mt-1">
+              {content.loyaltyTierLabel} — {content.loyaltySpentPoints} points
+              utilisés
+            </div>
+          </div>
+        )}
+
+        {content.loyaltyEarnedPoints > 0 && (
+          <div className="mt-2 text-xs text-emerald-200">
+            + {content.loyaltyEarnedPoints} points gagnés sur cette commande
+          </div>
+        )}
       </div>
     </div>
   );
