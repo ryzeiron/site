@@ -5,7 +5,7 @@
 // Necessite DATABASE_URL. Genere contacts-resend.csv a la racine du projet,
 // pret a etre importe dans Resend (Audiences -> Import CSV).
 
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { neon } from "@neondatabase/serverless";
@@ -14,19 +14,64 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const OUT_FILE = resolve(ROOT, "contacts-resend.csv");
 
+// Recupere une variable dans .env.local puis .env, pour eviter d'avoir a la
+// definir dans le shell a chaque execution.
+function readEnvFile(key) {
+  for (const fileName of [".env.local", ".env"]) {
+    const filePath = resolve(ROOT, fileName);
+    if (!existsSync(filePath)) continue;
+
+    for (const rawLine of readFileSync(filePath, "utf8").split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith("#")) continue;
+
+      const separator = line.indexOf("=");
+      if (separator === -1) continue;
+      if (line.slice(0, separator).trim() !== key) continue;
+
+      // Les guillemets encadrants sont une syntaxe de fichier, pas la valeur.
+      return line
+        .slice(separator + 1)
+        .trim()
+        .replace(/^["']|["']$/g, "");
+    }
+  }
+
+  return null;
+}
+
 // Comptes internes, jamais exportes.
 const EXCLUDED_EMAILS = [
   "del6.2pokemon@gmail.com",
   "antoningiolda@gmail.com",
 ];
 
-const DATABASE_URL = process.env.DATABASE_URL;
+const DATABASE_URL = (
+  process.env.DATABASE_URL?.trim() ||
+  readEnvFile("DATABASE_URL") ||
+  ""
+).replace(/^["']|["']$/g, "");
 
 if (!DATABASE_URL) {
   console.error(
-    "DATABASE_URL manquante.\n" +
-      'PowerShell : $env:DATABASE_URL="postgresql://..."\n' +
-      'bash      : export DATABASE_URL="postgresql://..."',
+    "DATABASE_URL introuvable.\n\n" +
+      "Ajoute-la dans un fichier .env.local a la racine du projet :\n" +
+      "  DATABASE_URL=postgresql://user:motdepasse@host/dbname?sslmode=require\n\n" +
+      "Ou definis-la dans le shell :\n" +
+      '  PowerShell : $env:DATABASE_URL="postgresql://..."   (guillemets obligatoires)\n' +
+      '  bash       : export DATABASE_URL="postgresql://..."',
+  );
+  process.exit(1);
+}
+
+if (!/^postgres(ql)?:\/\/.+@.+\/.+/.test(DATABASE_URL)) {
+  console.error(
+    "DATABASE_URL est definie mais mal formee.\n\n" +
+      `Valeur lue : ${DATABASE_URL}\n\n` +
+      "Format attendu :\n" +
+      "  postgresql://user:motdepasse@host.tld/dbname?sslmode=require\n\n" +
+      "Sous PowerShell, les guillemets sont obligatoires : sans eux, le shell\n" +
+      "coupe la chaine au premier & et la variable est tronquee.",
   );
   process.exit(1);
 }
