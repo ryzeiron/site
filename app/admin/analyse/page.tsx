@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { desc, gt } from "drizzle-orm";
+import { desc, eq, gt, notInArray } from "drizzle-orm";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
@@ -9,12 +9,15 @@ import { getDb } from "@/lib/db/client";
 import {
   activeVisitors,
   cartSnapshots,
+  loyaltyLedger,
   orderAnalytics,
   orders,
+  users,
   visitorDailyStats,
   visitorHourlyStats,
 } from "@/lib/db/schema";
 import { formatCents } from "@/lib/format";
+import { LOYALTY_TIERS, getTierByPoints } from "@/lib/loyalty-tiers";
 
 export const dynamic = "force-dynamic";
 
@@ -138,23 +141,35 @@ export default async function AdminAnalyticsPage() {
   if (!(await isAdmin())) redirect("/admin/login");
 
   const db = getDb();
-  const [orderRows, analyticsResult, visitorsResult, cartsResult, visitorHistoryResult] =
-    await Promise.all([
-      db
-        .select({
-          id: orders.id,
-          status: orders.status,
-          customerEmail: orders.customerEmail,
-          customerName: orders.customerName,
-          createdAt: orders.createdAt,
-        })
-        .from(orders)
-        .orderBy(desc(orders.createdAt)),
-      getOrderAnalyticsRows(),
-      getActiveVisitorRows(),
-      getCartRows(),
-      getVisitorHistoryRows(),
-    ]);
+  const [
+    orderRows,
+    analyticsResult,
+    visitorsResult,
+    cartsResult,
+    visitorHistoryResult,
+    loyaltyResult,
+  ] = await Promise.all([
+    db
+      .select({
+        id: orders.id,
+        status: orders.status,
+        customerEmail: orders.customerEmail,
+        customerName: orders.customerName,
+        createdAt: orders.createdAt,
+      })
+      .from(orders)
+      .orderBy(desc(orders.createdAt)),
+    getOrderAnalyticsRows(),
+    getActiveVisitorRows(),
+    getCartRows(),
+    getVisitorHistoryRows(),
+    getLoyaltyRows(),
+  ]);
+
+  const loyaltyStats = buildLoyaltyStats(
+    loyaltyResult.balances,
+    loyaltyResult.ledger,
+  );
 
   const analyticsByOrderId = new Map(
     analyticsResult.rows.map((row) => [row.orderId, row]),
@@ -383,6 +398,61 @@ export default async function AdminAnalyticsPage() {
         </Panel>
       </section>
 
+      <section className="mb-6">
+        <Panel title="Fidélité">
+          {!loyaltyResult.tableReady ? (
+            <p className="text-sm text-gray-400">
+              Table de fidélité indisponible.
+            </p>
+          ) : (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <StatCard
+                  label="Points en circulation"
+                  value={loyaltyStats.inCirculation.toLocaleString("fr-FR")}
+                  tone="violet"
+                />
+                <StatCard
+                  label="Clients avec des points"
+                  value={loyaltyStats.holders.toString()}
+                  tone="sky"
+                />
+                <StatCard
+                  label="Points distribués"
+                  value={loyaltyStats.earned.toLocaleString("fr-FR")}
+                  tone="emerald"
+                />
+                <StatCard
+                  label="Points dépensés"
+                  value={loyaltyStats.spent.toLocaleString("fr-FR")}
+                  tone="amber"
+                />
+              </div>
+
+              <h3 className="mb-3 mt-6 text-sm font-semibold uppercase tracking-[0.14em] text-violet-200">
+                Avantages utilisés ({loyaltyStats.totalRedeems})
+              </h3>
+
+              {loyaltyStats.totalRedeems === 0 ? (
+                <p className="text-sm text-gray-400">
+                  Aucun palier utilisé pour le moment.
+                </p>
+              ) : (
+                <LoyaltyTierChart
+                  tiers={loyaltyStats.tiers}
+                  total={loyaltyStats.totalRedeems}
+                />
+              )}
+
+              <p className="mt-4 text-[11px] text-gray-500">
+                Comptes internes exclus :{" "}
+                {LOYALTY_EXCLUDED_EMAILS.join(", ")}.
+              </p>
+            </>
+          )}
+        </Panel>
+      </section>
+
       <section className="mb-6 grid gap-4 xl:grid-cols-[1fr_1fr]">
         <Panel title="Commandes par statut">
           <div className="grid gap-2 sm:grid-cols-2">
@@ -552,6 +622,43 @@ async function getOrderAnalyticsRows() {
   }
 }
 
+// Comptes internes, exclus de toutes les stats de fidelite.
+const LOYALTY_EXCLUDED_EMAILS = [
+  "del6.2pokemon@gmail.com",
+  "antoningiolda@gmail.com",
+];
+
+async function getLoyaltyRows() {
+  try {
+    const db = getDb();
+
+    // Le solde en circulation vient des comptes, le detail des usages du ledger.
+    const [balances, ledger] = await Promise.all([
+      db
+        .select({ balance: users.pointsBalance, email: users.email })
+        .from(users)
+        .where(notInArray(users.email, LOYALTY_EXCLUDED_EMAILS)),
+      db
+        .select({
+          delta: loyaltyLedger.delta,
+          reason: loyaltyLedger.reason,
+          email: users.email,
+        })
+        .from(loyaltyLedger)
+        .innerJoin(users, eq(users.id, loyaltyLedger.userId))
+        .where(notInArray(users.email, LOYALTY_EXCLUDED_EMAILS)),
+    ]);
+
+    return { balances, ledger, tableReady: true };
+  } catch {
+    return {
+      balances: [] as { balance: number; email: string }[],
+      ledger: [] as { delta: number; reason: string; email: string }[],
+      tableReady: false,
+    };
+  }
+}
+
 async function getActiveVisitorRows() {
   try {
     const rows = await getDb()
@@ -715,6 +822,61 @@ function buildTopCustomers(
     if (b.orderCount !== a.orderCount) return b.orderCount - a.orderCount;
     return new Date(b.lastOrderAt).getTime() - new Date(a.lastOrderAt).getTime();
   });
+}
+
+// Le palier utilise se deduit du nombre de points debites : chaque palier a un
+// cout unique, qui sert donc d'identifiant. Un palier retire de la grille depuis
+// n'est plus resolvable et bascule dans "Palier supprime".
+function buildLoyaltyStats(
+  balances: { balance: number; email: string }[],
+  ledger: { delta: number; reason: string; email: string }[],
+) {
+  const inCirculation = balances.reduce(
+    (total, row) => total + (row.balance ?? 0),
+    0,
+  );
+  const holders = balances.filter((row) => (row.balance ?? 0) > 0).length;
+
+  let earned = 0;
+  let spent = 0;
+  const redeemsByPoints = new Map<number, number>();
+
+  for (const row of ledger) {
+    if (row.delta > 0) {
+      earned += row.delta;
+      continue;
+    }
+
+    const points = -row.delta;
+    spent += points;
+
+    if (row.reason === "redeem") {
+      redeemsByPoints.set(points, (redeemsByPoints.get(points) ?? 0) + 1);
+    }
+  }
+
+  const knownTiers = LOYALTY_TIERS.map((tier) => ({
+    points: tier.points,
+    label: tier.label,
+    count: redeemsByPoints.get(tier.points) ?? 0,
+    stillOffered: true,
+  }));
+
+  const retiredTiers = [...redeemsByPoints.entries()]
+    .filter(([points]) => !getTierByPoints(points))
+    .map(([points, count]) => ({
+      points,
+      label: `Palier supprimé (${points} pts)`,
+      count,
+      stillOffered: false,
+    }));
+
+  const tiers = [...knownTiers, ...retiredTiers].sort(
+    (a, b) => b.count - a.count || a.points - b.points,
+  );
+  const totalRedeems = tiers.reduce((total, tier) => total + tier.count, 0);
+
+  return { inCirculation, holders, earned, spent, tiers, totalRedeems };
 }
 
 function buildStatusStats(orderRows: OrderRow[]) {
@@ -1334,6 +1496,61 @@ function formatAverageNumber(value: number) {
   return value.toLocaleString("fr-FR", {
     maximumFractionDigits: 1,
   });
+}
+
+function LoyaltyTierChart({
+  tiers,
+  total,
+}: {
+  tiers: {
+    points: number;
+    label: string;
+    count: number;
+    stillOffered: boolean;
+  }[];
+  total: number;
+}) {
+  const max = Math.max(1, ...tiers.map((tier) => tier.count));
+
+  return (
+    <div className="space-y-2">
+      {tiers.map((tier) => {
+        const width = Math.max(tier.count > 0 ? 8 : 2, (tier.count / max) * 100);
+        const share = total > 0 ? Math.round((tier.count / total) * 100) : 0;
+
+        return (
+          <div key={tier.points} className="rounded-lg bg-white/[0.04] p-2">
+            <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+              <span
+                className={
+                  tier.stillOffered
+                    ? "font-semibold text-white"
+                    : "font-semibold text-gray-400 line-through"
+                }
+              >
+                {tier.label}
+              </span>
+              <span className="shrink-0 text-gray-300">
+                {tier.count} fois
+              </span>
+            </div>
+
+            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-400"
+                style={{ width: `${width}%` }}
+              />
+            </div>
+
+            <div className="mt-1 flex items-center justify-between gap-3 text-[11px] text-gray-500">
+              <span>{tier.points} pts</span>
+              <span>{share} % des utilisations</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function Panel({ title, children }: { title: string; children: ReactNode }) {
