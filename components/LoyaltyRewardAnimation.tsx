@@ -2,10 +2,26 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { LOYALTY_TIERS, getNextTier } from "@/lib/loyalty-tiers";
+import {
+  LOYALTY_TIERS,
+  getNextTier,
+  type LoyaltyTier,
+} from "@/lib/loyalty-tiers";
 
-const COUNT_UP_MS = 1100;
-const REVEAL_DELAY_MS = 250;
+// Forme courte de la recompense, pour tenir sur une pastille.
+function shortReward(tier: LoyaltyTier): string {
+  if (tier.type === "amount") return `${tier.rewardCents / 100} €`;
+  if (tier.type === "percent") return `${tier.percent} %`;
+  return "Port offert";
+}
+
+// Choregraphie : la carte apparait, les compteurs et la barre montent ensemble,
+// puis les paliers s'allument un par un une fois les chiffres stabilises.
+const REVEAL_DELAY_MS = 400;
+const COUNT_UP_MS = 2200;
+// Decalages relatifs a l'apparition de la carte.
+const CHIP_START_MS = COUNT_UP_MS + 200;
+const CHIP_STAGGER_MS = 260;
 
 function easeOutCubic(t: number): number {
   return 1 - Math.pow(1 - t, 3);
@@ -62,11 +78,31 @@ export default function LoyaltyRewardAnimation({
   balance: number;
 }) {
   const [visible, setVisible] = useState(false);
+  const [revealedChips, setRevealedChips] = useState(0);
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), REVEAL_DELAY_MS);
     return () => clearTimeout(timer);
   }, []);
+
+  // Les paliers s'allument un par un, une fois les compteurs stabilises.
+  useEffect(() => {
+    if (!visible) return;
+
+    if (prefersReducedMotion()) {
+      setRevealedChips(LOYALTY_TIERS.length);
+      return;
+    }
+
+    const timers = LOYALTY_TIERS.map((_, index) =>
+      setTimeout(
+        () => setRevealedChips(index + 1),
+        CHIP_START_MS + index * CHIP_STAGGER_MS,
+      ),
+    );
+
+    return () => timers.forEach(clearTimeout);
+  }, [visible]);
 
   const animatedEarned = useCountUp(earned, visible);
   const animatedBalance = useCountUp(balance, visible);
@@ -140,8 +176,11 @@ export default function LoyaltyRewardAnimation({
           aria-label="Progression vers le prochain palier"
         >
           <div
-            className="h-full rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-[width] duration-1000 ease-out"
-            style={{ width: visible ? `${progressRatio * 100}%` : "0%" }}
+            className="h-full rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-[width] ease-out"
+            style={{
+              width: visible ? `${progressRatio * 100}%` : "0%",
+              transitionDuration: `${COUNT_UP_MS}ms`,
+            }}
           />
         </div>
 
@@ -164,6 +203,7 @@ export default function LoyaltyRewardAnimation({
       <div className="mt-4 flex flex-wrap gap-2">
         {LOYALTY_TIERS.map((tier, index) => {
           const unlocked = tier.points <= balance;
+          const revealed = index < revealedChips;
 
           return (
             <span
@@ -173,13 +213,12 @@ export default function LoyaltyRewardAnimation({
                 unlocked
                   ? "border-emerald-300/40 bg-emerald-400/20 text-emerald-100"
                   : "border-white/10 bg-black/20 text-gray-400"
-              } ${visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
-              style={{
-                transitionDelay: visible ? `${300 + index * 70}ms` : "0ms",
-              }}
+              } ${
+                revealed ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
+              } ${revealed && unlocked ? "loyalty-tier-pop" : ""}`}
             >
               {unlocked ? "✓ " : ""}
-              {tier.points} pts
+              {tier.points} pts · {shortReward(tier)}
             </span>
           );
         })}

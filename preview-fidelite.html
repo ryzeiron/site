@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Preview - Animation fidélité</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @keyframes loyaltyTierPop {
+        0% {
+          transform: scale(0.85);
+          box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+        }
+        55% {
+          transform: scale(1.12);
+          box-shadow: 0 0 22px 4px rgba(52, 211, 153, 0.45);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+        }
+      }
+      .tier-pop {
+        animation: loyaltyTierPop 620ms ease-out both;
+      }
+    </style>
   </head>
   <body class="bg-zinc-950 p-6 font-sans text-white antialiased">
     <div class="mx-auto max-w-3xl">
@@ -51,7 +70,7 @@
           <div class="mt-2 h-3 overflow-hidden rounded-full bg-black/40">
             <div
               id="bar"
-              class="h-full rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-[width] duration-1000 ease-out"
+              class="h-full rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-[width] ease-out"
               style="width: 0%"
             ></div>
           </div>
@@ -96,8 +115,21 @@
         750: "22 € de remise",
       };
 
-      const COUNT_UP_MS = 1100;
-      const REVEAL_DELAY_MS = 250;
+      const REVEAL_DELAY_MS = 400;
+      const COUNT_UP_MS = 2200;
+      const CHIP_START_MS = COUNT_UP_MS + 200;
+      const CHIP_STAGGER_MS = 260;
+
+      const SHORT = {
+        50: "1 €",
+        100: "5 %",
+        150: "Port offert",
+        250: "6 €",
+        350: "8 %",
+        450: "12 €",
+        600: "10 %",
+        750: "22 €",
+      };
 
       const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
@@ -109,7 +141,7 @@
 
       function buildChips() {
         chips.innerHTML = "";
-        TIERS.forEach((points, index) => {
+        TIERS.forEach((points) => {
           const unlocked = points <= BALANCE;
           const chip = document.createElement("span");
           chip.title = LABELS[points];
@@ -118,9 +150,20 @@
             (unlocked
               ? "border-emerald-300/40 bg-emerald-400/20 text-emerald-100"
               : "border-white/10 bg-black/20 text-gray-400");
-          chip.style.transitionDelay = 300 + index * 70 + "ms";
-          chip.textContent = (unlocked ? "✓ " : "") + points + " pts";
+          chip.textContent =
+            (unlocked ? "✓ " : "") + points + " pts · " + SHORT[points];
           chips.appendChild(chip);
+        });
+      }
+
+      // Allume les paliers un par un, avec un pop sur ceux qui sont debloques.
+      function revealChips() {
+        Array.from(chips.children).forEach((chip, index) => {
+          setTimeout(() => {
+            chip.classList.remove("translate-y-2", "opacity-0");
+            chip.classList.add("translate-y-0", "opacity-100");
+            if (TIERS[index] <= BALANCE) chip.classList.add("tier-pop");
+          }, CHIP_START_MS + index * CHIP_STAGGER_MS);
         });
       }
 
@@ -142,6 +185,7 @@
         earnedEl.textContent = "+0";
         balanceEl.textContent = "0 pts";
         bar.style.width = "0%";
+        bar.style.transitionDuration = COUNT_UP_MS + "ms";
         buildChips();
 
         setTimeout(() => {
@@ -154,10 +198,7 @@
           const ratio = (BALANCE - FLOOR) / (CEILING - FLOOR);
           bar.style.width = ratio * 100 + "%";
 
-          Array.from(chips.children).forEach((chip) => {
-            chip.classList.remove("translate-y-2", "opacity-0");
-            chip.classList.add("translate-y-0", "opacity-100");
-          });
+          revealChips();
         }, REVEAL_DELAY_MS);
       }
 
