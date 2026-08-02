@@ -46,11 +46,17 @@ const EXCLUDED_EMAILS = [
   "antoningiolda@gmail.com",
 ];
 
-const DATABASE_URL = (
-  process.env.DATABASE_URL?.trim() ||
-  readEnvFile("DATABASE_URL") ||
-  ""
-).replace(/^["']|["']$/g, "");
+// L'environnement du shell est prioritaire sur les fichiers : on retient d'ou
+// vient la valeur, sinon une variable oubliee dans le terminal masque .env.local
+// sans que rien ne l'indique.
+const envValue = process.env.DATABASE_URL?.trim();
+const fileValue = envValue ? null : readEnvFile("DATABASE_URL");
+const DATABASE_URL = (envValue || fileValue || "").replace(/^["']|["']$/g, "");
+const SOURCE = envValue
+  ? "la variable d'environnement du shell"
+  : fileValue
+    ? "le fichier .env.local"
+    : "aucune source";
 
 if (!DATABASE_URL) {
   console.error(
@@ -67,11 +73,18 @@ if (!DATABASE_URL) {
 if (!/^postgres(ql)?:\/\/.+@.+\/.+/.test(DATABASE_URL)) {
   console.error(
     "DATABASE_URL est definie mais mal formee.\n\n" +
+      `Source     : ${SOURCE}\n` +
       `Valeur lue : ${DATABASE_URL}\n\n` +
       "Format attendu :\n" +
       "  postgresql://user:motdepasse@host.tld/dbname?sslmode=require\n\n" +
-      "Sous PowerShell, les guillemets sont obligatoires : sans eux, le shell\n" +
-      "coupe la chaine au premier & et la variable est tronquee.",
+      (envValue
+        ? "La valeur vient du shell, pas de .env.local : une variable definie\n" +
+          "plus tot dans ce terminal masque le fichier. Supprime-la avec\n" +
+          "  Remove-Item Env:DATABASE_URL\n" +
+          "ou ouvre simplement un nouveau terminal, puis relance.\n"
+        : "Remplace la valeur du fichier par la vraie URL de connexion Neon,\n" +
+          "copiee depuis la console Neon ou depuis Vercel. Les points de\n" +
+          "suspension d'un exemple ne sont pas une URL valide.\n"),
   );
   process.exit(1);
 }
