@@ -15,22 +15,23 @@ export type LoyaltyEntry = {
   createdAt: Date;
 };
 
-// 1 euro depense = 1 point (arrondi a l'inferieur sur le total paye).
-export function pointsFromCents(totalCents: number | null | undefined): number {
-  if (typeof totalCents !== "number" || totalCents <= 0) return 0;
-  return Math.floor(totalCents / 100);
+// 1 euro d'articles = 1 point (arrondi a l'inferieur). Les frais de port et
+// l'assurance ne rapportent pas de points.
+export function pointsFromCents(amountCents: number | null | undefined): number {
+  if (typeof amountCents !== "number" || amountCents <= 0) return 0;
+  return Math.floor(amountCents / 100);
 }
 
 export async function awardOrderPoints({
   userId,
   orderId,
-  amountTotalCents,
+  amountCents,
 }: {
   userId: string;
   orderId: string;
-  amountTotalCents: number | null | undefined;
+  amountCents: number | null | undefined;
 }): Promise<{ awarded: number; balance: number } | null> {
-  const delta = pointsFromCents(amountTotalCents);
+  const delta = pointsFromCents(amountCents);
   if (delta <= 0) return null;
 
   const db = getDb();

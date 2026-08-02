@@ -92,6 +92,19 @@ function centsToEuros(cents: number | null | undefined) {
   return typeof cents === "number" ? cents / 100 : null;
 }
 
+// Montant des articles reellement paye, base des points de fidelite.
+//
+// Les frais de port et l'assurance passent par shipping_rate_data, donc
+// amount_subtotal ne contient que les articles. Les remises en pourcentage sont
+// deja repercutees sur les prix unitaires, mais les remises en euros passent par
+// un coupon Stripe : il faut donc les retrancher a la main.
+function loyaltyBaseCents(session: Stripe.Checkout.Session): number {
+  const items = session.amount_subtotal ?? 0;
+  const discount = session.total_details?.amount_discount ?? 0;
+
+  return Math.max(0, items - discount);
+}
+
 async function saveOrderAnalyticsFromSession(session: Stripe.Checkout.Session) {
   const values = {
     orderId: session.id,
@@ -530,7 +543,7 @@ export async function POST(request: Request) {
       await awardOrderPoints({
         userId,
         orderId: session.id,
-        amountTotalCents: session.amount_total,
+        amountCents: loyaltyBaseCents(session),
       }).catch(() => null);
     }
 

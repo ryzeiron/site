@@ -624,9 +624,10 @@ export default async function ComptePage({
                   </span>
                 </div>
                 <p className="mt-3 text-sm text-gray-300">
-                  Vous gagnez <strong>1 point par euro dépensé</strong> sur
-                  chaque commande payée (livraison incluse). Utilisez vos points
-                  directement dans le panier. Non cumulable avec un code promo.
+                  Vous gagnez <strong>1 point par euro d&apos;articles</strong>{" "}
+                  sur chaque commande payée, hors frais de port et assurance.
+                  Utilisez vos points directement dans le panier. Non cumulable
+                  avec un code promo.
                 </p>
               </div>
 
