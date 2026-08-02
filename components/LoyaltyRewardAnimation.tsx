@@ -12,6 +12,7 @@ import {
 function shortReward(tier: LoyaltyTier): string {
   if (tier.type === "amount") return `${tier.rewardCents / 100} €`;
   if (tier.type === "percent") return `${tier.percent} %`;
+  if (tier.type === "free_product") return "Cadeau";
   return "Port offert";
 }
 

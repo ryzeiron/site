@@ -1062,6 +1062,13 @@ export default function CartPage() {
               </div>
             )}
 
+            {selectedTier?.type === "free_product" && (
+              <div className="flex items-center justify-between text-emerald-300">
+                <span>Fidélité ({selectedTierPoints} pts)</span>
+                <span>{selectedTier.label}</span>
+              </div>
+            )}
+
             <div className="flex items-center justify-between text-gray-300">
               <span>Livraison Mondial Relay</span>
               <span

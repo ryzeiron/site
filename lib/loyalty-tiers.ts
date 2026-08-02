@@ -11,10 +11,19 @@ export type LoyaltyTier = {
   | { type: "amount"; rewardCents: number }
   | { type: "percent"; percent: number }
   | { type: "free_shipping" }
+  // sleeveId doit exister dans lib/catalog/sleeves.ts : le checkout refuse la
+  // commande si le produit est introuvable, inactif ou en rupture.
+  | { type: "free_product"; sleeveId: string; quantity: number }
 );
 
 export const LOYALTY_TIERS: LoyaltyTier[] = [
-  //{ points: 50, type: "amount", rewardCents: 100, label: "1 € de remise" },//
+  {
+    points: 50,
+    type: "free_product",
+    sleeveId: "pikachu-celebration",
+    quantity: 1,
+    label: "Une sleeve offerte",
+  },
   { points: 100, type: "percent", percent: 5, label: "5 % de remise" },
   {
     points: 150,

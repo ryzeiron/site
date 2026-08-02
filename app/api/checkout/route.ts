@@ -520,6 +520,51 @@ export async function POST(request: Request) {
       });
     }
 
+    // Palier "article offert" : ligne a 0 EUR ajoutee au panier. Elle entre dans
+    // pricedSleeveItems pour que le webhook decremente bien le stock, et pour
+    // que la version groupee des lignes Stripe la comptabilise aussi.
+    if (loyaltyTier?.type === "free_product") {
+      const [freeSleeve] = await getSleevesByIds([loyaltyTier.sleeveId]);
+
+      if (!freeSleeve || !freeSleeve.active) {
+        return NextResponse.json(
+          { error: "Le cadeau de fidélité est momentanément indisponible." },
+          { status: 400 },
+        );
+      }
+
+      // Le stock doit couvrir le cadeau en plus des exemplaires deja payes.
+      const alreadyInCart =
+        sleeveItemsById.get(loyaltyTier.sleeveId)?.quantity ?? 0;
+
+      if (alreadyInCart + loyaltyTier.quantity > freeSleeve.stock) {
+        return NextResponse.json(
+          {
+            error: `Stock insuffisant pour le cadeau de fidélité (${freeSleeve.name}).`,
+          },
+          { status: 400 },
+        );
+      }
+
+      pricedSleeveItems.push({
+        sleeveId: loyaltyTier.sleeveId,
+        quantity: loyaltyTier.quantity,
+        unitAmountCents: 0,
+      });
+
+      detailedLineItems.push({
+        price_data: {
+          currency: "eur",
+          unit_amount: 0,
+          product_data: {
+            name: `${freeSleeve.name} (offert)`,
+            description: "Cadeau fidélité",
+          },
+        },
+        quantity: loyaltyTier.quantity,
+      });
+    }
+
     const country: Country =
       body.country && ALLOWED_COUNTRIES.includes(body.country)
         ? body.country
