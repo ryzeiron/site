@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type PromoResult = {
   code: string;
@@ -11,6 +12,7 @@ type PromoResult = {
 type DiscountType = "percent" | "amount";
 
 export default function AdminPromoCreator() {
+  const router = useRouter();
   const [discountType, setDiscountType] = useState<DiscountType>("amount");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -22,7 +24,10 @@ export default function AdminPromoCreator() {
     setError("");
     setResult(null);
 
-    const form = new FormData(event.currentTarget);
+    // React remet currentTarget a null des que la partie synchrone du handler
+    // est terminee : il faut donc garder l'element avant le premier await.
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const payload = {
       code: String(form.get("code") ?? ""),
       discountType,
@@ -50,8 +55,11 @@ export default function AdminPromoCreator() {
       }
 
       setResult(data.promo);
-      event.currentTarget.reset();
+      formElement.reset();
       setDiscountType("amount");
+      // Le tableau des codes est rendu cote serveur : sans ca, le code cree
+      // n'apparait qu'apres un rechargement manuel.
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur inconnue.");
     } finally {
