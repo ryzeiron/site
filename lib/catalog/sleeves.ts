@@ -42,6 +42,7 @@ export const catalogSleeves: CatalogSleeve[] = [
   {id: "tortank-1", name: "Tortank 1", description: "1 sleeve.", image: "/sleeves/tortank1.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
   {id: "tortank-2", name: "Tortank 2", description: "1 sleeve.", image: "/sleeves/tortank2.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
   {id: "deoxys", name: "Deoxys", description: "1 sleeve.", image: "/sleeves/deoxys.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
+  {id: "milobellus", name: "Milobellus", description: "1 sleeve.", image: "/sleeves/deoxys.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
   {id: "darkrai", name: "Drakrai", description: "1 sleeve.", image: "/sleeves/darkrai.webp", defaultPriceCents: 50, defaultStock: 10, active: true,},
   {id: "ho-oh", name: "HO-OH", description: "1 sleeve.", image: "/sleeves/hooh.webp", defaultPriceCents: 50, defaultStock: 10, active: true,},
   {id: "rayquaza", name: "Rayquaza", description: "1 sleeve.", image: "/sleeves/rayquaza.webp", defaultPriceCents: 100, defaultStock: 10, active: true,},
