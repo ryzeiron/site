@@ -14,7 +14,7 @@ export type LoyaltyTier = {
 );
 
 export const LOYALTY_TIERS: LoyaltyTier[] = [
-  { points: 50, type: "amount", rewardCents: 100, label: "1 € de remise" },
+  //{ points: 50, type: "amount", rewardCents: 100, label: "1 € de remise" },//
   { points: 100, type: "percent", percent: 5, label: "5 % de remise" },
   {
     points: 150,
