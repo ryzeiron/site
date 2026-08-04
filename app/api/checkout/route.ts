@@ -449,7 +449,7 @@ export async function POST(request: Request) {
           unit_amount: unitAmountCents,
           product_data: {
             name: `${card.name} (${card.number}) - ${v.rarity}`,
-            description: `${v.rarity} - État : ${v.condition ?? card.condition} - ${card.language}`,
+            description: `${v.rarity} - ${card.language}`,
           },
         },
         quantity: item.quantity,

@@ -135,8 +135,7 @@ export default function OrderInvoice({
                   <td className="py-3 pr-3">
                     <div className="font-semibold">{line.name}</div>
                     <div className="text-xs text-zinc-500">
-                      {group.serieName} - {line.number} - {line.rarity} -{" "}
-                      {line.condition}
+                      {group.serieName} - {line.number} - {line.rarity}
                     </div>
                   </td>
                   <td className="py-3 pr-3 text-right">{line.quantity}</td>

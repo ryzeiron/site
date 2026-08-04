@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CONDITIONS, RARITIES, type Condition, type Rarity } from "@/lib/catalog";
+import { RARITIES, type Condition, type Rarity } from "@/lib/catalog";
 import { formatRarityLabel } from "@/lib/display-variants";
 
 type Props = {
@@ -18,7 +18,8 @@ export default function AdminSerieBulkActions({
 }: Props) {
   const router = useRouter();
   const [rarity, setRarity] = useState<Rarity>(defaultRarity);
-  const [condition, setCondition] = useState<Condition>("Near Mint");
+  // L'etat n'est plus choisi dans l'interface, mais l'API attend le champ.
+  const condition: Condition = "Near Mint";
   const [sourceRarity, setSourceRarity] = useState<Rarity | "all">("all");
   const [replacementRarity, setReplacementRarity] =
     useState<Rarity>(defaultRarity);
@@ -41,7 +42,7 @@ export default function AdminSerieBulkActions({
     const formattedPrice = price.toFixed(2).replace(".", ",");
     const protectsHighRarities = rarity === "Commune" || rarity === "Reverse";
     const ok = window.confirm(
-      `Ajouter la variante ${formatRarityLabel(rarity)} - ${condition} sur ${serieLabel} à ${formattedPrice} EUR ?` +
+      `Ajouter la variante ${formatRarityLabel(rarity)} sur ${serieLabel} à ${formattedPrice} EUR ?` +
         (updateExistingPrice
           ? "\n\nLes variantes déjà présentes auront aussi leur prix mis à jour."
           : "\n\nLes variantes déjà présentes garderont leur prix actuel.") +
@@ -108,7 +109,7 @@ export default function AdminSerieBulkActions({
         : `les raretés ${formatRarityLabel(sourceRarity)}`;
     const ok = window.confirm(
       `Remplacer ${sourceLabel} de ${serieLabel} par ${formatRarityLabel(replacementRarity)} ?\n\n` +
-        "Le prix, le stock, l'état, les images et les variantes ne seront pas modifiés.",
+        "Le prix, le stock, les images et les variantes ne seront pas modifiés.",
     );
 
     if (!ok) return;
@@ -179,20 +180,6 @@ export default function AdminSerieBulkActions({
               </select>
             </label>
 
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-xs text-gray-400">État</span>
-              <select
-                value={condition}
-                onChange={(e) => setCondition(e.target.value as Condition)}
-                className="h-11 rounded border border-white/10 bg-zinc-900 px-3 py-2 text-white"
-              >
-                {CONDITIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </label>
 
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-xs text-gray-400">Prix des variantes ajoutées</span>

@@ -167,7 +167,6 @@ function CartItemLine({ item }: { item: CartSnapshotItem }) {
           {item.number ? <span>{item.number}</span> : null}
           {item.serieName ? <span>{item.serieName}</span> : null}
           {item.rarity ? <span>{item.rarity}</span> : null}
-          {item.condition ? <span>{item.condition}</span> : null}
           {item.variant ? <span>Variante : {item.variant}</span> : null}
         </div>
       </div>

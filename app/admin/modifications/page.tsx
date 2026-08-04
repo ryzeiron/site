@@ -120,10 +120,6 @@ export default async function AdminModificationsPage() {
       details.push(`Rareté ${formatRarityLabel(row.rarity)}`);
     }
 
-    if (row.condition) {
-      details.push(`État ${row.condition}`);
-    }
-
     return {
       id: `stock-${row.cardId}-${row.variant}`,
       type: "stock",
@@ -139,7 +135,6 @@ export default async function AdminModificationsPage() {
     const details = [];
 
     if (row.name) details.push(`Nom ${row.name}`);
-    if (row.condition) details.push(`État ${row.condition}`);
     if (row.image) details.push("Image devant modifiée");
     if (row.imageBack) details.push("Image dos modifiée");
     if (row.description) details.push("Description modifiée");

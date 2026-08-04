@@ -220,9 +220,6 @@ function OrderContentDetails({
                         {line.rarity}
                       </span>
                       <span className="rounded-full bg-white/10 px-2 py-1">
-                        {line.condition}
-                      </span>
-                      <span className="rounded-full bg-white/10 px-2 py-1">
                         Variante : {line.variant}
                       </span>
                     </div>

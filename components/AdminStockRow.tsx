@@ -111,14 +111,6 @@ function buildVariants(card: Card): VariantSpec[] {
       : [],
   );
   const listedVariants = listVariants(card, { includeHidden: true });
-  const conditionsByRarity = new Map<Rarity, Set<Condition>>();
-
-  for (const { variant } of listedVariants) {
-    const condition = variant.condition ?? card.condition;
-    const conditions = conditionsByRarity.get(variant.rarity) ?? new Set<Condition>();
-    conditions.add(condition);
-    conditionsByRarity.set(variant.rarity, conditions);
-  }
 
   return listedVariants.map(({ key, variant }) => {
     const catalogVariant = catalogVariants.get(key);
@@ -142,24 +134,10 @@ function buildVariants(card: Card): VariantSpec[] {
       Boolean(variantImages?.imageBack);
 
     const rarityLabel = formatRarityLabel(variant.rarity);
-    const hasSameRarityWithOtherCondition =
-      (conditionsByRarity.get(variant.rarity)?.size ?? 0) > 1;
-    const detailedLabel = hasSameRarityWithOtherCondition
-      ? `${rarityLabel} - ${condition}`
-      : rarityLabel;
 
     return {
       key,
-      label:
-        key === "base"
-          ? hasSameRarityWithOtherCondition
-            ? `Base - ${detailedLabel}`
-            : "Base"
-          : key === "alt"
-            ? hasSameRarityWithOtherCondition
-              ? `Alt - ${detailedLabel}`
-              : "Alt"
-            : detailedLabel,
+      label: key === "base" ? "Base" : key === "alt" ? "Alt" : rarityLabel,
       rarity: variant.rarity,
       condition,
       stock: variant.stock,
@@ -301,7 +279,6 @@ export default function AdminStockRow({ card }: { card: Card }) {
               <th className="px-4 py-3 font-semibold">Carte</th>
               <th className="px-4 py-3 font-semibold">Variante</th>
               <th className="px-4 py-3 font-semibold">Rareté</th>
-              <th className="px-4 py-3 font-semibold">État</th>
               <th className="px-4 py-3 font-semibold">Stock</th>
               <th className="px-4 py-3 font-semibold">Prix</th>
               <th className="px-4 py-3 font-semibold">Statut</th>
@@ -621,7 +598,9 @@ function NewVariantForm({
 }) {
   const router = useRouter();
   const [rarityValue, setRarityValue] = useState<string>("");
-  const [conditionValue, setConditionValue] = useState<Condition>(card.condition);
+  // L'etat n'est plus modifiable dans l'interface : on garde la valeur de la
+  // carte pour que l'API continue de recevoir un champ coherent.
+  const conditionValue = card.condition;
   const [stockValue, setStockValue] = useState<string>("0");
   const [priceValue, setPriceValue] = useState<string>(String(card.price));
   const [saving, setSaving] = useState(false);
@@ -689,21 +668,6 @@ function NewVariantForm({
             {RARITIES.map((r) => (
               <option key={r} value={r}>
                 {formatRarityLabel(r)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-sm">
-          <span className="mb-1 block text-gray-400">État</span>
-          <select
-            value={conditionValue}
-            onChange={(e) => setConditionValue(e.target.value as Condition)}
-            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
-          >
-            {CONDITIONS.map((value) => (
-              <option key={value} value={value}>
-                {value}
               </option>
             ))}
           </select>
@@ -987,26 +951,6 @@ function VariantEditor({
             </select>
           </label>
 
-          <label className="text-sm">
-            <span className="mb-1 block text-xs font-medium text-gray-400">
-              Etat
-            </span>
-            <select
-              value={conditionValue}
-              onChange={(e) =>
-                updateDraft({ conditionValue: e.target.value as Condition })
-              }
-              disabled={waitingForServer}
-              className="h-11 w-full rounded-lg border border-white/10 bg-zinc-950 px-3 text-base text-white"
-            >
-              {CONDITIONS.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </label>
-
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm">
               <span className="mb-1 block text-xs font-medium text-gray-400">
@@ -1137,23 +1081,6 @@ function VariantEditor({
           {RARITIES.map((r) => (
             <option key={r} value={r}>
               {formatRarityLabel(r)}
-            </option>
-          ))}
-        </select>
-      </td>
-
-      <td className="px-4 py-3">
-        <select
-          value={conditionValue}
-          onChange={(e) =>
-            updateDraft({ conditionValue: e.target.value as Condition })
-          }
-          disabled={waitingForServer}
-          className="w-32 rounded border border-white/10 bg-zinc-950 px-2 py-1.5 text-white"
-        >
-          {CONDITIONS.map((value) => (
-            <option key={value} value={value}>
-              {value}
             </option>
           ))}
         </select>

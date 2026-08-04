@@ -160,9 +160,6 @@ function AccountOrderContentDetails({ content }: { content?: OrderContent }) {
                     <span className="rounded-full bg-white/10 px-2 py-1">
                       {line.rarity}
                     </span>
-                    <span className="rounded-full bg-white/10 px-2 py-1">
-                      {line.condition}
-                    </span>
                   </div>
                 </div>
 
