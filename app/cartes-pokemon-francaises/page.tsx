@@ -17,7 +17,7 @@ export default function CartesPokemonFrancaisesPage() {
       description="PokeDel62 met en avant des cartes Pokémon en français pour les collectionneurs qui veulent éviter les mauvaises langues dans leur classeur."
       highlights={[
         "Langue FR",
-        "État indiqué sur chaque carte",
+        "Rareté indiquée sur chaque carte",
         "Avis clients visibles",
       ]}
       cards={getSeoCards("french")}

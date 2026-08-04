@@ -53,7 +53,7 @@ export default async function HomePage() {
             Chaque carte contrôlée
           </h1>
           <p className="mt-2 text-sm leading-6 text-gray-300">
-            État, langue, rareté et visuel sont vérifiés avant la mise en vente.
+            Langue, rareté et visuel sont vérifiés avant la mise en vente.
           </p>
         </div>
 
