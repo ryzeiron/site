@@ -83,6 +83,7 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
   const [response, setResponse] = useState(ticket.adminResponse ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState<string | null>(null);
   const status = STATUS_LABELS[ticket.status] ?? {
     label: ticket.status,
     color: "bg-gray-500/20 text-gray-300",
@@ -119,6 +120,45 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Erreur");
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Envoi reel au client : irreversible, donc confirmation explicite.
+  async function sendResponse() {
+    const message = response.trim();
+
+    if (!message) {
+      setError("Ecris d'abord ta reponse.");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Envoyer cette reponse a ${ticket.email} ?\n\nLe mail part immediatement depuis l'adresse de la boutique et le ticket sera cloture.`,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+    setSent(null);
+
+    try {
+      const res = await fetch("/api/admin/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: ticket.id, message }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+
+      setSent(`Reponse envoyee a ${data.sentTo ?? ticket.email}.`);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
@@ -176,11 +216,20 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
         >
           Sauver la note
         </button>
+        <button
+          type="button"
+          onClick={sendResponse}
+          disabled={busy}
+          className="rounded bg-violet-600 hover:bg-violet-700 text-white px-3 py-1 font-medium disabled:opacity-60"
+        >
+          {busy ? "Envoi..." : "Envoyer la reponse"}
+        </button>
         <a
           href={mailto}
-          className="rounded bg-violet-600 hover:bg-violet-700 text-white px-3 py-1 font-medium"
+          className="rounded bg-white/10 hover:bg-white/20 text-white px-3 py-1"
+          title="Ouvre ton logiciel de messagerie au lieu d'envoyer depuis le site"
         >
-          Repondre par email
+          Ouvrir dans ma messagerie
         </a>
         <button
           type="button"
@@ -203,6 +252,7 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
           Supprimer
         </button>
         {error && <span className="text-red-400">{error}</span>}
+        {sent && <span className="text-emerald-300">{sent}</span>}
       </div>
     </div>
   );
