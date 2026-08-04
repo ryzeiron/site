@@ -7,13 +7,52 @@ import {
 } from "@/components/AdminStockBatchContext";
 import type { Card } from "@/lib/catalog";
 
-export default function AdminStockBatchEditor({ cards }: { cards: Card[] }) {
+type AdminCardGroup = {
+  serieId: string;
+  blocName: string;
+  serieName: string;
+  serieCode: string;
+  cards: Card[];
+};
+
+export default function AdminStockBatchEditor({
+  groups,
+}: {
+  groups: AdminCardGroup[];
+}) {
   return (
     <AdminStockBatchProvider>
       <AdminStockBatchToolbar />
-      <div className="space-y-3">
-        {cards.map((card) => (
-          <AdminStockRow key={card.id} card={card} />
+
+      <div className="space-y-6">
+        {groups.map((group) => (
+          <section key={group.serieId}>
+            <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-violet-400/25 bg-violet-500/10 px-3 py-2">
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-300">
+                  {group.blocName}
+                </div>
+                <div className="font-bold text-white">
+                  {group.serieName}{" "}
+                  {group.serieCode ? (
+                    <span className="text-xs font-normal text-gray-400">
+                      {group.serieCode}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+
+              <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-gray-200">
+                {group.cards.length} carte{group.cards.length > 1 ? "s" : ""}
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {group.cards.map((card) => (
+                <AdminStockRow key={card.id} card={card} />
+              ))}
+            </div>
+          </section>
         ))}
       </div>
     </AdminStockBatchProvider>

@@ -11,6 +11,7 @@ import { getDb } from "@/lib/db/client";
 import { cardOverrides, hiddenVariants, stockOverrides } from "@/lib/db/schema";
 import { formatCents } from "@/lib/format";
 import {
+  BLOCS,
   CARDS,
   RARITIES,
   SERIES,
@@ -55,6 +56,14 @@ type InventoryValueSummary = {
   totalUnits: number;
   totalCards: number;
   totalVariantLines: number;
+};
+
+type AdminCardGroup = {
+  serieId: string;
+  blocName: string;
+  serieName: string;
+  serieCode: string;
+  cards: Card[];
 };
 
 // Change l'ordre ici pour ranger les groupes et les series dans le menu admin.
@@ -550,6 +559,58 @@ function getAdminSerieGroups() {
   return [...groups, { label: "Autres", series: otherSeries }];
 }
 
+// Classe les resultats dans l'ordre du catalogue : bloc, puis serie, puis
+// numero. Sans ca, une recherche par numero melange des cartes homonymes venant
+// de series differentes, ce qui rend les confusions faciles.
+function sortCardsByCatalogOrder(cards: Card[]): Card[] {
+  const blocIndex = new Map(BLOCS.map((bloc, index) => [bloc.id, index]));
+  const serieIndex = new Map(SERIES.map((serie, index) => [serie.id, index]));
+  const last = Number.MAX_SAFE_INTEGER;
+
+  return [...cards].sort((a, b) => {
+    const serieA = getSerie(a.serieId);
+    const serieB = getSerie(b.serieId);
+
+    const blocDiff =
+      (blocIndex.get(serieA?.blocId ?? "") ?? last) -
+      (blocIndex.get(serieB?.blocId ?? "") ?? last);
+    if (blocDiff !== 0) return blocDiff;
+
+    const serieDiff =
+      (serieIndex.get(a.serieId) ?? last) - (serieIndex.get(b.serieId) ?? last);
+    if (serieDiff !== 0) return serieDiff;
+
+    return a.number.localeCompare(b.number, "fr", { numeric: true });
+  });
+}
+
+// Regroupe des cartes deja triees en sections consecutives par serie.
+function groupCardsBySerie(cards: Card[]): AdminCardGroup[] {
+  const groups: AdminCardGroup[] = [];
+
+  for (const card of cards) {
+    const current = groups[groups.length - 1];
+
+    if (current && current.serieId === card.serieId) {
+      current.cards.push(card);
+      continue;
+    }
+
+    const serie = getSerie(card.serieId);
+    const bloc = serie ? getBloc(serie.blocId) : undefined;
+
+    groups.push({
+      serieId: card.serieId,
+      blocName: bloc?.name ?? "Bloc inconnu",
+      serieName: serie?.name ?? card.serieId,
+      serieCode: serie?.code ?? "",
+      cards: [card],
+    });
+  }
+
+  return groups;
+}
+
 function centsFromEuros(value: number) {
   return Math.round(value * 100);
 }
@@ -659,6 +720,9 @@ export default async function AdminPage({
     );
   }
 
+  // Trier avant de paginer, sinon une serie se retrouve coupee entre deux pages.
+  filteredCards = sortCardsByCatalogOrder(filteredCards);
+
   const serieGroups = getAdminSerieGroups();
   const totalCards = await getTotalStockCount();
   const inventoryValueSummary = await getInventoryValueSummary();
@@ -673,6 +737,7 @@ export default async function AdminPage({
   const paginatedCards = serie
     ? pageCatalogCards
     : await applyStockOverrides(pageCatalogCards);
+  const paginatedGroups = groupCardsBySerie(paginatedCards);
   const visibleStart = totalFilteredCards === 0 ? 0 : startIndex + 1;
   const visibleEnd = Math.min(startIndex + ADMIN_PAGE_SIZE, totalFilteredCards);
   const paginationHref = (page: number) =>
@@ -876,7 +941,7 @@ export default async function AdminPage({
             ) : null}
           </div>
 
-          <AdminStockBatchEditor cards={paginatedCards} />
+          <AdminStockBatchEditor groups={paginatedGroups} />
 
           {totalPages > 1 ? (
             <div className="flex justify-center rounded-2xl border border-white/10 bg-zinc-950/65 p-4">
