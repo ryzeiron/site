@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { del } from "@vercel/blob";
 import { isAdmin } from "@/lib/admin/auth";
+import { deleteManagedPhoto } from "@/lib/media";
 import {
   getCard,
   isCondition,
@@ -65,23 +65,6 @@ function cleanImageUrl(value: unknown): string | null | undefined {
   return trimmed;
 }
 
-function isManagedBlobUrl(value: string | null | undefined): value is string {
-  return (
-    typeof value === "string" &&
-    value.includes(".blob.vercel-storage.com/") &&
-    value.includes("/card-photos/")
-  );
-}
-
-async function deleteManagedBlobUrl(value: string | null | undefined) {
-  if (!isManagedBlobUrl(value)) return;
-
-  try {
-    await del(value);
-  } catch {
-    // La photo peut deja avoir ete supprimee depuis Vercel Blob.
-  }
-}
 
 async function saveStockUpdate(body: Body) {
   if (!body.cardId) {
@@ -259,10 +242,10 @@ async function saveStockUpdate(body: Body) {
 
   await Promise.all([
     hasImage && imageInput !== previousImages?.image
-      ? deleteManagedBlobUrl(previousImages?.image)
+      ? deleteManagedPhoto(previousImages?.image)
       : Promise.resolve(),
     hasImageBack && imageBackInput !== previousImages?.imageBack
-      ? deleteManagedBlobUrl(previousImages?.imageBack)
+      ? deleteManagedPhoto(previousImages?.imageBack)
       : Promise.resolve(),
   ]);
 
@@ -439,8 +422,8 @@ export async function DELETE(request: Request) {
     .where(and(eq(stockOverrides.cardId, card.id), eq(stockOverrides.variant, variant)));
 
   await Promise.all([
-    deleteManagedBlobUrl(previousImages?.image),
-    deleteManagedBlobUrl(previousImages?.imageBack),
+    deleteManagedPhoto(previousImages?.image),
+    deleteManagedPhoto(previousImages?.imageBack),
   ]);
 
   revalidatePublicStockCache();
