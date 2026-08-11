@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { del } from "@vercel/blob";
 import { isAdmin } from "@/lib/admin/auth";
+import { deleteManagedPhoto } from "@/lib/media";
 import { getCard, isCondition } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { cardOverrides } from "@/lib/db/schema";
@@ -43,23 +43,6 @@ function cleanCondition(v: unknown): string | null | undefined {
   return isCondition(trimmed) ? trimmed : undefined;
 }
 
-function isManagedBlobUrl(value: string | null | undefined): value is string {
-  return (
-    typeof value === "string" &&
-    value.includes(".blob.vercel-storage.com/") &&
-    value.includes("/card-photos/")
-  );
-}
-
-async function deleteManagedBlobUrl(value: string | null | undefined) {
-  if (!isManagedBlobUrl(value)) return;
-
-  try {
-    await del(value);
-  } catch {
-    // La photo peut deja avoir ete supprimee depuis Vercel Blob.
-  }
-}
 
 export async function POST(request: Request) {
   if (!(await isAdmin())) {
@@ -149,10 +132,10 @@ export async function POST(request: Request) {
 
   await Promise.all([
     image !== undefined && image !== previous?.image
-      ? deleteManagedBlobUrl(previous?.image)
+      ? deleteManagedPhoto(previous?.image)
       : Promise.resolve(),
     imageBack !== undefined && imageBack !== previous?.imageBack
-      ? deleteManagedBlobUrl(previous?.imageBack)
+      ? deleteManagedPhoto(previous?.imageBack)
       : Promise.resolve(),
   ]);
 
@@ -208,8 +191,8 @@ export async function DELETE(request: Request) {
   }
 
   await Promise.all([
-    deleteManagedBlobUrl(previous?.image),
-    deleteManagedBlobUrl(previous?.imageBack),
+    deleteManagedPhoto(previous?.image),
+    deleteManagedPhoto(previous?.imageBack),
   ]);
 
   revalidatePublicStockCache();

@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.pokemontcg.io" },
       { protocol: "https", hostname: "assets.pokemon.com" },
       { protocol: "https", hostname: "assets.tcgdex.net" },
+      // Photos de cartes : R2 aujourd'hui, Vercel Blob pour l'historique.
+      { protocol: "https", hostname: "**.r2.dev" },
+      { protocol: "https", hostname: "**.blob.vercel-storage.com" },
     ],
   },
 };
