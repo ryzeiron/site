@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { SleeveProduct } from "@/lib/sleeves";
 
 type SleeveFormState = {
+  name: string;
   price: string;
   stock: string;
   active: boolean;
@@ -80,6 +81,7 @@ async function compressSleevePhoto(file: File): Promise<File> {
 
 function toForm(product: SleeveProduct): SleeveFormState {
   return {
+    name: product.name,
     price: String(product.priceCents / 100),
     stock: String(product.stock),
     active: product.active,
@@ -95,8 +97,9 @@ export default function AdminSleeveManager({
   return (
     <div className="space-y-5">
       <div className="rounded-lg border border-violet-300/20 bg-violet-500/10 p-4 text-sm text-violet-100">
-        Les sleeves sont dans le catalogue du site. Ici, tu modifies le prix,
-        le stock, la visibilite et la photo affichee sur le site.
+        Les sleeves sont dans le catalogue du site. Ici, tu modifies le nom, le
+        prix, le stock, la visibilite et la photo affichee sur le site. Vider le
+        nom remet celui du catalogue.
       </div>
 
       <div className="space-y-3">
@@ -138,6 +141,7 @@ function SleeveEditor({ product }: { product: SleeveProduct }) {
 
   async function savePatch(
     patch: Partial<{
+      name: string | null;
       price: number;
       stock: number;
       active: boolean;
@@ -166,6 +170,7 @@ function SleeveEditor({ product }: { product: SleeveProduct }) {
 
     try {
       await savePatch({
+        name: form.name.trim(),
         price,
         stock,
         active: form.active,
@@ -221,7 +226,7 @@ function SleeveEditor({ product }: { product: SleeveProduct }) {
 
   async function resetOverride() {
     const ok = window.confirm(
-      `Reinitialiser le prix, le stock, la visibilite et la photo de ${product.name} ?`,
+      `Reinitialiser le nom, le prix, le stock, la visibilite et la photo de ${product.name} ?`,
     );
     if (!ok) return;
 
@@ -292,7 +297,16 @@ function SleeveEditor({ product }: { product: SleeveProduct }) {
         </div>
 
         <div>
-          <h2 className="font-semibold text-white">{product.name}</h2>
+          <label className="block text-sm">
+            <span className="mb-1 block text-xs text-gray-400">Nom</span>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => update({ name: e.target.value })}
+              placeholder="Nom affiche sur le site"
+              className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 font-semibold text-white"
+            />
+          </label>
           <p className="mt-1 font-mono text-xs text-gray-500">{product.id}</p>
           {product.description ? (
             <p className="mt-2 max-w-2xl text-sm text-gray-400">

@@ -11,6 +11,7 @@ import { revalidatePublicSleeveCache } from "@/lib/sleeves";
 type Body = {
   id?: string;
   price?: number;
+  name?: string | null;
   stock?: number;
   active?: boolean;
   image?: string | null;
@@ -18,6 +19,7 @@ type Body = {
 
 type ExistingSleeveOverride = {
   sleeveId: string;
+  name: string | null;
   priceCents: number;
   stock: number;
   active: boolean;
@@ -87,7 +89,7 @@ async function getExistingOverride(id: string, includeImage: boolean) {
         .from(sleeveOverrides)
         .where(eq(sleeveOverrides.sleeveId, id))
         .limit(1);
-      return row as ExistingSleeveOverride | undefined;
+      return row ? ({ ...row, name: null } as ExistingSleeveOverride) : undefined;
     }
 
     const [row] = await getDb()
@@ -96,7 +98,9 @@ async function getExistingOverride(id: string, includeImage: boolean) {
       .where(eq(sleeveOverrides.sleeveId, id))
       .limit(1);
 
-    return row ? ({ ...row, image: null } as ExistingSleeveOverride) : undefined;
+    return row
+      ? ({ ...row, image: null, name: null } as ExistingSleeveOverride)
+      : undefined;
   } catch {
     if (includeImage) {
       throw new AdminSleeveError(
@@ -140,6 +144,11 @@ export async function POST(request: Request) {
   }
 
   const hasPrice = typeof body.price !== "undefined";
+  // Un nom vide remet le libelle du catalogue, il n'est pas rejete.
+  const hasName = typeof body.name !== "undefined";
+  const nameInput = hasName
+    ? String(body.name ?? "").trim().slice(0, 120) || null
+    : undefined;
   const hasStock = typeof body.stock !== "undefined";
   const hasActive = typeof body.active !== "undefined";
   const hasImage = typeof imageInput !== "undefined";
@@ -191,6 +200,7 @@ export async function POST(request: Request) {
         priceCents,
         stock,
         active,
+        ...(hasName ? { name: nameInput } : {}),
         ...(hasImage ? { image: nextImage } : {}),
         updatedAt: now,
       })
@@ -200,6 +210,7 @@ export async function POST(request: Request) {
           priceCents,
           stock,
           active,
+          ...(hasName ? { name: nameInput } : {}),
           ...(hasImage ? { image: nextImage } : {}),
           updatedAt: now,
         },

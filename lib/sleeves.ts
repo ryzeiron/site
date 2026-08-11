@@ -37,7 +37,8 @@ function toSleeveProduct(
 ): SleeveProduct {
   return {
     id: sleeve.id,
-    name: sleeve.name,
+    // Le nom du catalogue peut etre corrige depuis l'admin sans toucher au code.
+    name: override?.name?.trim() || sleeve.name,
     description: sleeve.description ?? null,
     image: override?.image ?? sleeve.image ?? null,
     priceCents: override?.priceCents ?? sleeve.defaultPriceCents,
@@ -71,7 +72,11 @@ async function getOverrideRows(ids?: string[]) {
         })
         .from(sleeveOverrides);
       const rows = await withIds(query, ids);
-      return rows.map((row) => ({ ...row, image: null })) as SleeveOverride[];
+      return rows.map((row) => ({
+        ...row,
+        image: null,
+        name: null,
+      })) as SleeveOverride[];
     } catch {
       return [];
     }
