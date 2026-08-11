@@ -16,6 +16,7 @@ import {
 } from "@/lib/catalog";
 import { formatRarityLabel } from "@/lib/display-variants";
 import { useAdminStockBatch, type PendingStockUpdate } from "@/components/AdminStockBatchContext";
+import AdminImageDropzone from "@/components/AdminImageDropzone";
 
 type VariantSpec = {
   key: VariantKey;
@@ -477,31 +478,14 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
             placeholder="/cartes/serie/numero.webp"
             className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
           />
-          <input
-            id={`photo-front-${card.id}`}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
-              void uploadPhoto(e.currentTarget.files?.[0], "front");
-              e.currentTarget.value = "";
-            }}
-          />
-          <button
-            type="button"
-            onClick={() =>
-              document.getElementById(`photo-front-${card.id}`)?.click()
-            }
-            disabled={uploadingFront}
-            className={`mt-2 inline-flex rounded px-3 py-2 text-xs font-medium transition ${
-              uploadingFront
-                ? "bg-white/10 text-gray-400"
-                : "bg-violet-600 text-white hover:bg-violet-700"
-            }`}
-          >
-            {uploadingFront ? "Envoi..." : "Photo devant"}
-          </button>
+          <div className="mt-2">
+            <AdminImageDropzone
+              label="Choisir une image"
+              currentUrl={image}
+              busy={uploadingFront}
+              onFile={(file) => void uploadPhoto(file, "front")}
+            />
+          </div>
         </label>
 
         <label className="text-sm">
@@ -513,31 +497,14 @@ function CardMetaForm({ card, onClose }: { card: Card; onClose: () => void }) {
             placeholder="/cartes/serie/numero-dos.webp"
             className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
           />
-          <input
-            id={`photo-back-${card.id}`}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
-              void uploadPhoto(e.currentTarget.files?.[0], "back");
-              e.currentTarget.value = "";
-            }}
-          />
-          <button
-            type="button"
-            onClick={() =>
-              document.getElementById(`photo-back-${card.id}`)?.click()
-            }
-            disabled={uploadingBack}
-            className={`mt-2 inline-flex rounded px-3 py-2 text-xs font-medium transition ${
-              uploadingBack
-                ? "bg-white/10 text-gray-400"
-                : "bg-violet-600 text-white hover:bg-violet-700"
-            }`}
-          >
-            {uploadingBack ? "Envoi..." : "Photo dos"}
-          </button>
+          <div className="mt-2">
+            <AdminImageDropzone
+              label="Choisir une image"
+              currentUrl={imageBack}
+              busy={uploadingBack}
+              onFile={(file) => void uploadPhoto(file, "back")}
+            />
+          </div>
         </label>
 
         <label className="text-sm">
@@ -1187,8 +1154,6 @@ function VariantPhotoButtons({
   const [uploadingFront, setUploadingFront] = useState(false);
   const [uploadingBack, setUploadingBack] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const frontInputId = `variant-photo-front-${inputScope}-${card.id}-${variant.key}`;
-  const backInputId = `variant-photo-back-${inputScope}-${card.id}-${variant.key}`;
 
   async function saveVariantImage(url: string, side: CardPhotoSide) {
     const res = await fetch("/api/admin/stock", {
@@ -1244,56 +1209,21 @@ function VariantPhotoButtons({
 
   return (
     <span className="inline-flex flex-wrap items-center gap-1.5">
-      <input
-        id={frontInputId}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => {
-          void uploadPhoto(e.currentTarget.files?.[0], "front");
-          e.currentTarget.value = "";
-        }}
-      />
-      <input
-        id={backInputId}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => {
-          void uploadPhoto(e.currentTarget.files?.[0], "back");
-          e.currentTarget.value = "";
-        }}
+      <AdminImageDropzone
+        compact
+        label={variant.image ? "Devant OK" : "Devant"}
+        busy={uploadingFront}
+        disabled={uploadingBack}
+        onFile={(file) => void uploadPhoto(file, "front")}
       />
 
-      <button
-        type="button"
-        onClick={() => document.getElementById(frontInputId)?.click()}
-        disabled={uploadingFront || uploadingBack}
-        className={`rounded px-3 py-1.5 text-xs font-medium transition ${
-          variant.image
-            ? "bg-sky-500/20 text-sky-200 hover:bg-sky-500/30"
-            : "bg-white/10 text-white hover:bg-white/20"
-        } disabled:opacity-60`}
-        title={`Photo devant pour ${variant.label}`}
-      >
-        {uploadingFront ? "..." : variant.image ? "Devant OK" : "Devant"}
-      </button>
-
-      <button
-        type="button"
-        onClick={() => document.getElementById(backInputId)?.click()}
-        disabled={uploadingFront || uploadingBack}
-        className={`rounded px-3 py-1.5 text-xs font-medium transition ${
-          variant.imageBack
-            ? "bg-sky-500/20 text-sky-200 hover:bg-sky-500/30"
-            : "bg-white/10 text-white hover:bg-white/20"
-        } disabled:opacity-60`}
-        title={`Photo dos pour ${variant.label}`}
-      >
-        {uploadingBack ? "..." : variant.imageBack ? "Dos OK" : "Dos"}
-      </button>
+      <AdminImageDropzone
+        compact
+        label={variant.imageBack ? "Dos OK" : "Dos"}
+        busy={uploadingBack}
+        disabled={uploadingFront}
+        onFile={(file) => void uploadPhoto(file, "back")}
+      />
 
       {error ? <span className="text-xs text-red-400">{error}</span> : null}
     </span>
