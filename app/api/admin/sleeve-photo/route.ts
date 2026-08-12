@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { put } from "@vercel/blob";
 import { isAdmin } from "@/lib/admin/auth";
 import { getCatalogSleeve } from "@/lib/catalog/sleeves";
+import { isR2Configured, uploadToR2 } from "@/lib/r2";
 
 const MAX_UPLOAD_BYTES = 1024 * 1024;
 
@@ -61,20 +61,31 @@ export async function POST(request: Request) {
     );
   }
 
+  if (!isR2Configured()) {
+    return NextResponse.json(
+      {
+        error:
+          "Stockage R2 non configure. Renseigne R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET et R2_PUBLIC_BASE_URL.",
+      },
+      { status: 500 },
+    );
+  }
+
   try {
     const ext = extensionFromType(file.type);
-    const pathname = [
+    const key = [
       "sleeve-photos",
       cleanPart(sleeve.id),
       `photo-${Date.now()}-${randomUUID()}.${ext}`,
     ].join("/");
 
-    const blob = await put(pathname, file, {
-      access: "public",
+    const url = await uploadToR2({
+      key,
+      body: Buffer.from(await file.arrayBuffer()),
       contentType: file.type,
     });
 
-    return NextResponse.json({ ok: true, url: blob.url });
+    return NextResponse.json({ ok: true, url });
   } catch (e) {
     const message =
       e instanceof Error ? e.message : "Erreur pendant l'envoi de la photo.";

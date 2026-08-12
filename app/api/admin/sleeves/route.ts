@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { del } from "@vercel/blob";
 import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/admin/auth";
+import { deleteManagedPhoto } from "@/lib/media";
 import { getCatalogSleeve } from "@/lib/catalog/sleeves";
 import { getDb } from "@/lib/db/client";
 import { sleeveOverrides } from "@/lib/db/schema";
@@ -56,23 +56,6 @@ function cleanImageUrl(value: unknown): string | null | undefined {
   return trimmed;
 }
 
-function isManagedBlobUrl(value: string | null | undefined): value is string {
-  return (
-    typeof value === "string" &&
-    value.includes(".blob.vercel-storage.com/") &&
-    value.includes("/sleeve-photos/")
-  );
-}
-
-async function deleteManagedBlobUrl(value: string | null | undefined) {
-  if (!isManagedBlobUrl(value)) return;
-
-  try {
-    await del(value);
-  } catch {
-    // La photo peut deja avoir ete supprimee depuis Vercel Blob.
-  }
-}
 
 async function getExistingOverride(id: string, includeImage: boolean) {
   const baseSelect = {
@@ -219,7 +202,7 @@ export async function POST(request: Request) {
     revalidatePublicSleeveCache();
 
     if (hasImage && nextImage !== previousImage) {
-      await deleteManagedBlobUrl(previousImage);
+      await deleteManagedPhoto(previousImage);
     }
 
     if (hasStock && stock <= LOW_STOCK_ALERT_THRESHOLD) {
@@ -266,7 +249,7 @@ export async function DELETE(request: Request) {
       .where(eq(sleeveOverrides.sleeveId, id));
     revalidatePublicSleeveCache();
 
-    await deleteManagedBlobUrl(existing?.image);
+    await deleteManagedPhoto(existing?.image);
 
     return NextResponse.json({ ok: true });
   } catch (e) {
