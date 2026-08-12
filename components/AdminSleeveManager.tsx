@@ -102,6 +102,8 @@ export default function AdminSleeveManager({
         nom remet celui du catalogue.
       </div>
 
+      <SleeveCreator />
+
       <div className="space-y-3">
         {sleeves.length === 0 ? (
           <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-5 text-sm text-gray-300">
@@ -112,6 +114,141 @@ export default function AdminSleeveManager({
             <SleeveEditor key={product.id} product={product} />
           ))
         )}
+      </div>
+    </div>
+  );
+}
+
+function SleeveCreator() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("1");
+  const [stock, setStock] = useState("1");
+  const [description, setDescription] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [created, setCreated] = useState<string | null>(null);
+
+  const priceValue = Number.parseFloat(price.replace(",", "."));
+  const stockValue = Number.parseInt(stock, 10);
+  const canCreate =
+    name.trim().length > 0 &&
+    Number.isFinite(priceValue) &&
+    priceValue >= 0 &&
+    Number.isInteger(stockValue) &&
+    stockValue >= 0;
+
+  async function create() {
+    if (!canCreate || creating) return;
+
+    setCreating(true);
+    setError(null);
+    setCreated(null);
+
+    try {
+      const response = await fetch("/api/admin/sleeves", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          description: description.trim(),
+          price: priceValue,
+          stock: stockValue,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? "Erreur");
+
+      setCreated(data.id ?? null);
+      setName("");
+      setDescription("");
+      setPrice("1");
+      setStock("1");
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-white/10 bg-zinc-900/70 p-4">
+      <h2 className="mb-1 font-semibold text-white">Creer un sleeve</h2>
+      <p className="mb-3 text-xs text-gray-400">
+        Le sleeve est enregistre en base, sans passer par le catalogue. Son
+        identifiant est genere depuis le nom. Ajoute sa photo ensuite.
+      </p>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <label className="text-sm sm:col-span-2">
+          <span className="mb-1 block text-xs text-gray-400">Nom</span>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Pikachu Edition speciale"
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          />
+        </label>
+
+        <label className="text-sm">
+          <span className="mb-1 block text-xs text-gray-400">Prix (EUR)</span>
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          />
+        </label>
+
+        <label className="text-sm">
+          <span className="mb-1 block text-xs text-gray-400">Stock</span>
+          <input
+            type="number"
+            min={0}
+            step="1"
+            value={stock}
+            onChange={(e) => setStock(e.target.value)}
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          />
+        </label>
+
+        <label className="text-sm sm:col-span-2 lg:col-span-4">
+          <span className="mb-1 block text-xs text-gray-400">Description</span>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="1 sleeve."
+            className="w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-white"
+          />
+        </label>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={create}
+          disabled={!canCreate || creating}
+          className={`rounded px-4 py-2 text-sm font-medium transition ${
+            canCreate && !creating
+              ? "bg-violet-600 text-white hover:bg-violet-700"
+              : "cursor-not-allowed bg-white/10 text-gray-400"
+          }`}
+        >
+          {creating ? "Creation..." : "Creer le sleeve"}
+        </button>
+
+        {created && (
+          <span className="text-xs text-emerald-300">
+            Sleeve cree ({created}). Ajoute sa photo ci-dessous.
+          </span>
+        )}
+        {error && <span className="text-xs text-red-400">{error}</span>}
       </div>
     </div>
   );

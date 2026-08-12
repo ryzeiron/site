@@ -271,6 +271,7 @@ export const orderPreparationItems = pgTable(
 export const sleeveOverrides = pgTable("sleeve_overrides", {
   sleeveId: text("sleeve_id").primaryKey(),
   name: text("name"),
+  description: text("description"),
   priceCents: integer("price_cents").notNull().default(0),
   stock: integer("stock").notNull().default(0),
   active: boolean("active").notNull().default(true),

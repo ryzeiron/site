@@ -48,6 +48,21 @@ function toSleeveProduct(
   };
 }
 
+// Sleeve cree depuis l'admin : il n'a aucune contrepartie dans le catalogue,
+// toutes ses donnees viennent donc de la ligne de surcharge.
+function overrideToSleeveProduct(override: SleeveOverride): SleeveProduct {
+  return {
+    id: override.sleeveId,
+    name: override.name?.trim() || override.sleeveId,
+    description: override.description ?? null,
+    image: override.image ?? null,
+    priceCents: override.priceCents,
+    stock: override.stock,
+    active: override.active,
+    hasOverride: true,
+  };
+}
+
 function withIds<T>(query: T, ids?: string[]) {
   if (!ids) return query;
   return (query as { where: (condition: unknown) => T }).where(
@@ -102,13 +117,22 @@ export function revalidatePublicSleeveCache() {
 
 export async function getSleeves(options: GetSleevesOptions = {}) {
   const catalog = getCatalogSleeves();
+  // Toutes les lignes sont chargees, pas seulement celles du catalogue : sinon
+  // les sleeves crees depuis l'admin seraient invisibles.
   const overrideRows = options.cache
     ? await getCachedSleeveOverrideRows()
-    : await getOverrideRows(catalog.map((sleeve) => sleeve.id));
+    : await getOverrideRows();
   const overrides = rowsToOverrideMap(overrideRows);
+  const catalogIds = new Set(catalog.map((sleeve) => sleeve.id));
   const products = catalog.map((sleeve) =>
     toSleeveProduct(sleeve, overrides.get(sleeve.id)),
   );
+
+  for (const row of overrideRows) {
+    if (!catalogIds.has(row.sleeveId)) {
+      products.push(overrideToSleeveProduct(row));
+    }
+  }
 
   return options.activeOnly
     ? products.filter((product) => product.active)
@@ -127,7 +151,10 @@ export async function getSleevesByIds(ids: string[]) {
   return cleanIds
     .map((id) => {
       const sleeve = catalogById.get(id);
-      return sleeve ? toSleeveProduct(sleeve, overrides.get(id)) : null;
+      if (sleeve) return toSleeveProduct(sleeve, overrides.get(id));
+
+      const override = overrides.get(id);
+      return override ? overrideToSleeveProduct(override) : null;
     })
     .filter((sleeve): sleeve is SleeveProduct => Boolean(sleeve));
 }
@@ -145,15 +172,17 @@ export async function decrementSleeveStock(
     if (!item.sleeveId || item.quantity <= 0) continue;
 
     const catalogSleeve = getCatalogSleeve(item.sleeveId);
-    if (!catalogSleeve) continue;
-
     const [existing] = await getOverrideRows([item.sleeveId]);
 
-    const currentStock = existing?.stock ?? catalogSleeve.defaultStock;
+    // Un sleeve cree depuis l'admin n'existe que dans la base : sans ce garde-fou
+    // il serait ignore ici et son stock ne descendrait jamais apres une vente.
+    if (!catalogSleeve && !existing) continue;
+
+    const currentStock = existing?.stock ?? catalogSleeve?.defaultStock ?? 0;
     const nextStock = Math.max(0, currentStock - item.quantity);
     updatedItems.push({
       sleeveId: item.sleeveId,
-      name: catalogSleeve.name,
+      name: existing?.name?.trim() || catalogSleeve?.name || item.sleeveId,
       stock: nextStock,
     });
 
@@ -161,9 +190,9 @@ export async function decrementSleeveStock(
       .insert(sleeveOverrides)
       .values({
         sleeveId: item.sleeveId,
-        priceCents: existing?.priceCents ?? catalogSleeve.defaultPriceCents,
+        priceCents: existing?.priceCents ?? catalogSleeve?.defaultPriceCents ?? 0,
         stock: nextStock,
-        active: existing?.active ?? catalogSleeve.active ?? true,
+        active: existing?.active ?? catalogSleeve?.active ?? true,
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({

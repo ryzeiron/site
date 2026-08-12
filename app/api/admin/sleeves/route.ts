@@ -10,8 +10,9 @@ import { revalidatePublicSleeveCache } from "@/lib/sleeves";
 
 type Body = {
   id?: string;
-  price?: number;
   name?: string | null;
+  description?: string | null;
+  price?: number;
   stock?: number;
   active?: boolean;
   image?: string | null;
@@ -110,10 +111,15 @@ export async function POST(request: Request) {
 
   const id = body.id?.trim();
   const catalogSleeve = id ? getCatalogSleeve(id) : null;
+  // Un sleeve cree depuis l'admin n'est pas dans le catalogue : sa seule
+  // existence est la ligne de surcharge, qui fait alors foi.
+  const existingRow = id
+    ? await getExistingOverride(id, true).catch(() => undefined)
+    : undefined;
 
-  if (!id || !catalogSleeve) {
+  if (!id || (!catalogSleeve && !existingRow)) {
     return NextResponse.json(
-      { error: "Sleeve introuvable dans le catalogue." },
+      { error: "Sleeve introuvable." },
       { status: 404 },
     );
   }
@@ -166,13 +172,13 @@ export async function POST(request: Request) {
     const previousImage = existing?.image ?? null;
     const priceCents = hasPrice
       ? Math.round(Number(body.price) * 100)
-      : existing?.priceCents ?? catalogSleeve.defaultPriceCents;
+      : existing?.priceCents ?? catalogSleeve?.defaultPriceCents ?? 0;
     const stock = hasStock
       ? Number(body.stock)
-      : existing?.stock ?? catalogSleeve.defaultStock;
+      : existing?.stock ?? catalogSleeve?.defaultStock ?? 0;
     const active = hasActive
       ? Boolean(body.active)
-      : existing?.active ?? catalogSleeve.active ?? true;
+      : existing?.active ?? catalogSleeve?.active ?? true;
     const nextImage = imageInput ?? null;
     const now = new Date();
 
@@ -210,7 +216,11 @@ export async function POST(request: Request) {
         title: "Stock faible sleeve",
         description: `[Ouvrir l'admin sleeves](${discordAdminUrl("/admin?sleeves=1")})`,
         fields: [
-          { name: "Sleeve", value: catalogSleeve.name, inline: true },
+          {
+            name: "Sleeve",
+            value: nameInput || catalogSleeve?.name || id,
+            inline: true,
+          },
           { name: "Stock", value: String(stock), inline: true },
         ],
       }).catch(() => false);
@@ -221,6 +231,95 @@ export async function POST(request: Request) {
     const status = e instanceof AdminSleeveError ? e.status : 500;
     const message = e instanceof Error ? e.message : "Erreur base de donnees.";
     return NextResponse.json({ error: message }, { status });
+  }
+}
+
+// Creation d'un sleeve depuis l'admin : il vit uniquement dans la base, sans
+// contrepartie dans lib/catalog/sleeves.ts.
+function slugifySleeveId(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
+export async function PUT(request: Request) {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: "Non autorise." }, { status: 401 });
+  }
+
+  let body: Body;
+  try {
+    body = (await request.json()) as Body;
+  } catch {
+    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+  }
+
+  const name = String(body.name ?? "").trim().slice(0, 120);
+  if (!name) {
+    return NextResponse.json(
+      { error: "Le nom est obligatoire." },
+      { status: 400 },
+    );
+  }
+
+  const id = slugifySleeveId(body.id?.trim() || name);
+  if (!id) {
+    return NextResponse.json(
+      { error: "Impossible de generer un identifiant depuis ce nom." },
+      { status: 400 },
+    );
+  }
+
+  if (getCatalogSleeve(id)) {
+    return NextResponse.json(
+      { error: `L'identifiant ${id} existe deja dans le catalogue.` },
+      { status: 409 },
+    );
+  }
+
+  const priceCents = Math.round(Number(body.price ?? 0) * 100);
+  const stock = Math.trunc(Number(body.stock ?? 0));
+
+  if (!Number.isFinite(priceCents) || priceCents < 0) {
+    return NextResponse.json({ error: "Prix invalide." }, { status: 400 });
+  }
+
+  if (!Number.isInteger(stock) || stock < 0) {
+    return NextResponse.json({ error: "Stock invalide." }, { status: 400 });
+  }
+
+  try {
+    const existing = await getExistingOverride(id, true).catch(() => undefined);
+
+    if (existing) {
+      return NextResponse.json(
+        { error: `L'identifiant ${id} est deja utilise.` },
+        { status: 409 },
+      );
+    }
+
+    const description = String(body.description ?? "").trim().slice(0, 500);
+
+    await getDb().insert(sleeveOverrides).values({
+      sleeveId: id,
+      name,
+      description: description || null,
+      priceCents,
+      stock,
+      active: body.active !== false,
+      updatedAt: new Date(),
+    });
+
+    revalidatePublicSleeveCache();
+
+    return NextResponse.json({ ok: true, id });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Erreur base de donnees.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
