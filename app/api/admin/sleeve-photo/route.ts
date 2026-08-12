@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin/auth";
-import { getCatalogSleeve } from "@/lib/catalog/sleeves";
+import { getSleevesByIds } from "@/lib/sleeves";
 import { isR2Configured, uploadToR2 } from "@/lib/r2";
 
 const MAX_UPLOAD_BYTES = 1024 * 1024;
@@ -37,7 +37,9 @@ export async function POST(request: Request) {
 
   const sleeveId = String(formData.get("sleeveId") ?? "").trim();
   const file = formData.get("file");
-  const sleeve = getCatalogSleeve(sleeveId);
+  // getSleevesByIds couvre le catalogue et les sleeves crees depuis l'admin,
+  // qui n'existent qu'en base.
+  const [sleeve] = await getSleevesByIds([sleeveId]);
 
   if (!sleeve) {
     return NextResponse.json({ error: "Sleeve introuvable." }, { status: 404 });
