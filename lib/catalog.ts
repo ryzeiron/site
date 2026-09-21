@@ -13,6 +13,7 @@ import { WIZARD_CARDS, WIZARD_SERIES } from "./catalog/cards/wizard";
 import { MCDO_CARDS } from "./catalog/cards/mcdo";
 import { TRAINER_KIT_CARDS } from "./catalog/cards/trainer-kit";
 import { DETECTIVE_PIKACHU_CARDS } from "./catalog/cards/detective-pikachu";
+import { TRENTE_ANS_CARDS } from "./catalog/cards/30-ans";
 
 // Catalogue : blocs > series > cartes 
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
@@ -219,6 +220,13 @@ export function listVariants(
 
 export const BLOCS: Bloc[] = [
   {
+    id: "30-ans",
+    name: "30e Anniversaire",
+    tagline: "2026",
+    coverColor: "from-yellow-400 to-amber-600",
+    image: "/blocs/30ans.webp",
+  },
+  {
     id: "mega-evolution",
     name: "Méga-Évolution",
     tagline: "2025 - 2028",
@@ -335,6 +343,9 @@ export const BLOCS: Bloc[] = [
 ];
 
 export const SERIES: Serie[] = [
+  // 30e Anniversaire
+  { id: "30ans", blocId: "30-ans", code: "30 ANS", name: "30e Anniversaire", releaseYear: 2026, image: "/series/30ans/30ans.webp", },
+
   // Méga-Évolution
   { id: "me-promo", blocId: "mega-evolution", code: "Promo", name: "Méga-Évolution", releaseYear: 2025, image: "/series/ME/MEP.webp",},
   { id: "me01", blocId: "mega-evolution", code: "ME01", name: "Méga-Évolution", releaseYear: 2025, image: "/series/ME/me.webp",},
@@ -515,6 +526,7 @@ export const SERIES: Serie[] = [
 ];
 
 export const CARDS: Card[] = [
+  ...TRENTE_ANS_CARDS,
   ...MEGA_EVOLUTION_CARDS,
   ...ECARLATE_ET_VIOLET_CARDS,
   ...EPEE_ET_BOUCLIER_CARDS,
