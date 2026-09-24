@@ -221,12 +221,34 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
   const rarities = new Map();
   let withReverseCount = 0;
 
+  // Les 30 Pikachu anniversaire portent, en plus du numero de set, une seconde
+  // numerotation 01/30 a 30/30 imprimee a droite du code du set. On ne l'applique
+  // que si on en trouve exactement 30 : sinon la detection est douteuse et il
+  // vaut mieux ne rien inventer. "Pikachu-ex" est exclu par l'egalite stricte.
+  const pikachuIds = cards
+    .filter((card) => (details.get(card.id)?.name ?? card.name) === "Pikachu")
+    .map((card) => card.id);
+  const pikachuRank = new Map();
+
+  if (pikachuIds.length === 30) {
+    pikachuIds.forEach((id, index) => pikachuRank.set(id, index + 1));
+  } else if (pikachuIds.length > 0) {
+    console.log(
+      `\nATTENTION : ${pikachuIds.length} Pikachu trouves au lieu de 30.\n` +
+        `La seconde numerotation 01/30 n'a pas ete appliquee.`,
+    );
+  }
+
   for (const card of cards) {
     const full = details.get(card.id);
     const localId = card.localId;
     const rarity = full?.rarity ?? "Commune";
     const name = full?.name ?? card.name ?? "Carte inconnue";
-    const number = `${String(localId).padStart(3, "0")}/${String(totalInSet).padStart(3, "0")}`;
+    const rank = pikachuRank.get(card.id);
+    const baseNumber = `${String(localId).padStart(3, "0")}/${String(totalInSet).padStart(3, "0")}`;
+    const number = rank
+      ? `${baseNumber} (${String(rank).padStart(2, "0")}/30)`
+      : baseNumber;
     const withReverse = hasReverse(rarity);
 
     rarities.set(rarity, (rarities.get(rarity) ?? 0) + 1);

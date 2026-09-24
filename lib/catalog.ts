@@ -220,13 +220,6 @@ export function listVariants(
 
 export const BLOCS: Bloc[] = [
   {
-    id: "30-ans",
-    name: "30e Anniversaire",
-    tagline: "2026",
-    coverColor: "from-yellow-400 to-amber-600",
-    image: "/blocs/30ans.webp",
-  },
-  {
     id: "mega-evolution",
     name: "Méga-Évolution",
     tagline: "2025 - 2028",
@@ -343,9 +336,6 @@ export const BLOCS: Bloc[] = [
 ];
 
 export const SERIES: Serie[] = [
-  // 30e Anniversaire
-  { id: "30ans", blocId: "30-ans", code: "30 ANS", name: "30e Anniversaire", releaseYear: 2026, image: "/series/30ans/30ans.webp", },
-
   // Méga-Évolution
   { id: "me-promo", blocId: "mega-evolution", code: "Promo", name: "Méga-Évolution", releaseYear: 2025, image: "/series/ME/MEP.webp",},
   { id: "me01", blocId: "mega-evolution", code: "ME01", name: "Méga-Évolution", releaseYear: 2025, image: "/series/ME/me.webp",},
@@ -354,6 +344,7 @@ export const SERIES: Serie[] = [
   { id: "me03", blocId: "mega-evolution", code: "ME03", name: "Équilibre Parfait", releaseYear: 2026, image: "/series/ME/POR.webp",},
   { id: "me04", blocId: "mega-evolution", code: "ME04", name: "Chaos Ascendant", releaseYear: 2026, image: "/series/ME/CRI.webp",},
   { id: "me05", blocId: "mega-evolution", code: "ME05", name: "Nuit Noire", releaseYear: 2026, image: "/series/ME/me05.png", comingSoon: false },
+  { id: "30ans", blocId: "mega-evolution", code: "ME05.5", name: "30e Anniversaire", releaseYear: 2026, image: "/series/ME/30ans.webp", },
 
   // Écarlate et Violet
   { id: "promo", blocId: "ecarlate-et-violet", code: "Promo", name: "Écarlate et Violet", releaseYear: 2023, image: "/series/EV/SVP.webp", },
