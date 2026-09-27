@@ -61,6 +61,11 @@ export function normalizeSearchSortMode(value?: string): SearchSortMode {
 }
 
 function compareCardNumber(a: Card, b: Card) {
+  // Le groupe prime sur le numero : sans lui, 001/030 se classerait juste avant
+  // 001/128 et le sous-ensemble se retrouverait intercale dans le set principal.
+  const groupCompare = (a.sortGroup ?? 0) - (b.sortGroup ?? 0);
+  if (groupCompare !== 0) return groupCompare;
+
   return a.number.localeCompare(b.number, "fr", { numeric: true });
 }
 

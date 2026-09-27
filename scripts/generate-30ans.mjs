@@ -152,11 +152,12 @@ async function runPool(items, worker, concurrency) {
   process.stdout.write("\n");
 }
 
-function cardEntry({ id, name, number, rarity, image, withReverse }) {
+function cardEntry({ id, name, number, rarity, image, withReverse, sortGroup }) {
   const baseRarity = withReverse ? "Commune" : (rarity ?? "Commune");
   let line =
     `  { id: ${JSON.stringify(id)}, serieId: ${JSON.stringify(SERIE_ID)}, ` +
     `name: ${JSON.stringify(name)}, number: ${JSON.stringify(number)}, ` +
+    (sortGroup ? `sortGroup: ${sortGroup}, ` : "") +
     `rarity: ${JSON.stringify(baseRarity)}, condition: "Near Mint", language: "FR", ` +
     `price: 0.5, stock: 0, image: ${JSON.stringify(image)}`;
 
@@ -296,7 +297,13 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
     const rarity = full?.rarity ?? "Commune";
     const name = full?.name ?? card.name ?? "Carte inconnue";
     const rank = pikachuRank.get(card.id);
-    const baseNumber = `${String(localId).padStart(3, "0")}/${String(totalInSet).padStart(3, "0")}`;
+    // Un identifiant non numerique vient d'un autre set (les Mew R/B/G de RGB) :
+    // le completer de zeros et lui coller le total du set principal donnerait un
+    // numero inexistant, du genre 00B/128.
+    const numericId = /^\d+$/.test(String(localId));
+    const baseNumber = numericId
+      ? `${String(localId).padStart(3, "0")}/${String(totalInSet).padStart(3, "0")}`
+      : `${localId}/RGB`;
     const number = rank
       ? `${baseNumber} (${String(rank).padStart(2, "0")}/30)`
       : baseNumber;
@@ -313,6 +320,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
         rarity,
         image: `/cartes/${SERIE_ID}/${localId}.webp`,
         withReverse,
+        sortGroup: numericId ? undefined : 1,
       }),
     );
   }
@@ -392,6 +400,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
           rarity,
           image: `/cartes/${SERIE_ID}/p${localId}.webp`,
           withReverse,
+          sortGroup: 2,
         }),
       );
     }
