@@ -344,7 +344,7 @@ export const SERIES: Serie[] = [
   { id: "me03", blocId: "mega-evolution", code: "ME03", name: "Équilibre Parfait", releaseYear: 2026, image: "/series/ME/POR.webp",},
   { id: "me04", blocId: "mega-evolution", code: "ME04", name: "Chaos Ascendant", releaseYear: 2026, image: "/series/ME/CRI.webp",},
   { id: "me05", blocId: "mega-evolution", code: "ME05", name: "Nuit Noire", releaseYear: 2026, image: "/series/ME/me05.png", comingSoon: false },
-  { id: "30ans", blocId: "mega-evolution", code: "ME05.5", name: "30e Anniversaire", releaseYear: 2026, image: "/series/ME/30ans.webp", },
+  { id: "30ans", blocId: "mega-evolution", code: "ME05.5", name: "30e Anniversaire", releaseYear: 2026, image: "/series/ME/30C.webp", },
 
   // Écarlate et Violet
   { id: "promo", blocId: "ecarlate-et-violet", code: "Promo", name: "Écarlate et Violet", releaseYear: 2023, image: "/series/EV/SVP.webp", },
