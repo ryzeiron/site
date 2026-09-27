@@ -19,6 +19,8 @@ const ROOT = resolve(__dirname, "..");
 const OUT_FILE = resolve(ROOT, "lib/catalog/cards/30-ans.ts");
 const SERIE_ID = "30ans";
 const SERIE_DIR = resolve(ROOT, "public/cartes", SERIE_ID);
+// Visuel de serie, affiche sur la page du bloc Mega-Evolution.
+const SERIE_LOGO = resolve(ROOT, "public/series/ME/30ans.webp");
 
 const API = "https://api.tcgdex.net/v2/fr";
 const ASSETS = "https://assets.tcgdex.net/fr";
@@ -188,6 +190,30 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
   const totalInSet = setData.cardCount?.official ?? cards.length;
   const serieSegment = setData.serie?.id ?? "tcgp";
   mkdirSync(SERIE_DIR, { recursive: true });
+
+  // Logo du set, utilise comme visuel de serie. tcgdex renvoie une URL sans
+  // extension : il faut l'ajouter, et le format varie selon les sets.
+  if (setData.logo && !existsSync(SERIE_LOGO)) {
+    let logoOk = false;
+
+    for (const ext of ["webp", "png"]) {
+      try {
+        await downloadImage(`${setData.logo}.${ext}`, SERIE_LOGO);
+        console.log(`\nLogo de serie : public/series/ME/30ans.webp (${ext})`);
+        logoOk = true;
+        break;
+      } catch {
+        // Format suivant.
+      }
+    }
+
+    if (!logoOk) {
+      console.log(
+        `\nLogo de serie introuvable. Depose-le toi-meme dans` +
+          ` public/series/ME/30ans.webp`,
+      );
+    }
+  }
 
   console.log(`\nTelechargement des visuels FR dans public/cartes/${SERIE_ID}/`);
 
