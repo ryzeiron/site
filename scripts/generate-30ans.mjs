@@ -215,6 +215,21 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
     }
   }
 
+  // Le detail de chaque carte porte sa rarete et, surtout, l'URL reelle de son
+  // visuel. Reconstruire cette URL a la main echoue des que le set range ses
+  // assets autrement : on interroge donc les details avant de telecharger.
+  console.log(`\nRecuperation des details FR`);
+
+  const details = new Map();
+  await runPool(
+    cards,
+    async (card) => {
+      const full = await fetchJson(`${API}/cards/${card.id}`);
+      details.set(card.id, full);
+    },
+    CONCURRENCY,
+  );
+
   console.log(`\nTelechargement des visuels FR dans public/cartes/${SERIE_ID}/`);
 
   const missingImages = [];
@@ -225,30 +240,24 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
     cards,
     async (card) => {
       const dest = resolve(SERIE_DIR, `${card.localId}.webp`);
-      const url = `${ASSETS}/${serieSegment}/${setId}/${card.localId}/high.webp`;
+      const base = details.get(card.id)?.image;
+      const urls = base
+        ? [`${base}/high.webp`, `${base}/high.png`]
+        : [`${ASSETS}/${serieSegment}/${setId}/${card.localId}/high.webp`];
 
-      try {
-        const state = await downloadImage(url, dest);
-        if (state === "downloaded") ok++;
-        else skipped++;
-      } catch (e) {
-        missingImages.push({ localId: card.localId, name: card.name });
-        throw new Error(`${card.localId} (${card.name}) : ${e.message}`);
+      for (const url of urls) {
+        try {
+          const state = await downloadImage(url, dest);
+          if (state === "downloaded") ok++;
+          else skipped++;
+          return;
+        } catch {
+          // Format suivant.
+        }
       }
-    },
-    CONCURRENCY,
-  );
 
-  // Les details (rarete) ne sont pas dans la reponse du set : une requete par
-  // carte est necessaire.
-  console.log(`\nRecuperation des raretes FR`);
-
-  const details = new Map();
-  await runPool(
-    cards,
-    async (card) => {
-      const full = await fetchJson(`${API}/cards/${card.id}`);
-      details.set(card.id, full);
+      missingImages.push({ localId: card.localId, name: card.name });
+      throw new Error(`${card.localId} (${card.name}) : visuel FR introuvable`);
     },
     CONCURRENCY,
   );
@@ -329,29 +338,37 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
 
     console.log(`${promoCards.length} cartes promo.`);
 
-    await runPool(
-      promoCards,
-      async (card) => {
-        const dest = resolve(SERIE_DIR, `p${card.localId}.webp`);
-        const url = `${ASSETS}/${promoSegment}/${promoSet}/${card.localId}/high.webp`;
-
-        try {
-          const state = await downloadImage(url, dest);
-          if (state === "downloaded") ok++;
-          else skipped++;
-        } catch (e) {
-          missingImages.push({ localId: `p${card.localId}`, name: card.name });
-          throw new Error(`${card.localId} (${card.name}) : ${e.message}`);
-        }
-      },
-      CONCURRENCY,
-    );
-
     const promoDetails = new Map();
     await runPool(
       promoCards,
       async (card) => {
         promoDetails.set(card.id, await fetchJson(`${API}/cards/${card.id}`));
+      },
+      CONCURRENCY,
+    );
+
+    await runPool(
+      promoCards,
+      async (card) => {
+        const dest = resolve(SERIE_DIR, `p${card.localId}.webp`);
+        const base = promoDetails.get(card.id)?.image;
+        const urls = base
+          ? [`${base}/high.webp`, `${base}/high.png`]
+          : [`${ASSETS}/${promoSegment}/${promoSet}/${card.localId}/high.webp`];
+
+        for (const url of urls) {
+          try {
+            const state = await downloadImage(url, dest);
+            if (state === "downloaded") ok++;
+            else skipped++;
+            return;
+          } catch {
+            // Format suivant.
+          }
+        }
+
+        missingImages.push({ localId: `p${card.localId}`, name: card.name });
+        throw new Error(`${card.localId} (${card.name}) : visuel FR introuvable`);
       },
       CONCURRENCY,
     );
