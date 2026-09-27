@@ -20,7 +20,7 @@ const OUT_FILE = resolve(ROOT, "lib/catalog/cards/30-ans.ts");
 const SERIE_ID = "30ans";
 const SERIE_DIR = resolve(ROOT, "public/cartes", SERIE_ID);
 // Visuel de serie, affiche sur la page du bloc Mega-Evolution.
-const SERIE_LOGO = resolve(ROOT, "public/series/ME/30ans.webp");
+const SERIE_LOGO = resolve(ROOT, "public/series/ME/30C.webp");
 
 const API = "https://api.tcgdex.net/v2/fr";
 const ASSETS = "https://assets.tcgdex.net/fr";
@@ -199,7 +199,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
     for (const ext of ["webp", "png"]) {
       try {
         await downloadImage(`${setData.logo}.${ext}`, SERIE_LOGO);
-        console.log(`\nLogo de serie : public/series/ME/30ans.webp (${ext})`);
+        console.log(`\nLogo de serie : public/series/ME/30C.webp (${ext})`);
         logoOk = true;
         break;
       } catch {
@@ -210,7 +210,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
     if (!logoOk) {
       console.log(
         `\nLogo de serie introuvable. Depose-le toi-meme dans` +
-          ` public/series/ME/30ans.webp`,
+          ` public/series/ME/30C.webp`,
       );
     }
   }
