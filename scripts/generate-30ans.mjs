@@ -50,6 +50,25 @@ const promoSet = process.argv
   ?.slice("--promos=".length)
   .trim();
 
+// Ordre d'affichage impose pour la fin de la serie : les cartes a bord dore, puis
+// les trois Mew. Il ne suit ni le numero ni l'identifiant local, il vient des
+// planches imprimees. La cle est l'identifiant local, prefixe de p pour les
+// cartes du set promo.
+const TAIL_ORDER = [
+  "p14", "p1", "p5", "p15", "p7", "p24", "p29", "p2", "p6", "p25",
+  "p3", "p22", "p10", "p11", "p18", "p19", "p20", "p21", "p16", "p4",
+  "p23", "p9", "p17", "p13", "p8", "p28", "p12", "p26", "p27", "p30",
+  "R", "G", "B",
+];
+
+// Un identifiant local peut etre pade ou non selon le set : on normalise.
+function tailRank(localId, isPromo) {
+  const raw = String(localId).replace(/^0+(?=\d)/, "");
+  const key = isPromo ? `p${raw}` : raw;
+  const index = TAIL_ORDER.indexOf(key);
+  return index === -1 ? undefined : index + 1;
+}
+
 const forcedSet = process.argv
   .find((arg) => arg.startsWith("--set="))
   ?.slice("--set=".length)
@@ -320,7 +339,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse, sortGroup }) 
         rarity,
         image: `/cartes/${SERIE_ID}/${localId}.webp`,
         withReverse,
-        sortGroup: numericId ? undefined : 1,
+        sortGroup: tailRank(localId, false),
       }),
     );
   }
@@ -400,7 +419,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse, sortGroup }) 
           rarity,
           image: `/cartes/${SERIE_ID}/p${localId}.webp`,
           withReverse,
-          sortGroup: 2,
+          sortGroup: tailRank(localId, true),
         }),
       );
     }
