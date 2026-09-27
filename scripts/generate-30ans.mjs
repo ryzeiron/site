@@ -296,7 +296,13 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
     const rarity = full?.rarity ?? "Commune";
     const name = full?.name ?? card.name ?? "Carte inconnue";
     const rank = pikachuRank.get(card.id);
-    const baseNumber = `${String(localId).padStart(3, "0")}/${String(totalInSet).padStart(3, "0")}`;
+    // Un identifiant non numerique vient d'un autre set (les Mew R/B/G de RGB) :
+    // le completer de zeros et lui coller le total du set principal donnerait un
+    // numero inexistant, du genre 00B/128.
+    const numericId = /^\d+$/.test(String(localId));
+    const baseNumber = numericId
+      ? `${String(localId).padStart(3, "0")}/${String(totalInSet).padStart(3, "0")}`
+      : `${localId}/RGB`;
     const number = rank
       ? `${baseNumber} (${String(rank).padStart(2, "0")}/30)`
       : baseNumber;
