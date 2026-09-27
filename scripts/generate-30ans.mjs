@@ -96,14 +96,23 @@ async function findAnniversarySet() {
     );
   }
 
+  // Le set principal s'appelle "30e Anniversaire" ; les sets derives prefixent
+  // leur nom ("Collection Classique 30e Anniversaire"). On privilegie donc celui
+  // dont le nom commence par 30, sinon le tri alphabetique choisirait le mauvais.
+  const preferred =
+    matches.find((set) => normalize(set.name).startsWith("30")) ?? matches[0];
+
   if (matches.length > 1) {
     console.log("Plusieurs sets correspondent :");
-    for (const set of matches) console.log(`  ${set.id}  ${set.name}`);
-    console.log("Le premier est utilise. Force le bon avec --set=<id>.");
+    for (const set of matches) {
+      const mark = set.id === preferred.id ? "->" : "  ";
+      console.log(`  ${mark} ${set.id}  ${set.name}`);
+    }
+    console.log("Force un autre avec --set=<id>.");
   }
 
-  console.log(`Set trouve : ${matches[0].id} (${matches[0].name})`);
-  return matches[0].id;
+  console.log(`Set retenu : ${preferred.id} (${preferred.name})`);
+  return preferred.id;
 }
 
 async function downloadImage(srcUrl, destPath) {
@@ -278,6 +287,13 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
   let promoCount = 0;
 
   if (promoSet) {
+    if (promoSet.includes("<") || promoSet.includes(">")) {
+      throw new Error(
+        `--promos=${promoSet} : remplace cet exemple par un vrai identifiant, ` +
+          `par exemple --promos=30th-c`,
+      );
+    }
+
     console.log(`\n=== Set promo ${promoSet} ===`);
 
     const promoData = await fetchJson(`${API}/sets/${promoSet}`);
