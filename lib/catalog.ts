@@ -111,6 +111,10 @@ export type Card = {
   serieId: string;
   name: string;
   number: string; // ex: 025/198
+  // Groupe de tri au sein d'une serie. Les sous-ensembles imprimes avec leur
+  // propre numerotation (bord dore, promos) se classeraient sinon au milieu du
+  // set principal, leur denominateur etant plus petit.
+  sortGroup?: number;
   rarity: Rarity;
   condition: Condition;
   language: "FR" | "EN" | "JP";

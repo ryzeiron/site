@@ -152,11 +152,12 @@ async function runPool(items, worker, concurrency) {
   process.stdout.write("\n");
 }
 
-function cardEntry({ id, name, number, rarity, image, withReverse }) {
+function cardEntry({ id, name, number, rarity, image, withReverse, sortGroup }) {
   const baseRarity = withReverse ? "Commune" : (rarity ?? "Commune");
   let line =
     `  { id: ${JSON.stringify(id)}, serieId: ${JSON.stringify(SERIE_ID)}, ` +
     `name: ${JSON.stringify(name)}, number: ${JSON.stringify(number)}, ` +
+    (sortGroup ? `sortGroup: ${sortGroup}, ` : "") +
     `rarity: ${JSON.stringify(baseRarity)}, condition: "Near Mint", language: "FR", ` +
     `price: 0.5, stock: 0, image: ${JSON.stringify(image)}`;
 
@@ -319,6 +320,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
         rarity,
         image: `/cartes/${SERIE_ID}/${localId}.webp`,
         withReverse,
+        sortGroup: numericId ? undefined : 1,
       }),
     );
   }
@@ -398,6 +400,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
           rarity,
           image: `/cartes/${SERIE_ID}/p${localId}.webp`,
           withReverse,
+          sortGroup: 2,
         }),
       );
     }
