@@ -3,7 +3,8 @@
 // lib/catalog/cards/30-ans.ts
 //
 // Usage : npm run generate:30ans
-//         npm run generate:30ans -- --set=<id>   (force un set precis)
+//         npm run generate:30ans -- --set=<id>      (force un set precis)
+//         npm run generate:30ans -- --promos=<id>   (ajoute un set promo)
 //
 // Tout est en francais : noms, raretes et visuels. Si un visuel FR n'existe
 // pas, la carte est signalee et aucun visuel anglais n'est utilise a la place.
@@ -39,7 +40,13 @@ const NO_REVERSE_RARITIES = [
   "lv.x",
   "shiny",
   "gold star",
+  "promo",
 ];
+
+const promoSet = process.argv
+  .find((arg) => arg.startsWith("--promos="))
+  ?.slice("--promos=".length)
+  .trim();
 
 const forcedSet = process.argv
   .find((arg) => arg.startsWith("--set="))
@@ -266,6 +273,71 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
     );
   }
 
+  // Set promo optionnel : ses cartes rejoignent la meme serie, avec un id et un
+  // nom de fichier prefixes pour ne pas entrer en collision avec le set principal.
+  let promoCount = 0;
+
+  if (promoSet) {
+    console.log(`\n=== Set promo ${promoSet} ===`);
+
+    const promoData = await fetchJson(`${API}/sets/${promoSet}`);
+    const promoCards = promoData.cards ?? [];
+    const promoTotal = promoData.cardCount?.official ?? promoCards.length;
+    const promoSegment = promoData.serie?.id ?? serieSegment;
+
+    console.log(`${promoCards.length} cartes promo.`);
+
+    await runPool(
+      promoCards,
+      async (card) => {
+        const dest = resolve(SERIE_DIR, `p${card.localId}.webp`);
+        const url = `${ASSETS}/${promoSegment}/${promoSet}/${card.localId}/high.webp`;
+
+        try {
+          const state = await downloadImage(url, dest);
+          if (state === "downloaded") ok++;
+          else skipped++;
+        } catch (e) {
+          missingImages.push({ localId: `p${card.localId}`, name: card.name });
+          throw new Error(`${card.localId} (${card.name}) : ${e.message}`);
+        }
+      },
+      CONCURRENCY,
+    );
+
+    const promoDetails = new Map();
+    await runPool(
+      promoCards,
+      async (card) => {
+        promoDetails.set(card.id, await fetchJson(`${API}/cards/${card.id}`));
+      },
+      CONCURRENCY,
+    );
+
+    for (const card of promoCards) {
+      const full = promoDetails.get(card.id);
+      const localId = card.localId;
+      const rarity = full?.rarity ?? "Promo";
+      const name = full?.name ?? card.name ?? "Carte inconnue";
+      const withReverse = hasReverse(rarity);
+
+      rarities.set(rarity, (rarities.get(rarity) ?? 0) + 1);
+      if (withReverse) withReverseCount++;
+      promoCount++;
+
+      lines.push(
+        cardEntry({
+          id: `${SERIE_ID}-p${String(localId).padStart(3, "0")}`,
+          name,
+          number: `${String(localId).padStart(3, "0")}/${String(promoTotal).padStart(3, "0")}`,
+          rarity,
+          image: `/cartes/${SERIE_ID}/p${localId}.webp`,
+          withReverse,
+        }),
+      );
+    }
+  }
+
   lines.push(`] as const) as readonly Card[];`, ``);
 
   mkdirSync(dirname(OUT_FILE), { recursive: true });
@@ -273,7 +345,9 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
 
   console.log(`\n=== TERMINE ===`);
   console.log(`Fichier : ${OUT_FILE}`);
-  console.log(`Cartes  : ${cards.length} (avec Reverse : ${withReverseCount})`);
+  console.log(
+    `Cartes  : ${cards.length + promoCount} dont ${promoCount} promo (avec Reverse : ${withReverseCount})`,
+  );
   console.log(`Visuels : ${ok} telecharges, ${skipped} deja presents`);
 
   if (missingImages.length > 0) {
