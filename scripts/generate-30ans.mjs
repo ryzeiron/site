@@ -336,9 +336,9 @@ function cardEntry({ id, name, number, rarity, image, withReverse, sortGroup }) 
         id: `${SERIE_ID}-${String(localId).padStart(3, "0")}`,
         name,
         number,
-        rarity,
+        rarity: tailRank(localId, false) ? "Secrete" : rarity,
         image: `/cartes/${SERIE_ID}/${localId}.webp`,
-        withReverse,
+        withReverse: tailRank(localId, false) ? false : withReverse,
         sortGroup: tailRank(localId, false),
       }),
     );
@@ -416,9 +416,9 @@ function cardEntry({ id, name, number, rarity, image, withReverse, sortGroup }) 
           id: `${SERIE_ID}-p${String(localId).padStart(3, "0")}`,
           name,
           number: `${String(localId).padStart(3, "0")}/${String(promoTotal).padStart(3, "0")}`,
-          rarity,
+          rarity: "Secrete",
           image: `/cartes/${SERIE_ID}/p${localId}.webp`,
-          withReverse,
+          withReverse: false,
           sortGroup: tailRank(localId, true),
         }),
       );
