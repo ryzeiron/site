@@ -196,12 +196,63 @@ function stockLabel(stock: number, hidden: boolean) {
 }
 
 export default function AdminStockRow({ card }: { card: Card }) {
+  const router = useRouter();
   const variants = buildVariants(card);
   const totalStock = variants.reduce((total, variant) => total + variant.stock, 0);
   const hiddenCount = variants.filter((variant) => variant.hidden).length;
   const modifiedCount = variants.filter((variant) => variant.modified).length;
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMeta, setEditingMeta] = useState(false);
+  const [removed, setRemoved] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  // Une carte creee depuis l'admin est supprimee pour de bon ; une carte du
+  // catalogue est masquee, son existence venant d'un fichier du depot.
+  const isCustomCard = !getCard(card.id);
+
+  async function removeCard() {
+    const ok = window.confirm(
+      isCustomCard
+        ? `Supprimer definitivement ${card.name} ?\n\nCette carte a ete creee depuis l'admin, elle sera effacee.`
+        : `Masquer ${card.name} ?\n\nElle disparait de la boutique. Tu pourras la restaurer depuis l'onglet Cartes masquees.`,
+    );
+
+    if (!ok) return;
+
+    // Retrait immediat de l'ecran : le reste se fait en arriere-plan.
+    setRemoved(true);
+    setRemoving(true);
+    setRemoveError(null);
+
+    try {
+      const res = isCustomCard
+        ? await fetch("/api/admin/custom-cards", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cardId: card.id }),
+          })
+        : await fetch("/api/admin/card-visibility", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cardId: card.id, hidden: true }),
+          });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+
+      router.refresh();
+    } catch (e) {
+      // L'operation a echoue : la carte doit reapparaitre, sinon elle semblerait
+      // supprimee alors qu'elle est toujours en ligne.
+      setRemoved(false);
+      setRemoveError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setRemoving(false);
+    }
+  }
+
+  if (removed) return null;
 
   return (
     <section className="overflow-hidden rounded-lg border border-white/10 bg-zinc-950/55 text-gray-200">
@@ -253,8 +304,27 @@ export default function AdminStockRow({ card }: { card: Card }) {
           >
             {showAddForm ? "Fermer ajout" : "+ Variante"}
           </button>
+          <button
+            type="button"
+            onClick={removeCard}
+            disabled={removing}
+            title={
+              isCustomCard
+                ? "Supprime definitivement cette carte creee depuis l'admin"
+                : "Retire cette carte de la boutique, restaurable ensuite"
+            }
+            className="rounded bg-red-600/80 px-3 py-2 text-xs font-medium text-white transition hover:bg-red-600 disabled:opacity-60"
+          >
+            {isCustomCard ? "Supprimer" : "Masquer"}
+          </button>
         </div>
       </div>
+
+      {removeError ? (
+        <div className="border-b border-red-500/30 bg-red-500/10 px-4 py-2 text-xs text-red-200">
+          {removeError}
+        </div>
+      ) : null}
 
       {editingMeta ? (
         <div className="border-b border-white/10 p-4">

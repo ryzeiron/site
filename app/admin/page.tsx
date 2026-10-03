@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { lte } from "drizzle-orm";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import AdminCardCreator from "@/components/AdminCardCreator";
+import AdminHiddenCards from "@/components/AdminHiddenCards";
 import AdminSerieBulkActions from "@/components/AdminSerieBulkActions";
 import { formatRarityLabel } from "@/lib/display-variants";
 import AdminStockBatchEditor from "@/components/AdminStockBatchEditor";
@@ -910,6 +911,8 @@ export default async function AdminPage({
           ))}
         </div>
       </section>
+
+      <AdminHiddenCards />
 
       {serie && (
         <>
