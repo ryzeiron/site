@@ -268,6 +268,20 @@ export const orderPreparationItems = pgTable(
   (t) => [primaryKey({ columns: [t.orderId, t.itemKey] })],
 );
 
+// Cartes creees depuis l'admin. Elles n'ont aucune contrepartie dans
+// lib/catalog/cards/*.ts : cette ligne est leur seule existence.
+export const customCards = pgTable("custom_cards", {
+  cardId: text("card_id").primaryKey(),
+  serieId: text("serie_id").notNull(),
+  name: text("name").notNull(),
+  number: text("number").notNull(),
+  rarity: text("rarity").notNull(),
+  priceCents: integer("price_cents").notNull().default(0),
+  stock: integer("stock").notNull().default(0),
+  image: text("image"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const sleeveOverrides = pgTable("sleeve_overrides", {
   sleeveId: text("sleeve_id").primaryKey(),
   name: text("name"),

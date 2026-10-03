@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CardDetailBody from "@/components/CardDetailBody";
 import { getBloc, getCard, getSerie } from "@/lib/catalog";
+import { getCardById } from "@/lib/custom-cards";
 import { shouldUseLivePublicData } from "@/lib/public-live-data";
 import {
   absoluteUrl,
@@ -23,7 +24,7 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const card = getCard(id);
+  const card = await getCardById(id, { cache: true });
   if (!card) return { title: "Carte Pokémon" };
 
   const serie = getSerie(card.serieId);
@@ -52,7 +53,7 @@ export default async function CardPage({
   params: Promise<Params>;
 }) {
   const { id } = await params;
-  const raw = getCard(id);
+  const raw = await getCardById(id, { cache: true });
   if (!raw) notFound();
   let card = raw;
   if (await shouldUseLivePublicData()) {

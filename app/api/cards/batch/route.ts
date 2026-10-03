@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { CARDS } from "@/lib/catalog";
+import { getCardsByIds } from "@/lib/custom-cards";
 import { applyStockOverrides } from "@/lib/stock";
 
 export async function POST(request: Request) {
@@ -9,8 +9,12 @@ export async function POST(request: Request) {
     if (ids.length === 0) {
       return NextResponse.json({ cards: [] });
     }
-    const set = new Set(ids);
-    const cards = CARDS.filter((c) => set.has(c.id));
+    // Le panier resout ses cartes ici : sans les cartes creees depuis l'admin,
+    // elles disparaitraient du panier apres rechargement de la page.
+    const resolved = await getCardsByIds(ids, { cache: true });
+    const cards = ids
+      .map((id) => resolved.get(id))
+      .filter((c): c is NonNullable<typeof c> => Boolean(c));
     const withStock = await applyStockOverrides(cards, { cache: true });
     return NextResponse.json({ cards: withStock });
   } catch (e) {

@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { and, eq } from "drizzle-orm";
 import { getStripe } from "@/lib/stripe";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
+import { getCardsByIds } from "@/lib/custom-cards";
 import { getDb } from "@/lib/db/client";
 import {
   favoriteCards,
@@ -306,10 +307,12 @@ async function getCurrentLowStockAlerts(items: CompactItem[]) {
     stock: number;
   }[] = [];
 
+  const alertCards = await getCardsByIds(items.map(([cardId]) => cardId));
+
   for (const [cardId, variant] of items) {
     if (!cardId || !variant) continue;
 
-    const card = getCard(cardId);
+    const card = alertCards.get(cardId);
     if (!card) continue;
 
     const resolvedVariant = resolveVariant(card, variant);
@@ -625,10 +628,14 @@ export async function POST(request: Request) {
       stock: number;
     }[] = [];
 
+    // Sans cette resolution, une carte creee depuis l'admin se vendrait sans que
+    // son stock ne bouge jamais.
+    const soldCards = await getCardsByIds(items.map(([cardId]) => cardId));
+
     for (const [cardId, variant, quantity] of items) {
       if (!cardId || !variant || !quantity || quantity <= 0) continue;
 
-      const card = getCard(cardId);
+      const card = soldCards.get(cardId);
       if (!card) continue;
 
       const v = resolveVariant(card, variant);

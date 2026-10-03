@@ -2,11 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SerieCardsGrid from "@/components/SerieCardsGrid";
-import {
-  cardsForSerie,
-  getBloc,
-  getSerie,
-} from "@/lib/catalog";
+import { getBloc, getSerie } from "@/lib/catalog";
+import { getCardsForSerie } from "@/lib/custom-cards";
 import { shouldUseLivePublicData } from "@/lib/public-live-data";
 import { applyStockOverrides } from "@/lib/stock";
 
@@ -39,7 +36,8 @@ export default async function SeriePage({
   const bloc = getBloc(blocId);
   const serie = getSerie(serieId);
   if (!bloc || !serie || serie.blocId !== bloc.id) notFound();
-  const raw = cardsForSerie(serie.id);
+  // Catalogue statique plus cartes creees depuis l'admin.
+  const raw = await getCardsForSerie(serie.id, { cache: true });
   let cards = raw;
   if (await shouldUseLivePublicData()) {
     try {

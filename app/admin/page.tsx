@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { lte } from "drizzle-orm";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
+import AdminCardCreator from "@/components/AdminCardCreator";
 import AdminSerieBulkActions from "@/components/AdminSerieBulkActions";
 import { formatRarityLabel } from "@/lib/display-variants";
 import AdminStockBatchEditor from "@/components/AdminStockBatchEditor";
@@ -12,7 +13,6 @@ import { cardOverrides, hiddenVariants, stockOverrides } from "@/lib/db/schema";
 import { formatCents } from "@/lib/format";
 import {
   BLOCS,
-  CARDS,
   RARITIES,
   SERIES,
   getBloc,
@@ -24,6 +24,7 @@ import {
   type Rarity,
   type Serie,
 } from "@/lib/catalog";
+import { getAllCards } from "@/lib/custom-cards";
 import { applyStockOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
@@ -436,7 +437,7 @@ async function getQuickCandidateCards(
 ) {
   const ids = new Set<string>();
 
-  for (const card of CARDS) {
+  for (const card of await getAllCards()) {
     if (cardMatchesQuickFilter(card, quick, catalogById.get(card.id))) {
       ids.add(card.id);
     }
@@ -494,7 +495,7 @@ async function getTotalStockCount() {
   const countedLines = new Set<string>();
   let total = 0;
 
-  for (const card of CARDS) {
+  for (const card of await getAllCards()) {
     for (const { key, variant } of listVariants(card, {
       includeHidden: true,
     })) {
@@ -620,7 +621,9 @@ function inventoryLineKey(cardId: string, variant: string) {
 }
 
 async function getInventoryValueSummary(): Promise<InventoryValueSummary> {
-  const catalogById = new Map(CARDS.map((card) => [card.id, card]));
+  const catalogById = new Map(
+    (await getAllCards()).map((card) => [card.id, card]),
+  );
   const rows = await getDb()
     .select({
       cardId: stockOverrides.cardId,
@@ -639,7 +642,7 @@ async function getInventoryValueSummary(): Promise<InventoryValueSummary> {
   let totalUnits = 0;
   let totalVariantLines = 0;
 
-  for (const card of CARDS) {
+  for (const card of await getAllCards()) {
     for (const { key, variant } of listVariants(card, { includeHidden: true })) {
       const lineKey = inventoryLineKey(card.id, key);
       const override = overrideByLine.get(lineKey);
@@ -696,11 +699,12 @@ export default async function AdminPage({
   const hasSearch = terms.length > 0 || Boolean(rarity) || Boolean(quick);
 
   const serie = serieId ? getSerie(serieId) : undefined;
-  const catalogById = new Map(CARDS.map((card) => [card.id, card]));
+  const allCards = await getAllCards();
+  const catalogById = new Map(allCards.map((card) => [card.id, card]));
   let filteredCards: Card[] = [];
 
   if (serie) {
-    const serieCards = CARDS.filter((card) => card.serieId === serie.id);
+    const serieCards = allCards.filter((card) => card.serieId === serie.id);
     const serieCardsWithStock = await applyStockOverrides(serieCards);
 
     filteredCards = serieCardsWithStock.filter(
@@ -713,7 +717,7 @@ export default async function AdminPage({
   } else if (hasSearch) {
     const candidateCards = quick
       ? await getQuickCandidateCards(quick, catalogById)
-      : CARDS;
+      : allCards;
 
     filteredCards = candidateCards.filter((card) =>
       cardMatchesTextAndRarity(card, terms, rarity),
@@ -908,11 +912,19 @@ export default async function AdminPage({
       </section>
 
       {serie && (
-        <AdminSerieBulkActions
-          serieId={serie.id}
-          serieLabel={`${serie.code} - ${serie.name}`}
-          defaultRarity={rarity || "Commune"}
-        />
+        <>
+          <AdminCardCreator
+            serieId={serie.id}
+            serieLabel={`${serie.code} - ${serie.name}`}
+            rarities={RARITIES}
+          />
+
+          <AdminSerieBulkActions
+            serieId={serie.id}
+            serieLabel={`${serie.code} - ${serie.name}`}
+            defaultRarity={rarity || "Commune"}
+          />
+        </>
       )}
 
       {!serie && !hasSearch ? (

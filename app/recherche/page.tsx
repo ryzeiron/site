@@ -12,7 +12,6 @@ import {
   type SearchSortMode,
 } from "@/lib/card-sort";
 import {
-  CARDS,
   SERIES,
   getBloc,
   getSerie,
@@ -20,6 +19,7 @@ import {
   type Card,
   type Serie,
 } from "@/lib/catalog";
+import { getAllCards } from "@/lib/custom-cards";
 import { formatPrice } from "@/lib/format";
 import { shouldUseLivePublicData } from "@/lib/public-live-data";
 import { getSleeves, type SleeveProduct } from "@/lib/sleeves";
@@ -116,7 +116,9 @@ export default async function SearchPage({
 
   const rawCardResults =
     terms.length > 0
-      ? CARDS.filter((card) => matchesTerms(searchableCardText(card), terms))
+      ? (await getAllCards({ cache: true })).filter((card) =>
+          matchesTerms(searchableCardText(card), terms),
+        )
       : [];
 
   const matchingSeries =

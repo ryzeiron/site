@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { getStripe } from "@/lib/stripe";
 import { auth } from "@/lib/auth";
 import { getCard, resolveVariant, type VariantKey } from "@/lib/catalog";
+import { getCardsByIds } from "@/lib/custom-cards";
 import { getFirstOrderPromoError } from "@/lib/first-order-promo";
 import { applyStockOverrides, revalidatePublicStockCache } from "@/lib/stock";
 import { getPromo } from "@/lib/promo";
@@ -377,8 +378,11 @@ export async function POST(request: Request) {
         ? 0
         : 1;
 
+    // Resolution groupee : couvre le catalogue statique et les cartes creees
+    // depuis l'admin, sinon une carte creee serait introuvable au paiement.
+    const cardsById = await getCardsByIds(cardItems.map((i) => i.cardId));
     const rawCards = cardItems
-      .map((i) => getCard(i.cardId))
+      .map((i) => cardsById.get(i.cardId))
       .filter((c): c is NonNullable<typeof c> => !!c);
 
     const liveCards = await applyStockOverrides(rawCards);

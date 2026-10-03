@@ -15,6 +15,7 @@ import { inArray } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { loyaltyLedger } from "@/lib/db/schema";
 import { getTierByPoints } from "@/lib/loyalty-tiers";
+import { getCardsByIds } from "@/lib/custom-cards";
 import { formatRarityLabel } from "@/lib/display-variants";
 import { getSleevesByIds, type SleeveProduct } from "@/lib/sleeves";
 import { applyStockOverrides } from "@/lib/stock";
@@ -297,8 +298,11 @@ export async function buildOrderContents(rows: OrderContentSource[]) {
   const cardIds = Array.from(
     new Set(decoded.flatMap((entry) => entry.cardItems.map(([cardId]) => cardId))),
   );
+  // Les commandes peuvent contenir des cartes creees depuis l'admin : sans cette
+  // resolution, leur ligne s'afficherait vide dans la commande et la facture.
+  const resolved = await getCardsByIds(cardIds);
   const rawCards = cardIds
-    .map((cardId) => getCard(cardId))
+    .map((cardId) => resolved.get(cardId))
     .filter((card): card is Card => Boolean(card));
   const liveCards = await applyStockOverrides(rawCards).catch(() => rawCards);
   const cardMap = new Map(liveCards.map((card) => [card.id, card]));

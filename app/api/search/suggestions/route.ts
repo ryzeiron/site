@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { CARDS, SERIES, getBloc, getSerie, type Card, type Serie } from "@/lib/catalog";
+import { getAllCards } from "@/lib/custom-cards";
 import { getSleeves } from "@/lib/sleeves";
 
 export const dynamic = "force-dynamic";
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ cards: [], series: [], sleeves: [] });
   }
 
-  const cards = CARDS.filter((card) => {
+  const cards = (await getAllCards({ cache: true })).filter((card) => {
     const text = cardSearchText(card);
     return terms.every((term) => text.includes(term));
   })
