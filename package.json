@@ -14,6 +14,7 @@
     "download:xy-promo-images": "node scripts/download-xy-promo-images.mjs",
     "download:mcdo-images": "node scripts/sync-mcdo-cards.mjs",
     "generate:30ans": "node scripts/generate-30ans.mjs",
+    "fetch:30ans": "node scripts/fetch-30ans-images.mjs",
     "export:emails": "node scripts/export-emails.mjs",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
