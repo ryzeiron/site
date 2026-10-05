@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { desc, eq, inArray, or } from "drizzle-orm";
 import LogoutButton from "@/components/LogoutButton";
+import AdminClientDiscounts from "@/components/AdminClientDiscounts";
 import { isAdmin } from "@/lib/admin/auth";
 import { getCard, resolveVariant } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
@@ -275,6 +276,11 @@ export default async function AdminClientsPage({
                     <div className="text-gray-200">{formatDate(selectedClient.createdAt)}</div>
                   </div>
                 </div>
+
+                <AdminClientDiscounts
+                  userId={selectedClient.id}
+                  clientLabel={clientDisplayName(selectedClient, selectedProfile)}
+                />
 
                 <AdminClientProfileCard profile={selectedProfile} />
 

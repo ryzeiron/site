@@ -27,6 +27,7 @@ import {
   sendToAdmin,
 } from "@/lib/mail";
 import { awardOrderPoints, redeemPoints } from "@/lib/loyalty";
+import { consumeUserDiscount } from "@/lib/user-discounts";
 import { normalizeSiteUrl } from "@/lib/site-url";
 import { decrementSleeveStock } from "@/lib/sleeves";
 import {
@@ -548,6 +549,16 @@ export async function POST(request: Request) {
         orderId: session.id,
         amountCents: loyaltyBaseCents(session),
       }).catch(() => null);
+    }
+
+    // La remise attribuee est consommee ici. consumeUserDiscount ne touche que
+    // les remises actives, donc un webhook rejoue ne la consomme pas deux fois.
+    const grantedDiscountId = metadataValue(metadata.user_discount_id);
+    if (grantedDiscountId) {
+      await consumeUserDiscount({
+        discountId: grantedDiscountId,
+        orderId: session.id,
+      }).catch(() => false);
     }
 
     await sendOrderNotifications({

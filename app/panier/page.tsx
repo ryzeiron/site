@@ -111,6 +111,16 @@ export default function CartPage() {
   const [promoError, setPromoError] = useState<string | null>(null);
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
 
+  const [grantedDiscounts, setGrantedDiscounts] = useState<
+    {
+      id: string;
+      type: "percent" | "amount";
+      percent: number | null;
+      amountOffCents: number | null;
+      label: string;
+    }[]
+  >([]);
+  const [selectedDiscountId, setSelectedDiscountId] = useState("");
   const [loyaltyBalance, setLoyaltyBalance] = useState(0);
   const [loyaltyConnected, setLoyaltyConnected] = useState(false);
   const [selectedTierPoints, setSelectedTierPoints] = useState(0);
@@ -194,11 +204,26 @@ export default function CartPage() {
 
     fetch("/api/loyalty")
       .then((r) => (r.ok ? r.json() : null))
-      .then((data: { balance?: number; connected?: boolean } | null) => {
-        if (cancelled || !data) return;
-        setLoyaltyBalance(data.balance ?? 0);
-        setLoyaltyConnected(Boolean(data.connected));
-      })
+      .then(
+        (
+          data: {
+            balance?: number;
+            connected?: boolean;
+            discounts?: {
+              id: string;
+              type: "percent" | "amount";
+              percent: number | null;
+              amountOffCents: number | null;
+              label: string;
+            }[];
+          } | null,
+        ) => {
+          if (cancelled || !data) return;
+          setLoyaltyBalance(data.balance ?? 0);
+          setLoyaltyConnected(Boolean(data.connected));
+          setGrantedDiscounts(data.discounts ?? []);
+        },
+      )
       .catch(() => {});
 
     return () => {
@@ -315,6 +340,8 @@ export default function CartPage() {
         ? Math.min(subtotal, appliedPromo.amountOffCents / 100)
         : 0;
 
+  const selectedDiscount =
+    grantedDiscounts.find((d) => d.id === selectedDiscountId) ?? null;
   const selectedTier = getTierByPoints(selectedTierPoints);
   const affordableTiers = getAffordableTiers(loyaltyBalance);
 
@@ -329,9 +356,18 @@ export default function CartPage() {
   const freeShipping =
     appliedPromo?.type === "free_shipping" ||
     selectedTier?.type === "free_shipping";
+  // Remise attribuee depuis l'admin : meme calcul que les paliers de fidelite.
+  const grantedDiscountCents = !selectedDiscount
+    ? 0
+    : selectedDiscount.type === "percent"
+      ? Math.round(
+          (promoEligibleSubtotal * 100 * (selectedDiscount.percent ?? 0)) / 100,
+        )
+      : Math.min(selectedDiscount.amountOffCents ?? 0, subtotalCents);
+
   const totalCents = Math.max(
     0,
-    subtotalCents - discountCents - loyaltyDiscountCents,
+    subtotalCents - discountCents - loyaltyDiscountCents - grantedDiscountCents,
   );
   const shippingBaseCents = MR_PRICE_BY_COUNTRY[country];
   const shippingCents = freeShipping ? 0 : shippingBaseCents;
@@ -437,6 +473,7 @@ export default function CartPage() {
               ? undefined
               : appliedPromo?.code,
           loyaltyTierPoints: selectedTierPoints || undefined,
+          userDiscountId: selectedDiscountId || undefined,
           relay: selectedRelay,
           country,
           acceptedCgv,
@@ -817,6 +854,44 @@ export default function CartPage() {
             )}
           </div>
 
+          {grantedDiscounts.length > 0 && (
+            <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-3">
+              <div className="mb-2 text-sm font-semibold text-white">
+                Remise qui t&apos;a ete attribuee
+              </div>
+
+              <div className="space-y-1.5">
+                {grantedDiscounts.map((discount) => {
+                  const active = selectedDiscountId === discount.id;
+
+                  return (
+                    <button
+                      key={discount.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedDiscountId(active ? "" : discount.id);
+                        // Non cumulable : selectionner l'une retire l'autre.
+                        if (!active) setSelectedTierPoints(0);
+                      }}
+                      className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
+                        active
+                          ? "bg-emerald-500/30 text-white"
+                          : "bg-black/20 text-gray-200 hover:bg-emerald-500/20"
+                      }`}
+                    >
+                      {active ? "\u2713 " : ""}
+                      {discount.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <p className="mt-2 text-[11px] text-emerald-100/80">
+                Non cumulable avec un code promo ni avec les points.
+              </p>
+            </div>
+          )}
+
           {loyaltyConnected && affordableTiers.length > 0 && (
             <div className="mb-3 border-t border-white/10 pt-3">
               <div className="flex items-center justify-between gap-2">
@@ -1059,6 +1134,13 @@ export default function CartPage() {
                   )
                 </span>
                 <span>- {formatPrice(loyaltyDiscountCents / 100)}</span>
+              </div>
+            )}
+
+            {grantedDiscountCents > 0 && (
+              <div className="flex items-center justify-between text-emerald-300">
+                <span>Remise attribuee</span>
+                <span>- {formatPrice(grantedDiscountCents / 100)}</span>
               </div>
             )}
 

@@ -18,6 +18,7 @@ import {
 import { isPromoExcludedCard } from "@/lib/promo-exclusions";
 import { getPointsBalance } from "@/lib/loyalty";
 import { getTierByPoints } from "@/lib/loyalty-tiers";
+import { getUserDiscount } from "@/lib/user-discounts";
 import {
   attachStockReservationSession,
   getReservedStockReservationSessionIds,
@@ -34,6 +35,7 @@ type Body = {
   cartId?: string;
   promoCode?: string;
   loyaltyTierPoints?: number;
+  userDiscountId?: string;
   country?: Country;
   relay?: {
     code: string;
@@ -304,11 +306,51 @@ export async function POST(request: Request) {
       }
     }
 
+    // Remise attribuee au compte depuis l'admin : aucun code a saisir, donc
+    // aucune correspondance d'email a faire coincider.
+    const requestedDiscountId = body.userDiscountId?.trim() ?? "";
+    let userDiscount = null;
+
+    if (requestedDiscountId) {
+      if (!sessionUser?.user?.id) {
+        return NextResponse.json(
+          { error: "Connecte-toi pour utiliser ta remise." },
+          { status: 401 },
+        );
+      }
+
+      if (promo || stripePromotionCodeId) {
+        return NextResponse.json(
+          { error: "Une remise n'est pas cumulable avec un code promo." },
+          { status: 400 },
+        );
+      }
+
+      userDiscount = await getUserDiscount(
+        sessionUser.user.id,
+        requestedDiscountId,
+      );
+
+      if (!userDiscount) {
+        return NextResponse.json(
+          { error: "Cette remise n'est plus disponible." },
+          { status: 400 },
+        );
+      }
+    }
+
     const requestedTierPoints =
       typeof body.loyaltyTierPoints === "number" ? body.loyaltyTierPoints : 0;
     let loyaltyTier = null;
 
     if (requestedTierPoints > 0) {
+      if (userDiscount) {
+        return NextResponse.json(
+          { error: "Une remise n'est pas cumulable avec les points." },
+          { status: 400 },
+        );
+      }
+
       if (promo || stripePromotionCodeId) {
         return NextResponse.json(
           {
@@ -364,15 +406,19 @@ export async function POST(request: Request) {
 
     const loyaltyPercent =
       loyaltyTier?.type === "percent" ? loyaltyTier.percent : 0;
+    const grantedPercent =
+      userDiscount?.type === "percent" ? (userDiscount.percent ?? 0) : 0;
     const hasPercentDiscount =
-      promo?.type === "percent_off" || loyaltyPercent > 0;
+      promo?.type === "percent_off" || loyaltyPercent > 0 || grantedPercent > 0;
 
     const percentMultiplier =
       promo?.type === "percent_off"
         ? 1 - promo.percent / 100
         : loyaltyPercent > 0
           ? 1 - loyaltyPercent / 100
-          : 1;
+          : grantedPercent > 0
+            ? 1 - grantedPercent / 100
+            : 1;
     const shippingMultiplier =
       promo?.type === "free_shipping" || loyaltyTier?.type === "free_shipping"
         ? 0
@@ -621,6 +667,27 @@ export async function POST(request: Request) {
           )
         : 0;
 
+    const grantedAmountCents =
+      userDiscount?.type === "amount"
+        ? Math.min(
+            userDiscount.amountOffCents ?? 0,
+            Math.max(
+              0,
+              itemsTotalCents +
+                relayCents +
+                chargedInsuranceFeeCents -
+                MIN_STRIPE_TOTAL_CENTS,
+            ),
+          )
+        : 0;
+
+    if (userDiscount?.type === "amount" && grantedAmountCents <= 0) {
+      return NextResponse.json(
+        { error: "Le panier est trop petit pour utiliser cette remise." },
+        { status: 400 },
+      );
+    }
+
     if (loyaltyTier?.type === "amount" && loyaltyDiscountCents <= 0) {
       return NextResponse.json(
         {
@@ -635,7 +702,8 @@ export async function POST(request: Request) {
       itemsTotalCents +
       relayCents +
       chargedInsuranceFeeCents -
-      loyaltyDiscountCents;
+      loyaltyDiscountCents -
+      grantedAmountCents;
 
     if (checkoutTotalCents < MIN_STRIPE_TOTAL_CENTS) {
       return NextResponse.json(
@@ -712,6 +780,17 @@ export async function POST(request: Request) {
 
     let loyaltyCouponId: string | null = null;
 
+    if (userDiscount?.type === "amount" && grantedAmountCents > 0) {
+      const grantedCoupon = await stripe.coupons.create({
+        amount_off: grantedAmountCents,
+        currency: "eur",
+        duration: "once",
+        name: `Remise client${userDiscount.note ? ` - ${userDiscount.note}` : ""}`,
+        max_redemptions: 1,
+      });
+      loyaltyCouponId = grantedCoupon.id;
+    }
+
     if (loyaltyTier?.type === "amount" && loyaltyDiscountCents > 0) {
       const loyaltyCoupon = await stripe.coupons.create({
         amount_off: loyaltyDiscountCents,
@@ -741,6 +820,7 @@ export async function POST(request: Request) {
           ...(loyaltyTier
             ? { loyalty_redeem_points: String(loyaltyTier.points) }
             : {}),
+          ...(userDiscount ? { user_discount_id: userDiscount.id } : {}),
         },
         success_url: `${origin}/suivi-commande/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/annule`,

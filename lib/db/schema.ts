@@ -270,6 +270,21 @@ export const orderPreparationItems = pgTable(
 
 // Cartes creees depuis l'admin. Elles n'ont aucune contrepartie dans
 // lib/catalog/cards/*.ts : cette ligne est leur seule existence.
+// Remise attribuee a un client depuis l'admin. Contrairement a un code promo,
+// elle est liee au compte : rien a saisir, rien a faire correspondre.
+export const userDiscounts = pgTable("user_discounts", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  type: text("type").notNull(), // percent | amount
+  percent: integer("percent"),
+  amountOffCents: integer("amount_off_cents"),
+  note: text("note"),
+  status: text("status").notNull().default("active"), // active | used
+  orderId: text("order_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+});
+
 export const customCards = pgTable("custom_cards", {
   cardId: text("card_id").primaryKey(),
   serieId: text("serie_id").notNull(),
