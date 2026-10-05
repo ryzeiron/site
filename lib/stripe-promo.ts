@@ -74,6 +74,58 @@ export async function getStripePromotionCode(
   return match?.promotionCode ?? null;
 }
 
+// Pourquoi un code a ete refuse. Sans cette distinction, un client non connecte
+// et un code expire recoivent le meme message, et le support est impossible.
+export type StripePromoRejection =
+  | "unknown"
+  | "needs_login"
+  | "other_account"
+  | "expired";
+
+export async function diagnoseStripePromoCode(
+  code: string | undefined | null,
+  customerEmail?: string | null,
+): Promise<StripePromoRejection> {
+  const cleaned = cleanPromoCode(code);
+  if (!cleaned) return "unknown";
+
+  const stripe = getStripe();
+  const cleanedCustomerEmail = cleanEmail(customerEmail);
+
+  // Sans le filtre active, on voit aussi les codes desactives ou epuises, ce qui
+  // permet de distinguer "inconnu" de "expire".
+  const promotionCodes = await stripe.promotionCodes
+    .list({
+      code: cleaned,
+      expand: ["data.promotion.coupon", "data.customer"],
+      limit: 10,
+    })
+    .catch(() => null);
+
+  if (!promotionCodes || promotionCodes.data.length === 0) return "unknown";
+
+  let sawRestricted = false;
+
+  for (const promo of promotionCodes.data) {
+    if (promo.code.toUpperCase() !== cleaned) continue;
+
+    const coupon = getCoupon(promo);
+    if (!promo.active || !coupon?.valid) continue;
+
+    const restrictedCustomer = await getRestrictedCustomer(stripe, promo);
+    if (!restrictedCustomer) continue;
+
+    sawRestricted = true;
+    if (restrictedCustomer.email === cleanedCustomerEmail) return "unknown";
+  }
+
+  if (sawRestricted) {
+    return cleanedCustomerEmail ? "other_account" : "needs_login";
+  }
+
+  return "expired";
+}
+
 export async function getStripePromotionCodeMatch(
   code: string | undefined | null,
   customerEmail?: string | null,

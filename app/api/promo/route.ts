@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getFirstOrderPromoError } from "@/lib/first-order-promo";
 import { getPromo } from "@/lib/promo";
-import { getStripePromoEffect } from "@/lib/stripe-promo";
+import {
+  diagnoseStripePromoCode,
+  getStripePromoEffect,
+} from "@/lib/stripe-promo";
 
 export async function POST(request: Request) {
   try {
@@ -33,9 +36,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ promo: stripePromo });
     }
 
+    // Quatre refus distincts donnaient le meme message : impossible pour le
+    // client de comprendre, impossible pour la boutique de diagnostiquer.
+    const reason = await diagnoseStripePromoCode(
+      body.code,
+      session?.user?.email,
+    ).catch(() => "unknown" as const);
+
+    const messages = {
+      needs_login:
+        "Ce code est reserve a un compte. Connecte-toi avec l'adresse a laquelle il a ete attribue.",
+      other_account:
+        "Ce code est reserve a un autre compte que le tien.",
+      expired: "Ce code a expire ou a deja ete utilise.",
+      unknown: "Code promo inconnu.",
+    };
+
     return NextResponse.json(
-      { error: "Code promo invalide ou reserve a un autre compte." },
-      { status: 404 },
+      { error: messages[reason], reason },
+      { status: reason === "needs_login" ? 403 : 404 },
     );
   } catch {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
