@@ -7,6 +7,7 @@ import { getCard, resolveVariant } from "@/lib/catalog";
 import { getDb } from "@/lib/db/client";
 import { favoriteCards, favoriteSleeves } from "@/lib/db/schema";
 import { formatRarityLabel } from "@/lib/display-variants";
+import QuickAddCardButton from "@/components/QuickAddCardButton";
 import { formatPrice } from "@/lib/format";
 import { getSleevesByIds } from "@/lib/sleeves";
 import { applyStockOverrides } from "@/lib/stock";
@@ -200,6 +201,15 @@ export default async function FavorisPage({
                             : `${variant.stock} en stock`}
                         </div>
                       </Link>
+
+                      {!outOfStock ? (
+                        <div className="mt-2">
+                          <QuickAddCardButton
+                            card={card}
+                            variantKey={favorite.variant}
+                          />
+                        </div>
+                      ) : null}
 
                       <FavoriteRemoveButton
                         type="card"
