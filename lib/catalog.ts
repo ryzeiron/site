@@ -14,6 +14,7 @@ import { MCDO_CARDS } from "./catalog/cards/mcdo";
 import { TRAINER_KIT_CARDS } from "./catalog/cards/trainer-kit";
 import { DETECTIVE_PIKACHU_CARDS } from "./catalog/cards/detective-pikachu";
 import { TRENTE_ANS_CARDS } from "./catalog/cards/30-ans";
+import { REGNE_DELTA_CARDS } from "./catalog/cards/regne-delta";
 
 // Catalogue : blocs > series > cartes 
 // Prix en euros (ex: 15 = 15 EUR, 0.5 = 50 centimes)
@@ -349,6 +350,7 @@ export const SERIES: Serie[] = [
   { id: "me04", blocId: "mega-evolution", code: "ME04", name: "Chaos Ascendant", releaseYear: 2026, image: "/series/ME/CRI.webp",},
   { id: "me05", blocId: "mega-evolution", code: "ME05", name: "Nuit Noire", releaseYear: 2026, image: "/series/ME/me05.png", comingSoon: false },
   { id: "30ans", blocId: "mega-evolution", code: "ME05.5", name: "30e Anniversaire", releaseYear: 2026, image: "/series/ME/30C.webp", },
+  { id: "me06", blocId: "mega-evolution", code: "ME06", name: "Règne Delta", releaseYear: 2026, image: "/series/ME/me06.webp", },
 
   // Écarlate et Violet
   { id: "promo", blocId: "ecarlate-et-violet", code: "Promo", name: "Écarlate et Violet", releaseYear: 2023, image: "/series/EV/SVP.webp", },
@@ -521,6 +523,7 @@ export const SERIES: Serie[] = [
 ];
 
 export const CARDS: Card[] = [
+  ...REGNE_DELTA_CARDS,
   ...TRENTE_ANS_CARDS,
   ...MEGA_EVOLUTION_CARDS,
   ...ECARLATE_ET_VIOLET_CARDS,
