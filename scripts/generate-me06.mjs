@@ -83,9 +83,13 @@ async function findSet() {
 
   const sets = await fetchJson(`${API}/sets`);
 
-  // "delta" seul : tcgdex peut nommer le set autrement que "Regne Delta",
-  // notamment juste apres une sortie ou avant la traduction du nom.
-  const matches = sets.filter((set) => normalize(set.name).includes("delta"));
+  // Les deux mots sont exiges. Avec "delta" seul, le script avait importe
+  // Especes Delta, un set de 2005, parce que Regne Delta n'existait pas encore
+  // chez tcgdex : une correspondance trop large est pire qu'aucune.
+  const matches = sets.filter((set) => {
+    const n = normalize(set.name);
+    return n.includes("regne") && n.includes("delta");
+  });
 
   if (matches.length === 0) {
     // Plutot qu'un echec sec, on montre ce que tcgdex a reellement : le set
@@ -99,15 +103,14 @@ async function findSet() {
     }
 
     throw new Error(
-      "Aucun set FR dont le nom contient \"delta\".\n" +
+      "Aucun set FR nomme Regne Delta.\n" +
         "L'extension vient de sortir, tcgdex ne l'a sans doute pas encore.\n" +
         "Si tu la reconnais ci-dessus, relance avec --set=<id>.\n" +
         "Sinon, reessaie dans quelques jours.",
     );
   }
 
-  const preferred =
-    matches.find((set) => normalize(set.name).includes("regne")) ?? matches[0];
+  const preferred = matches[0];
 
   if (matches.length > 1) {
     console.log("Plusieurs sets correspondent :");
@@ -181,10 +184,18 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
 
   console.log(`\n${cards.length} cartes dans le set.`);
 
+  if (cards.length > 141) {
+    throw new Error(
+      `Le set ${setId} contient ${cards.length} cartes, or Regne Delta en compte 141.\n` +
+        `Ce n'est pas le bon set. Verifie son identifiant avant de relancer.`,
+    );
+  }
+
   if (cards.length !== 141) {
     console.log(
       `ATTENTION : 141 cartes attendues, ${cards.length} recues.\n` +
-        `Le set est peut-etre encore incomplet chez tcgdex.`,
+        `Le set est sans doute encore incomplet chez tcgdex : relance plus tard,\n` +
+        `les visuels deja presents ne seront pas retelecharges.`,
     );
   }
 
