@@ -350,9 +350,6 @@ export const SERIES: Serie[] = [
   { id: "me04", blocId: "mega-evolution", code: "ME04", name: "Chaos Ascendant", releaseYear: 2026, image: "/series/ME/CRI.webp",},
   { id: "me05", blocId: "mega-evolution", code: "ME05", name: "Nuit Noire", releaseYear: 2026, image: "/series/ME/me05.png", comingSoon: false },
   { id: "30ans", blocId: "mega-evolution", code: "ME05.5", name: "30e Anniversaire", releaseYear: 2026, image: "/series/ME/30C.webp", },
-  // Pas d'image tant que le logo n'est pas telecharge : SerieTile affiche
-  // alors le code de la serie au lieu d'une image cassee. Passe comingSoon a
-  // false et remets image une fois generate:me06 passe.
   { id: "me06", blocId: "mega-evolution", code: "ME06", name: "Règne Delta", releaseYear: 2026, image: "/series/ME/me06.webp", },
 
   // Écarlate et Violet
