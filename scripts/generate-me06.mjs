@@ -82,21 +82,32 @@ async function findSet() {
   }
 
   const sets = await fetchJson(`${API}/sets`);
-  const matches = sets.filter((set) => {
-    const n = normalize(set.name);
-    return n.includes("regne") && n.includes("delta");
-  });
+
+  // "delta" seul : tcgdex peut nommer le set autrement que "Regne Delta",
+  // notamment juste apres une sortie ou avant la traduction du nom.
+  const matches = sets.filter((set) => normalize(set.name).includes("delta"));
 
   if (matches.length === 0) {
+    // Plutot qu'un echec sec, on montre ce que tcgdex a reellement : le set
+    // peut y figurer sous un nom inattendu, et l'identifiant suffit alors.
+    const recents = sets.slice(-15).reverse();
+
+    console.log("\nDerniers sets connus de tcgdex en FR :");
+    for (const set of recents) {
+      const total = set.cardCount?.total ?? set.cardCount?.official ?? "?";
+      console.log(`  ${String(set.id).padEnd(12)} ${String(set.name).padEnd(38)} ${total} cartes`);
+    }
+
     throw new Error(
-      "Aucun set FR nomme Regne Delta.\n" +
-        "L'extension vient de sortir : tcgdex ne l'a peut-etre pas encore.\n" +
-        "Verifie sur https://api.tcgdex.net/v2/fr/sets puis relance avec --set=<id>",
+      "Aucun set FR dont le nom contient \"delta\".\n" +
+        "L'extension vient de sortir, tcgdex ne l'a sans doute pas encore.\n" +
+        "Si tu la reconnais ci-dessus, relance avec --set=<id>.\n" +
+        "Sinon, reessaie dans quelques jours.",
     );
   }
 
   const preferred =
-    matches.find((set) => normalize(set.name).startsWith("regne")) ?? matches[0];
+    matches.find((set) => normalize(set.name).includes("regne")) ?? matches[0];
 
   if (matches.length > 1) {
     console.log("Plusieurs sets correspondent :");
@@ -313,5 +324,5 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
   }
 })().catch((e) => {
   console.error(`\nErreur : ${e.message}`);
-  process.exit(1);
+  process.exitCode = 1;
 });
