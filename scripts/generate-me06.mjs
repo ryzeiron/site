@@ -305,17 +305,19 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
   // vide. On la reactive et on lui rend son logo, maintenant qu'ils existent.
   const CATALOG = resolve(ROOT, "lib/catalog.ts");
   let catalogue = readFileSync(CATALOG, "utf8");
-  const ligneHorsLigne =
-    '  { id: "me06", blocId: "mega-evolution", code: "ME06", name: "Règne Delta", releaseYear: 2026, comingSoon: true, },';
+  const sansImage =
+    '  { id: "me06", blocId: "mega-evolution", code: "ME06", name: "Règne Delta", releaseYear: 2026, },';
 
-  if (catalogue.includes(ligneHorsLigne)) {
-    const logo = existsSync(SERIE_LOGO) ? ' image: "/series/ME/me06.webp",' : "";
+  // On retire aussi comingSoon s'il a ete remis entre-temps.
+  catalogue = catalogue.replace(" comingSoon: true, }, // me06", " },");
+
+  if (existsSync(SERIE_LOGO) && catalogue.includes(sansImage)) {
     catalogue = catalogue.replace(
-      ligneHorsLigne,
-      `  { id: "me06", blocId: "mega-evolution", code: "ME06", name: "Règne Delta", releaseYear: 2026,${logo} },`,
+      sansImage,
+      '  { id: "me06", blocId: "mega-evolution", code: "ME06", name: "Règne Delta", releaseYear: 2026, image: "/series/ME/me06.webp", },',
     );
     writeFileSync(CATALOG, catalogue, "utf8");
-    console.log(`\nSerie remise en ligne dans lib/catalog.ts`);
+    console.log(`\nLogo de serie rattache dans lib/catalog.ts`);
   }
 
   console.log(`\n=== TERMINE ===`);
