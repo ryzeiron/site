@@ -48,11 +48,6 @@ type AdminHrefParams = {
 
 const ADMIN_PAGE_SIZE = 50;
 
-type AdminSerieGroup = {
-  label: string;
-  seriesIds: readonly string[];
-};
-
 type InventoryValueSummary = {
   totalValueCents: number;
   totalUnits: number;
@@ -67,162 +62,6 @@ type AdminCardGroup = {
   serieCode: string;
   cards: Card[];
 };
-
-// Change l'ordre ici pour ranger les groupes et les series dans le menu admin.
-const ADMIN_SERIE_GROUPS: readonly AdminSerieGroup[] = [
-  {
-    label: "ME",
-    seriesIds: [
-      "me-promo",
-      "me01",
-      "me02",
-      "me02.5",
-      "me03",
-      "me04",
-      "me05",
-    ],
-  },
-  {
-    label: "EV",
-    seriesIds: [
-      "promo",
-      "ev01",
-      "ev02",
-      "ev03",
-      "ev03.5",
-      "ev04",
-      "ev04.5",
-      "ev05",
-      "ev06",
-      "ev06.5",
-      "ev07",
-      "ev08",
-      "ev08.5",
-      "ev09",
-      "ev10",
-      "ev10.5",
-      "foudre-noire",
-    ],
-  },
-  {
-    label: "EB",
-    seriesIds: [
-      "promo-eb",
-      "eb01",
-      "eb02",
-      "eb03",
-      "eb03.5",
-      "eb04",
-      "eb04.5",
-      "eb05",
-      "eb06",
-      "eb07",
-      "eb07.5",
-      "eb08",
-      "eb09",
-      "eb10",
-      "eb10.5",
-      "eb11",
-      "eb12",
-      "crown-zenith",
-    ],
-  },
-  {
-    label: "SL",
-    seriesIds: [
-      "PRSM",
-      "sl01",
-      "sl02",
-      "sl03",
-      "sl03.5",
-      "sl04",
-      "sl05",
-      "sl06",
-      "sl07",
-      "sl07.5",
-      "sl08",
-      "sl09",
-      "sl10",
-      "sl11",
-      "sl11.5",
-      "sl12",
-    ],
-  },
-  {
-    label: "XY",
-    seriesIds: [
-      "prxy",
-      "xy00",
-      "xy01",
-      "xy02",
-      "xy03",
-      "xy04",
-      "xy05",
-      "xy05.5",
-      "xy06",
-      "xy07",
-      "xy08",
-      "xy09",
-      "xy09.5",
-      "xy10",
-      "xy11",
-      "xy12",
-    ],
-  },
-  {
-    label: "NB",
-    seriesIds: [
-      "prbw",
-      "nb01",
-      "nb02",
-      "nb03",
-      "nb04",
-      "nb05",
-      "nb06",
-      "nb07",
-      "nb07.5",
-      "nb08",
-      "nb09",
-      "nb10",
-    ],
-  },
-  {
-    label: "ADL",
-    seriesIds: ["adl"],
-  },
-  {
-    label: "HGSS",
-    seriesIds: ["prhgss", "HGSS01", "HGSS02", "HGSS03", "HGSS04"],
-  },
-  {
-    label: "PT",
-    seriesIds: ["PT01", "PT02", "PT03", "PT04"],
-  },
-  {
-    label: "DP",
-    seriesIds: ["PRDP", "DP01", "DP02", "DP03", "DP04", "DP05", "DP06", "DP07"],
-  },
-  {
-    label: "EX",
-    seriesIds: [
-      "EX01",
-      "EX02",
-      "EX03",
-      "EX04",
-      "EX05",
-      "EX06",
-      "EX07",
-      "EX08",
-      "EX09",
-      "EX010",
-      "EX011",
-      "EX012",
-      "EX013",
-      "EX014",
-      "EX015",
-    ],
-  },
-];
 
 function normalizeSearch(value: string) {
   return value
@@ -543,22 +382,29 @@ function adminHref({
   return search ? `/admin?${search}` : "/admin";
 }
 
+// Les groupes du filtre sont derives des blocs du catalogue plutot que d'une
+// liste tenue a la main : une serie ajoutee se range toute seule dans son bloc,
+// au lieu de tomber dans "Autres" parce qu'on a oublie de l'inscrire.
 function getAdminSerieGroups() {
-  const groupedSerieIds = new Set(
-    ADMIN_SERIE_GROUPS.flatMap((group) => group.seriesIds),
-  );
-  const groups = ADMIN_SERIE_GROUPS.map((group) => ({
-    label: group.label,
-    series: group.seriesIds
-      .map((id) => SERIES.find((serie) => serie.id === id))
-      .filter((serie): serie is Serie => Boolean(serie)),
-  })).filter((group) => group.series.length > 0);
-  const otherSeries = SERIES.filter((serie) => !groupedSerieIds.has(serie.id))
-    .sort((a, b) => a.code.localeCompare(b.code, "fr", { numeric: true }));
+  const parBloc = new Map<string, Serie[]>();
 
-  if (otherSeries.length === 0) return groups;
+  for (const serie of SERIES) {
+    parBloc.set(serie.blocId, [...(parBloc.get(serie.blocId) ?? []), serie]);
+  }
 
-  return [...groups, { label: "Autres", series: otherSeries }];
+  // L'ordre des blocs et des series suit celui du catalogue, du plus recent au
+  // plus ancien, ce qui met les sorties du moment en haut de la liste.
+  const groups = BLOCS.filter((bloc) => parBloc.has(bloc.id)).map((bloc) => ({
+    label: bloc.name,
+    series: parBloc.get(bloc.id) ?? [],
+  }));
+
+  const blocIds = new Set(BLOCS.map((bloc) => bloc.id));
+  const orphelines = SERIES.filter((serie) => !blocIds.has(serie.blocId));
+
+  if (orphelines.length === 0) return groups;
+
+  return [...groups, { label: "Hors bloc", series: orphelines }];
 }
 
 // Classe les resultats dans l'ordre du catalogue : bloc, puis serie, puis
