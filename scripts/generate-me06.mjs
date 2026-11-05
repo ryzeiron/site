@@ -8,7 +8,7 @@
 // Tout est en francais. Si un visuel FR n'existe pas, la carte est signalee et
 // aucun visuel anglais n'est utilise a la place.
 
-import { writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { writeFileSync, readFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Buffer } from "node:buffer";
@@ -300,6 +300,23 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
 
   mkdirSync(dirname(OUT_FILE), { recursive: true });
   writeFileSync(OUT_FILE, lines.join("\n"), "utf8");
+
+  // Remise en ligne : la serie etait marquee "Prochainement" tant qu'elle etait
+  // vide. On la reactive et on lui rend son logo, maintenant qu'ils existent.
+  const CATALOG = resolve(ROOT, "lib/catalog.ts");
+  let catalogue = readFileSync(CATALOG, "utf8");
+  const ligneHorsLigne =
+    '  { id: "me06", blocId: "mega-evolution", code: "ME06", name: "Règne Delta", releaseYear: 2026, comingSoon: true, },';
+
+  if (catalogue.includes(ligneHorsLigne)) {
+    const logo = existsSync(SERIE_LOGO) ? ' image: "/series/ME/me06.webp",' : "";
+    catalogue = catalogue.replace(
+      ligneHorsLigne,
+      `  { id: "me06", blocId: "mega-evolution", code: "ME06", name: "Règne Delta", releaseYear: 2026,${logo} },`,
+    );
+    writeFileSync(CATALOG, catalogue, "utf8");
+    console.log(`\nSerie remise en ligne dans lib/catalog.ts`);
+  }
 
   console.log(`\n=== TERMINE ===`);
   console.log(`Fichier  : ${OUT_FILE}`);
