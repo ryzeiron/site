@@ -44,7 +44,8 @@ export async function POST(request: Request) {
   try {
     const db = getDb();
 
-    await db
+    const ecritures = [
+      db
       .insert(activeVisitors)
       .values({
         visitorId,
@@ -61,9 +62,9 @@ export async function POST(request: Request) {
           path,
           lastSeenAt: now,
         },
-      });
+      }),
 
-    await db
+      db
       .insert(visitorDailyStats)
       .values({
         visitorId,
@@ -85,9 +86,9 @@ export async function POST(request: Request) {
           lastSeenAt: now,
           pingCount: sql`${visitorDailyStats.pingCount} + 1`,
         },
-      });
+      }),
 
-    await db
+      db
       .insert(visitorHourlyStats)
       .values({
         visitorId,
@@ -110,7 +111,10 @@ export async function POST(request: Request) {
           lastSeenAt: now,
           pingCount: sql`${visitorHourlyStats.pingCount} + 1`,
         },
-      });
+      }),
+    ];
+
+    await Promise.all(ecritures);
 
     if (Math.random() < 0.02) {
       await db
