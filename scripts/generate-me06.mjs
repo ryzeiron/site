@@ -19,7 +19,7 @@ const OUT_FILE = resolve(ROOT, "lib/catalog/cards/regne-delta.ts");
 const SERIE_ID = "me06";
 const EXPORT_NAME = "REGNE_DELTA_CARDS";
 const SERIE_DIR = resolve(ROOT, "public/cartes", SERIE_ID);
-const SERIE_LOGO = resolve(ROOT, "public/series/ME/me06.webp");
+const SERIE_LOGO = resolve(ROOT, "public/series/ME/DLR.webp");
 
 const API = "https://api.tcgdex.net/v2/fr";
 const CONCURRENCY = 6;
@@ -232,7 +232,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
   } else if (!setData.logo) {
     console.log(
       `\nAucun logo fourni par tcgdex pour ce set.\n` +
-        `Depose-le toi-meme dans public/series/ME/me06.webp`,
+        `Depose-le toi-meme dans public/series/ME/DLR.webp`,
     );
   } else {
     // Les deux formats sont tentes : tcgdex donne l'URL sans extension et le
@@ -255,7 +255,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
       console.log(
         `\nLogo de serie introuvable aux deux formats.\n` +
           `  URL tentee : ${setData.logo}.webp\n` +
-          `  Depose-le toi-meme dans public/series/ME/me06.webp`,
+          `  Depose-le toi-meme dans public/series/ME/DLR.webp`,
       );
     }
   }
@@ -364,7 +364,7 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
   if (existsSync(SERIE_LOGO) && catalogue.includes(sansImage)) {
     catalogue = catalogue.replace(
       sansImage,
-      '  { id: "me06", blocId: "mega-evolution", code: "ME06", name: "Règne Delta", releaseYear: 2026, image: "/series/ME/me06.webp", },',
+      '  { id: "me06", blocId: "mega-evolution", code: "ME06", name: "Règne Delta", releaseYear: 2026, image: "/series/ME/DLR.webp", },',
     );
     writeFileSync(CATALOG, catalogue, "utf8");
     console.log(`\nLogo de serie rattache dans lib/catalog.ts`);
