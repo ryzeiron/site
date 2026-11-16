@@ -27,6 +27,7 @@ const CONCURRENCY = 6;
 // Au-dela de ce numero, la carte est secrete : 103 cartes de serie, 141 au
 // total. Une secrete n'a pas de Reverse.
 const DERNIERE_CARTE_SERIE = 103;
+const TOTAL_CARTES = 141;
 
 // Raretes qui n'ont jamais de Reverse.
 const SANS_REVERSE = [
@@ -164,7 +165,8 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
     `  { id: ${JSON.stringify(id)}, serieId: ${JSON.stringify(SERIE_ID)}, ` +
     `name: ${JSON.stringify(name)}, number: ${JSON.stringify(number)}, ` +
     `rarity: ${JSON.stringify(baseRarity)}, condition: "Near Mint", language: "FR", ` +
-    `price: 0.5, stock: 0, image: ${JSON.stringify(image)}`;
+    `price: 0.5, stock: 0` +
+    (image ? `, image: ${JSON.stringify(image)}` : "");
 
   if (withReverse) {
     line += `, altVariant: { rarity: "Reverse", price: 0.5, stock: 0 }`;
@@ -184,16 +186,16 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
 
   console.log(`\n${cards.length} cartes dans le set.`);
 
-  if (cards.length > 141) {
+  if (cards.length > TOTAL_CARTES) {
     throw new Error(
-      `Le set ${setId} contient ${cards.length} cartes, or Regne Delta en compte 141.\n` +
+      `Le set ${setId} contient ${cards.length} cartes, or Regne Delta en compte ${TOTAL_CARTES}.\n` +
         `Ce n'est pas le bon set. Verifie son identifiant avant de relancer.`,
     );
   }
 
-  if (cards.length !== 141) {
+  if (cards.length !== TOTAL_CARTES) {
     console.log(
-      `ATTENTION : 141 cartes attendues, ${cards.length} recues.\n` +
+      `ATTENTION : ${TOTAL_CARTES} cartes attendues, ${cards.length} recues.\n` +
         `Le set est sans doute encore incomplet chez tcgdex : relance plus tard,\n` +
         `les visuels deja presents ne seront pas retelecharges.`,
     );
@@ -282,26 +284,42 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
   let withReverseCount = 0;
   let secretes = 0;
 
+  // On ecrit toujours les 141 emplacements, et on remplit ceux que tcgdex
+  // connait. Si le set n'est encore que partiel, les emplacements manquants
+  // restent en place au lieu de disparaitre du site.
+  const parNumero = new Map();
   for (const card of cards) {
-    const full = details.get(card.id);
-    const localId = card.localId;
-    const rarity = full?.rarity ?? "Commune";
-    const name = full?.name ?? card.name ?? "Carte inconnue";
-    const numero = Number.parseInt(localId, 10);
-    const estSecrete = !Number.isNaN(numero) && numero > DERNIERE_CARTE_SERIE;
-    const withReverse = hasReverse(rarity, localId);
+    const numero = Number.parseInt(card.localId, 10);
+    if (!Number.isNaN(numero)) parNumero.set(numero, card);
+  }
 
+  let remplis = 0;
+
+  for (let numero = 1; numero <= TOTAL_CARTES; numero++) {
+    const num = String(numero).padStart(3, "0");
+    const estSecrete = numero > DERNIERE_CARTE_SERIE;
+    const card = parNumero.get(numero);
+    const full = card ? details.get(card.id) : undefined;
+
+    // Un emplacement non pourvu garde la rarete deduite de son rang et n'a ni
+    // nom ni visuel : il reste visible, pret a etre complete plus tard.
+    const rarity = full?.rarity ?? (estSecrete ? "Secrete" : "Commune");
+    const name = full?.name ?? card?.name ?? "";
+    const aSonVisuel = card ? existsSync(resolve(SERIE_DIR, `${card.localId}.webp`)) : false;
+    const withReverse = card ? hasReverse(rarity, card.localId) : !estSecrete;
+
+    if (card) remplis++;
     if (estSecrete) secretes++;
     if (withReverse) withReverseCount++;
     rarities.set(rarity, (rarities.get(rarity) ?? 0) + 1);
 
     lines.push(
       cardEntry({
-        id: `${SERIE_ID}-${String(localId).padStart(3, "0")}`,
+        id: `${SERIE_ID}-${num}`,
         name,
-        number: `${String(localId).padStart(3, "0")}/${DERNIERE_CARTE_SERIE}`,
+        number: `${num}/${DERNIERE_CARTE_SERIE}`,
         rarity,
-        image: `/cartes/${SERIE_ID}/${localId}.webp`,
+        image: aSonVisuel ? `/cartes/${SERIE_ID}/${card.localId}.webp` : undefined,
         withReverse,
       }),
     );
@@ -333,7 +351,8 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
 
   console.log(`\n=== TERMINE ===`);
   console.log(`Fichier  : ${OUT_FILE}`);
-  console.log(`Cartes   : ${cards.length} dont ${secretes} secrete(s)`);
+  console.log(`Emplacements : ${TOTAL_CARTES} dont ${secretes} secrete(s)`);
+  console.log(`Renseignes   : ${remplis} depuis tcgdex`);
   console.log(`Reverse  : ${withReverseCount}`);
   console.log(`Visuels  : ${ok} telecharges, ${skipped} deja presents`);
 
