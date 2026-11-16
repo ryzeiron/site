@@ -23,7 +23,7 @@ import { getAllCards } from "@/lib/custom-cards";
 import { formatPrice } from "@/lib/format";
 import { shouldUseLivePublicData } from "@/lib/public-live-data";
 import { getSleeves, type SleeveProduct } from "@/lib/sleeves";
-import { applyStockOverrides } from "@/lib/stock";
+import { applyStockOverrides, getCardNameOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -50,11 +50,12 @@ function matchesTerms(text: string, terms: string[]) {
   return terms.every((term) => normalized.includes(term));
 }
 
-function searchableCardText(card: Card) {
+function searchableCardText(card: Card, overriddenName?: string) {
   const serie = getSerie(card.serieId);
   const bloc = serie ? getBloc(serie.blocId) : undefined;
 
   return [
+    overriddenName,
     card.name,
     card.number,
     card.rarity,
@@ -114,11 +115,21 @@ export default async function SearchPage({
   const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
   const useLiveData = await shouldUseLivePublicData();
 
+  const nameOverrides =
+    terms.length > 0 ? await getCardNameOverrides() : new Map<string, string>();
   const rawCardResults =
     terms.length > 0
-      ? (await getAllCards({ cache: true })).filter((card) =>
-          matchesTerms(searchableCardText(card), terms),
-        )
+      ? (await getAllCards({ cache: true }))
+          .filter((card) =>
+            matchesTerms(
+              searchableCardText(card, nameOverrides.get(card.id)),
+              terms,
+            ),
+          )
+          .map((card) => {
+            const overriddenName = nameOverrides.get(card.id);
+            return overriddenName ? { ...card, name: overriddenName } : card;
+          })
       : [];
 
   const matchingSeries =

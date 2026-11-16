@@ -1,5 +1,5 @@
 import "server-only";
-import { inArray } from "drizzle-orm";
+import { inArray, isNotNull } from "drizzle-orm";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { getDb } from "./db/client";
 import { cardOverrides, hiddenVariants, stockOverrides } from "./db/schema";
@@ -306,6 +306,37 @@ async function loadCachedOverrideRows(ids: string[]) {
   return mergeOverrideRows(
     await Promise.all(chunks.map((chunk) => loadCachedPublicOverrideRowsByIds(chunk))),
   );
+}
+
+const loadCachedCardNameOverrides = unstable_cache(
+  async (): Promise<[string, string][]> => {
+    const rows = await getDb()
+      .select({ cardId: cardOverrides.cardId, name: cardOverrides.name })
+      .from(cardOverrides)
+      .where(isNotNull(cardOverrides.name));
+
+    return rows
+      .map((row): [string, string] => [row.cardId, (row.name ?? "").trim()])
+      .filter(([, name]) => name.length > 0);
+  },
+  ["public-card-name-overrides-v1"],
+  {
+    revalidate: PUBLIC_STOCK_CACHE_SECONDS,
+    tags: [PUBLIC_STOCK_CACHE_TAG],
+  },
+);
+
+/**
+ * Noms modifiés depuis l'admin (cardId -> nouveau nom).
+ * Requête légère (seulement les cartes renommées), utilisée par la recherche
+ * pour trouver une carte par son nouveau nom.
+ */
+export async function getCardNameOverrides(): Promise<Map<string, string>> {
+  try {
+    return new Map(await loadCachedCardNameOverrides());
+  } catch {
+    return new Map();
+  }
 }
 
 export function revalidatePublicStockCache() {

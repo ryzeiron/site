@@ -26,7 +26,7 @@ import {
   type Serie,
 } from "@/lib/catalog";
 import { getAllCards } from "@/lib/custom-cards";
-import { applyStockOverrides } from "@/lib/stock";
+import { applyStockOverrides, getCardNameOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -71,12 +71,13 @@ function normalizeSearch(value: string) {
     .trim();
 }
 
-function searchableText(card: Card) {
+function searchableText(card: Card, extraNames: (string | undefined)[] = []) {
   const serie = getSerie(card.serieId);
   const bloc = serie ? getBloc(serie.blocId) : undefined;
 
   return normalizeSearch(
     [
+      ...extraNames,
       card.name,
       card.number,
       card.rarity,
@@ -296,9 +297,10 @@ function cardMatchesTextAndRarity(
   card: Card,
   terms: string[],
   rarity: Rarity | "",
+  extraNames: (string | undefined)[] = [],
 ) {
   if (terms.length > 0) {
-    const text = searchableText(card);
+    const text = searchableText(card, extraNames);
     if (!terms.every((term) => text.includes(term))) return false;
   }
 
@@ -556,7 +558,9 @@ export default async function AdminPage({
 
     filteredCards = serieCardsWithStock.filter(
       (card) =>
-        cardMatchesTextAndRarity(card, terms, rarity) &&
+        cardMatchesTextAndRarity(card, terms, rarity, [
+          catalogById.get(card.id)?.name,
+        ]) &&
         (!quick || cardMatchesQuickFilter(card, quick, catalogById.get(card.id))),
     );
   } else if (serieId) {
@@ -566,8 +570,11 @@ export default async function AdminPage({
       ? await getQuickCandidateCards(quick, catalogById)
       : allCards;
 
+    const nameOverrides =
+      terms.length > 0 ? await getCardNameOverrides() : new Map<string, string>();
+
     filteredCards = candidateCards.filter((card) =>
-      cardMatchesTextAndRarity(card, terms, rarity),
+      cardMatchesTextAndRarity(card, terms, rarity, [nameOverrides.get(card.id)]),
     );
   }
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { CARDS, SERIES, getBloc, getSerie, type Card, type Serie } from "@/lib/catalog";
 import { getAllCards } from "@/lib/custom-cards";
 import { getSleeves } from "@/lib/sleeves";
+import { getCardNameOverrides } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +18,13 @@ function normalizeSearch(value: string) {
     .trim();
 }
 
-function cardSearchText(card: Card) {
+function cardSearchText(card: Card, overriddenName?: string) {
   const serie = getSerie(card.serieId);
   const bloc = serie ? getBloc(serie.blocId) : undefined;
 
   return normalizeSearch(
     [
+      overriddenName,
       card.name,
       card.number,
       card.rarity,
@@ -52,8 +54,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ cards: [], series: [], sleeves: [] });
   }
 
+  const nameOverrides = await getCardNameOverrides();
   const cards = (await getAllCards({ cache: true })).filter((card) => {
-    const text = cardSearchText(card);
+    const text = cardSearchText(card, nameOverrides.get(card.id));
     return terms.every((term) => text.includes(term));
   })
     .slice(0, MAX_CARDS)
@@ -63,7 +66,7 @@ export async function GET(request: Request) {
 
       return {
         id: card.id,
-        name: card.name,
+        name: nameOverrides.get(card.id) ?? card.name,
         number: card.number,
         image: card.image ?? null,
         serieName: serie?.name ?? null,
