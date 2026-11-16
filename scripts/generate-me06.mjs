@@ -227,15 +227,36 @@ function cardEntry({ id, name, number, rarity, image, withReverse }) {
   );
 
   // Logo du set, utilise comme visuel de serie.
-  if (setData.logo && !existsSync(SERIE_LOGO)) {
+  if (existsSync(SERIE_LOGO)) {
+    console.log(`\nLogo de serie deja present, conserve.`);
+  } else if (!setData.logo) {
+    console.log(
+      `\nAucun logo fourni par tcgdex pour ce set.\n` +
+        `Depose-le toi-meme dans public/series/ME/me06.webp`,
+    );
+  } else {
+    // Les deux formats sont tentes : tcgdex donne l'URL sans extension et le
+    // format varie d'un set a l'autre.
+    let obtenu = false;
+
     for (const ext of ["webp", "png"]) {
       try {
         await downloadImage(`${setData.logo}.${ext}`, SERIE_LOGO);
-        console.log(`\nLogo de serie : public/series/ME/me06.webp (${ext})`);
+        console.log(`\nLogo de serie telecharge (${ext})`);
+        obtenu = true;
         break;
       } catch {
         // Format suivant.
       }
+    }
+
+    // L'echec etait muet : on ne savait pas s'il manquait ou s'il avait echoue.
+    if (!obtenu) {
+      console.log(
+        `\nLogo de serie introuvable aux deux formats.\n` +
+          `  URL tentee : ${setData.logo}.webp\n` +
+          `  Depose-le toi-meme dans public/series/ME/me06.webp`,
+      );
     }
   }
 
