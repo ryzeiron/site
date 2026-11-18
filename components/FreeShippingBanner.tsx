@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { formatPrice } from "@/lib/format";
 import { formatPromoDate } from "@/lib/free-shipping-promo-shared";
 
-type State = { live: boolean; insuranceIncluded: boolean; endsAt: string | null };
+type State = {
+  live: boolean;
+  insuranceIncluded: boolean;
+  endsAt: string | null;
+  minItemsCents: number;
+};
 
 // Bandeau affiche seulement quand la promo livraison offerte est active (admin > Promos).
 export default function FreeShippingBanner() {
@@ -22,6 +28,8 @@ export default function FreeShippingBanner() {
           live: Boolean(data.live),
           insuranceIncluded: Boolean(data.insuranceIncluded),
           endsAt: data.endsAt ?? null,
+          minItemsCents:
+            typeof data.minItemsCents === "number" ? data.minItemsCents : 0,
         });
       })
       .catch(() => {});
@@ -44,8 +52,11 @@ export default function FreeShippingBanner() {
         </span>
         <span className="font-semibold">
           {promo.insuranceIncluded
-            ? "Frais de port et assurance offerts sur toutes les commandes"
-            : "Frais de port offerts sur toutes les commandes"}
+            ? "Frais de port et assurance offerts"
+            : "Frais de port offerts"}
+          {promo.minItemsCents > 0
+            ? ` dès ${formatPrice(promo.minItemsCents / 100)} d'achat`
+            : " sur toutes les commandes"}
           {promo.endsAt ? ` jusqu'au ${formatPromoDate(promo.endsAt)}` : ""}
         </span>
         <Link

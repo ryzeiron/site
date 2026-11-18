@@ -8,13 +8,20 @@ export type FreeShippingPromo = {
   endsAt: string | null;
   // true = l'assurance Mondial Relay est offerte aussi ; false = le client la paie.
   insuranceIncluded: boolean;
+  // Minimum d'achat en centimes : valeur des articles au prix normal,
+  // avant code promo, points ou remise. 0 = pas de minimum.
+  minItemsCents: number;
 };
+
+export const DEFAULT_FREE_SHIPPING_MIN_CENTS = 2000;
+export const MAX_FREE_SHIPPING_MIN_CENTS = 100_000;
 
 export const DEFAULT_FREE_SHIPPING_PROMO: FreeShippingPromo = {
   active: false,
   startsAt: null,
   endsAt: null,
   insuranceIncluded: false,
+  minItemsCents: DEFAULT_FREE_SHIPPING_MIN_CENTS,
 };
 
 function toTime(value: string | null) {
@@ -62,7 +69,22 @@ export function sanitizeFreeShippingPromo(value: unknown): FreeShippingPromo {
     startsAt: date(raw.startsAt),
     endsAt: date(raw.endsAt),
     insuranceIncluded: raw.insuranceIncluded === true,
+    minItemsCents:
+      typeof raw.minItemsCents === "number" && Number.isFinite(raw.minItemsCents)
+        ? Math.min(
+            MAX_FREE_SHIPPING_MIN_CENTS,
+            Math.max(0, Math.round(raw.minItemsCents)),
+          )
+        : DEFAULT_FREE_SHIPPING_MIN_CENTS,
   };
+}
+
+// Le panier atteint-il le minimum ? (valeur brute des articles, en centimes)
+export function meetsFreeShippingMinimum(
+  promo: Pick<FreeShippingPromo, "minItemsCents">,
+  grossItemsCents: number,
+) {
+  return grossItemsCents >= promo.minItemsCents;
 }
 
 export function formatPromoDate(value: string) {

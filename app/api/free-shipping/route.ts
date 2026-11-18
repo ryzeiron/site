@@ -16,6 +16,7 @@ export async function GET() {
       live,
       insuranceIncluded: live ? promo.insuranceIncluded : false,
       endsAt: live ? promo.endsAt : null,
+      minItemsCents: promo.minItemsCents,
     },
     { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30" } },
   );

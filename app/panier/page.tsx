@@ -128,7 +128,8 @@ export default function CartPage() {
     live: boolean;
     insuranceIncluded: boolean;
     endsAt: string | null;
-  }>({ live: false, insuranceIncluded: false, endsAt: null });
+    minItemsCents: number;
+  }>({ live: false, insuranceIncluded: false, endsAt: null, minItemsCents: 0 });
 
   const [showRelayPicker, setShowRelayPicker] = useState(false);
   const [relayPostcode, setRelayPostcode] = useState("");
@@ -215,6 +216,7 @@ export default function CartPage() {
             live?: boolean;
             insuranceIncluded?: boolean;
             endsAt?: string | null;
+            minItemsCents?: number;
           } | null,
         ) => {
           if (cancelled || !data) return;
@@ -222,6 +224,8 @@ export default function CartPage() {
             live: Boolean(data.live),
             insuranceIncluded: Boolean(data.insuranceIncluded),
             endsAt: data.endsAt ?? null,
+            minItemsCents:
+              typeof data.minItemsCents === "number" ? data.minItemsCents : 0,
           });
         },
       )
@@ -379,7 +383,13 @@ export default function CartPage() {
     grantedDiscounts.find((d) => d.id === selectedDiscountId) ?? null;
   const selectedTier = getTierByPoints(selectedTierPoints);
   const affordableTiers = getAffordableTiers(loyaltyBalance);
-  const siteFreeShipping = siteFreeShippingPromo.live;
+  // Minimum sur la valeur des articles au prix normal (subtotal = avant remises).
+  const grossItemsCents = Math.round(subtotal * 100);
+  const siteFreeShippingMissingCents = siteFreeShippingPromo.live
+    ? Math.max(0, siteFreeShippingPromo.minItemsCents - grossItemsCents)
+    : 0;
+  const siteFreeShipping =
+    siteFreeShippingPromo.live && siteFreeShippingMissingCents === 0;
   const siteFreeInsurance =
     siteFreeShipping && siteFreeShippingPromo.insuranceIncluded;
   // Pendant la promo livraison offerte, le palier "livraison offerte" ne sert a rien.
@@ -1263,6 +1273,16 @@ export default function CartPage() {
               </p>
             )}
           </div>
+
+          {siteFreeShippingPromo.live && siteFreeShippingMissingCents > 0 && (
+            <p className="mt-3 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
+              Plus que{" "}
+              <strong>{formatPrice(siteFreeShippingMissingCents / 100)}</strong>{" "}
+              d'articles pour profiter de la livraison offerte (dès{" "}
+              {formatPrice(siteFreeShippingPromo.minItemsCents / 100)} d'achat,
+              hors réductions).
+            </p>
+          )}
 
           <div className="mt-2 flex items-center justify-between text-lg">
             <span>Total estime</span>

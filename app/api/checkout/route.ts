@@ -22,6 +22,7 @@ import { getUserDiscount } from "@/lib/user-discounts";
 import {
   getFreeShippingPromo,
   isFreeShippingPromoLive,
+  meetsFreeShippingMinimum,
 } from "@/lib/free-shipping-promo";
 import {
   attachStockReservationSession,
@@ -345,10 +346,9 @@ export async function POST(request: Request) {
 
     // Promo "livraison offerte" reglee dans l'admin (lecture sans cache :
     // le prix facture doit suivre l'etat exact au moment du paiement).
+    // Le minimum d'achat est verifie plus bas, une fois les prix connus.
     const siteFreeShippingPromo = await getFreeShippingPromo();
-    const siteFreeShipping = isFreeShippingPromoLive(siteFreeShippingPromo);
-    const siteFreeInsurance =
-      siteFreeShipping && siteFreeShippingPromo.insuranceIncluded;
+    const siteFreeShippingWindow = isFreeShippingPromoLive(siteFreeShippingPromo);
 
     const requestedTierPoints =
       typeof body.loyaltyTierPoints === "number" ? body.loyaltyTierPoints : 0;
@@ -384,19 +384,6 @@ export async function POST(request: Request) {
       if (!loyaltyTier) {
         return NextResponse.json(
           { error: "Palier de fidélité invalide." },
-          { status: 400 },
-        );
-      }
-
-      // Palier "livraison offerte" inutile pendant la promo site : on evite
-      // de depenser les points pour rien.
-      if (loyaltyTier.type === "free_shipping" && siteFreeShipping) {
-        return NextResponse.json(
-          {
-            error: siteFreeInsurance
-              ? "La livraison et l'assurance sont déjà offertes en ce moment : garde tes points."
-              : "La livraison est déjà offerte en ce moment : choisis un autre palier.",
-          },
           { status: 400 },
         );
       }
@@ -447,9 +434,7 @@ export async function POST(request: Request) {
       promo?.type === "free_shipping" || loyaltyTier?.type === "free_shipping"
         ? 0
         : 1;
-    // Port offert par la promo site ; l'assurance seulement si l'admin l'a choisi.
-    const relayMultiplier = siteFreeShipping ? 0 : shippingMultiplier;
-    const insuranceMultiplier = siteFreeInsurance ? 0 : shippingMultiplier;
+
 
     // Resolution groupee : couvre le catalogue statique et les cartes creees
     // depuis l'admin, sinon une carte creee serait introuvable au paiement.
@@ -650,6 +635,44 @@ export async function POST(request: Request) {
         : "FR";
 
     const isFrance = country === "FR";
+
+    // Promo livraison offerte : minimum calcule sur la valeur des articles au
+    // prix normal (avant code promo, points ou remise client).
+    const grossItemsCents =
+      pricedCardItems.reduce((total, item) => {
+        const card = cardMap.get(item.cardId);
+        if (!card) return total;
+        const v = resolveVariant(card, item.variant);
+        return total + Math.round(v.price * 100) * item.quantity;
+      }, 0) +
+      // sleeveItems = sleeves payees du panier (sans le cadeau fidelite).
+      sleeveItems.reduce((total, item) => {
+        const sleeve = sleeveMap.get(item.sleeveId);
+        if (!sleeve) return total;
+        return total + sleeve.priceCents * item.quantity;
+      }, 0);
+    const siteFreeShipping =
+      siteFreeShippingWindow &&
+      meetsFreeShippingMinimum(siteFreeShippingPromo, grossItemsCents);
+    const siteFreeInsurance =
+      siteFreeShipping && siteFreeShippingPromo.insuranceIncluded;
+
+    // Palier "livraison offerte" inutile quand la promo site s'applique deja :
+    // on evite de depenser les points pour rien.
+    if (loyaltyTier?.type === "free_shipping" && siteFreeShipping) {
+      return NextResponse.json(
+        {
+          error: siteFreeInsurance
+            ? "La livraison et l'assurance sont déjà offertes en ce moment : garde tes points."
+            : "La livraison est déjà offerte en ce moment : choisis un autre palier.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Port offert par la promo site ; l'assurance seulement si l'admin l'a choisi.
+    const relayMultiplier = siteFreeShipping ? 0 : shippingMultiplier;
+    const insuranceMultiplier = siteFreeInsurance ? 0 : shippingMultiplier;
 
     const relayBase = MR_PRICE_BY_COUNTRY[country];
     const relayCents = Math.round(relayBase * relayMultiplier);

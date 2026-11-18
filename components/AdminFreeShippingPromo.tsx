@@ -36,6 +36,19 @@ function isoToLocalInput(iso: string | null) {
   )}:${pad(date.getMinutes())}`;
 }
 
+function centsToInput(cents: number) {
+  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2);
+}
+
+// "20", "20,50" ou "20.50" -> centimes ; null si invalide.
+function inputToCents(value: string) {
+  const trimmed = value.trim().replace(",", ".");
+  if (trimmed === "") return 0;
+  const euros = Number(trimmed);
+  if (!Number.isFinite(euros) || euros < 0) return null;
+  return Math.round(euros * 100);
+}
+
 function localInputToIso(value: string) {
   if (!value) return null;
   const date = new Date(value);
@@ -54,6 +67,7 @@ export default function AdminFreeShippingPromo({
   const [startInput, setStartInput] = useState("");
   const [endInput, setEndInput] = useState("");
   const [insuranceIncluded, setInsuranceIncluded] = useState(initialPromo.insuranceIncluded);
+  const [minInput, setMinInput] = useState(centsToInput(initialPromo.minItemsCents));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -77,7 +91,8 @@ export default function AdminFreeShippingPromo({
     mounted &&
     (localInputToIso(startInput) !== promo.startsAt ||
     localInputToIso(endInput) !== promo.endsAt ||
-    insuranceIncluded !== promo.insuranceIncluded);
+    insuranceIncluded !== promo.insuranceIncluded ||
+    inputToCents(minInput) !== promo.minItemsCents);
 
   function applyPreset(hours: number | null) {
     if (hours === null) {
@@ -90,6 +105,12 @@ export default function AdminFreeShippingPromo({
   }
 
   async function save(active: boolean) {
+    const minItemsCents = inputToCents(minInput);
+    if (minItemsCents === null) {
+      setError("Montant minimum invalide.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setMessage("");
@@ -103,6 +124,7 @@ export default function AdminFreeShippingPromo({
           startsAt: localInputToIso(startInput),
           endsAt: localInputToIso(endInput),
           insuranceIncluded,
+          minItemsCents,
         }),
       });
       const data = (await response.json().catch(() => ({}))) as {
@@ -118,6 +140,7 @@ export default function AdminFreeShippingPromo({
       setStartInput(isoToLocalInput(data.promo.startsAt));
       setEndInput(isoToLocalInput(data.promo.endsAt));
       setInsuranceIncluded(data.promo.insuranceIncluded);
+      setMinInput(centsToInput(data.promo.minItemsCents));
       setNow(Date.now());
       setMessage(active ? "Promo livraison offerte activée." : "Promo livraison offerte désactivée.");
       router.refresh();
@@ -134,7 +157,7 @@ export default function AdminFreeShippingPromo({
         <div>
           <h2 className="text-xl font-bold text-white">Livraison offerte sur tout le site</h2>
           <p className="mt-1 text-sm text-gray-400">
-            Frais de port Mondial Relay à 0 € pour toutes les commandes pendant la durée choisie.
+            Frais de port Mondial Relay à 0 € pendant la durée choisie, à partir du minimum de commande.
           </p>
         </div>
         <span
@@ -172,6 +195,11 @@ export default function AdminFreeShippingPromo({
       </div>
 
       <p className="mt-2 text-sm text-gray-300">
+        {status === "live" || status === "scheduled"
+          ? promo.minItemsCents > 0
+            ? `Minimum : ${centsToInput(promo.minItemsCents)} € d'articles. `
+            : "Sans minimum. "
+          : ""}
         {status === "live"
           ? promo.endsAt
             ? `En cours jusqu'au ${formatPromoDate(promo.endsAt)}.`
@@ -223,7 +251,25 @@ export default function AdminFreeShippingPromo({
         </div>
 
         <div className="space-y-2">
-          <div className="text-sm font-semibold text-gray-200">
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold text-gray-200">
+              Commande minimum (€)
+            </span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={minInput}
+              onChange={(e) => setMinInput(e.target.value)}
+              placeholder="20"
+              className="w-32 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white"
+            />
+            <span className="block text-xs text-gray-400">
+              Valeur des articles au prix normal, avant code promo, points ou
+              remise. 0 = pas de minimum.
+            </span>
+          </label>
+
+          <div className="pt-2 text-sm font-semibold text-gray-200">
             Assurance Mondial Relay (paniers dès 50 €)
           </div>
           <div className="grid gap-2">
@@ -258,7 +304,7 @@ export default function AdminFreeShippingPromo({
           onClick={() => save(promo.active)}
           className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-zinc-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? "Enregistrement..." : "Enregistrer la durée et l'assurance"}
+          {loading ? "Enregistrement..." : "Enregistrer les réglages"}
         </button>
         {dirty && !loading ? (
           <span className="text-xs text-amber-200">Modifications non enregistrées.</span>
