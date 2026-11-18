@@ -101,7 +101,6 @@ export default async function CardPage({
             </h2>
             <p className="mt-1">
               Paiement Stripe, cartes vérifiées et livraison Mondial Relay.
-              Code BIENVENUE : -10% sur ta première commande.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">

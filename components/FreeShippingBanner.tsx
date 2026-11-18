@@ -3,46 +3,38 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/format";
-import { formatPromoDate } from "@/lib/free-shipping-promo-shared";
+import {
+  formatPromoDate,
+  isFreeShippingPromoLive,
+  sanitizeFreeShippingPromo,
+  type FreeShippingPromo,
+} from "@/lib/free-shipping-promo-shared";
 
-type State = {
-  live: boolean;
-  insuranceIncluded: boolean;
-  endsAt: string | null;
-  minItemsCents: number;
-};
-
-// Bandeau affiche seulement quand la promo livraison offerte est active (admin > Promos).
+// Bandeau affiche seulement pendant la promo livraison offerte (admin > Promos).
+// Il apparait / disparait tout seul a l'heure de debut et de fin.
 export default function FreeShippingBanner() {
-  const [promo, setPromo] = useState<State | null>(null);
-  const [now, setNow] = useState(() => Date.now());
+  const [promo, setPromo] = useState<FreeShippingPromo | null>(null);
+  const [now, setNow] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/free-shipping")
+    fetch("/api/free-shipping", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
-      .then((data: Partial<State> | null) => {
-        if (cancelled || !data) return;
-        setPromo({
-          live: Boolean(data.live),
-          insuranceIncluded: Boolean(data.insuranceIncluded),
-          endsAt: data.endsAt ?? null,
-          minItemsCents:
-            typeof data.minItemsCents === "number" ? data.minItemsCents : 0,
-        });
+      .then((data: unknown) => {
+        if (!cancelled && data) setPromo(sanitizeFreeShippingPromo(data));
       })
       .catch(() => {});
 
-    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
     };
   }, []);
 
-  if (!promo?.live) return null;
-  if (promo.endsAt && Date.parse(promo.endsAt) <= now) return null;
+  if (!promo || now === 0 || !isFreeShippingPromoLive(promo, now)) return null;
 
   return (
     <div className="relative z-[150] border-b border-emerald-300/20 bg-gradient-to-r from-emerald-900 via-emerald-700 to-teal-700 text-white">

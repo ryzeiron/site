@@ -1,23 +1,28 @@
 import { NextResponse } from "next/server";
 import {
+  DEFAULT_FREE_SHIPPING_PROMO,
   getFreeShippingPromo,
-  isFreeShippingPromoLive,
+  getFreeShippingPromoStatus,
 } from "@/lib/free-shipping-promo";
 
 export const dynamic = "force-dynamic";
 
-// Etat public de la promo livraison offerte (bandeau + panier).
+// Reglage public de la promo livraison offerte (bandeau + panier).
+// Les dates sont renvoyees pour que le navigateur bascule tout seul a l'heure
+// de debut / fin. Pas de cache CDN : ce reglage decide d'un prix.
 export async function GET() {
-  const promo = await getFreeShippingPromo({ cache: true });
-  const live = isFreeShippingPromoLive(promo);
+  try {
+    const promo = await getFreeShippingPromo({ cache: true });
+    const status = getFreeShippingPromoStatus(promo);
+    const visible = status === "live" || status === "scheduled";
 
-  return NextResponse.json(
-    {
-      live,
-      insuranceIncluded: live ? promo.insuranceIncluded : false,
-      endsAt: live ? promo.endsAt : null,
-      minItemsCents: promo.minItemsCents,
-    },
-    { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30" } },
-  );
+    return NextResponse.json(
+      visible ? promo : { ...DEFAULT_FREE_SHIPPING_PROMO, minItemsCents: promo.minItemsCents },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  } catch {
+    return NextResponse.json(DEFAULT_FREE_SHIPPING_PROMO, {
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
 }

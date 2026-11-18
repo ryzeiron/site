@@ -14,6 +14,22 @@ import {
 } from "@/lib/mondial-relay-shipping";
 import { isPromoExcludedCard } from "@/lib/promo-exclusions";
 import { getAffordableTiers, getTierByPoints } from "@/lib/loyalty-tiers";
+import {
+  DEFAULT_FREE_SHIPPING_PROMO,
+  isFreeShippingPromoLive,
+  sanitizeFreeShippingPromo,
+  type FreeShippingPromo,
+} from "@/lib/free-shipping-promo-shared";
+
+async function loadSiteFreeShippingPromo(): Promise<FreeShippingPromo | null> {
+  try {
+    const res = await fetch("/api/free-shipping", { cache: "no-store" });
+    if (!res.ok) return null;
+    return sanitizeFreeShippingPromo(await res.json());
+  } catch {
+    return null;
+  }
+}
 
 type AppliedPromo =
   | {
@@ -66,6 +82,9 @@ type Country = "FR" | "BE" | "LU" | "NL" | "ES" | "PT" | "DE" | "IT" | "AT";
 
 const PROMO_NO_ELIGIBLE_ITEMS_MESSAGE =
   "Code valide, mais aucun article de ce panier n'est eligible a cette offre.";
+
+// Minimum de paiement Stripe (meme valeur que app/api/checkout/route.ts).
+const MIN_STRIPE_TOTAL_CENTS = 50;
 
 const MR_PRICE_BY_COUNTRY: Record<Country, number> = {
   FR: 490,
@@ -124,12 +143,11 @@ export default function CartPage() {
   const [loyaltyBalance, setLoyaltyBalance] = useState(0);
   const [loyaltyConnected, setLoyaltyConnected] = useState(false);
   const [selectedTierPoints, setSelectedTierPoints] = useState(0);
-  const [siteFreeShippingPromo, setSiteFreeShippingPromo] = useState<{
-    live: boolean;
-    insuranceIncluded: boolean;
-    endsAt: string | null;
-    minItemsCents: number;
-  }>({ live: false, insuranceIncluded: false, endsAt: null, minItemsCents: 0 });
+  // Promo livraison offerte (admin > Promos). Les dates sont comparees a
+  // l'horloge locale, qui avance toute seule : le panier bascule a l'heure pile.
+  const [siteFreeShippingPromo, setSiteFreeShippingPromo] =
+    useState<FreeShippingPromo>(DEFAULT_FREE_SHIPPING_PROMO);
+  const [clockNow, setClockNow] = useState(0);
 
   const [showRelayPicker, setShowRelayPicker] = useState(false);
   const [relayPostcode, setRelayPostcode] = useState("");
@@ -208,31 +226,16 @@ export default function CartPage() {
 
     let cancelled = false;
 
-    fetch("/api/free-shipping")
-      .then((r) => (r.ok ? r.json() : null))
-      .then(
-        (
-          data: {
-            live?: boolean;
-            insuranceIncluded?: boolean;
-            endsAt?: string | null;
-            minItemsCents?: number;
-          } | null,
-        ) => {
-          if (cancelled || !data) return;
-          setSiteFreeShippingPromo({
-            live: Boolean(data.live),
-            insuranceIncluded: Boolean(data.insuranceIncluded),
-            endsAt: data.endsAt ?? null,
-            minItemsCents:
-              typeof data.minItemsCents === "number" ? data.minItemsCents : 0,
-          });
-        },
-      )
-      .catch(() => {});
+    loadSiteFreeShippingPromo().then((promo) => {
+      if (!cancelled && promo) setSiteFreeShippingPromo(promo);
+    });
+    setClockNow(Date.now());
+    const clockTimer = window.setInterval(() => setClockNow(Date.now()), 20_000);
+
 
     return () => {
       cancelled = true;
+      window.clearInterval(clockTimer);
     };
   }, [mounted]);
 
@@ -385,11 +388,13 @@ export default function CartPage() {
   const affordableTiers = getAffordableTiers(loyaltyBalance);
   // Minimum sur la valeur des articles au prix normal (subtotal = avant remises).
   const grossItemsCents = Math.round(subtotal * 100);
-  const siteFreeShippingMissingCents = siteFreeShippingPromo.live
+  const siteFreeShippingLive =
+    clockNow > 0 && isFreeShippingPromoLive(siteFreeShippingPromo, clockNow);
+  const siteFreeShippingMissingCents = siteFreeShippingLive
     ? Math.max(0, siteFreeShippingPromo.minItemsCents - grossItemsCents)
     : 0;
   const siteFreeShipping =
-    siteFreeShippingPromo.live && siteFreeShippingMissingCents === 0;
+    siteFreeShippingLive && siteFreeShippingMissingCents === 0;
   const siteFreeInsurance =
     siteFreeShipping && siteFreeShippingPromo.insuranceIncluded;
   // Pendant la promo livraison offerte, le palier "livraison offerte" ne sert a rien.
@@ -399,40 +404,64 @@ export default function CartPage() {
 
   const subtotalCents = Math.round(subtotal * 100);
   const discountCents = Math.round(discount * 100);
-  const loyaltyDiscountCents =
-    selectedTier?.type === "amount"
-      ? Math.min(selectedTier.rewardCents, subtotalCents)
-      : selectedTier?.type === "percent"
-        ? Math.round((promoEligibleSubtotal * 100 * selectedTier.percent) / 100)
-        : 0;
   // Port + assurance offerts par un code promo ou un palier de fidelite.
   const freeShipping =
     appliedPromo?.type === "free_shipping" ||
     selectedTier?.type === "free_shipping";
   const shippingOffered = freeShipping || siteFreeShipping;
   const insuranceOffered = freeShipping || siteFreeInsurance;
-  // Remise attribuee depuis l'admin : meme calcul que les paliers de fidelite.
-  const grantedDiscountCents = !selectedDiscount
-    ? 0
-    : selectedDiscount.type === "percent"
+
+  // Remises en % : appliquees sur les prix des articles, comme au paiement.
+  const loyaltyPercentCents =
+    selectedTier?.type === "percent"
+      ? Math.round((promoEligibleSubtotal * 100 * selectedTier.percent) / 100)
+      : 0;
+  const grantedPercentCents =
+    selectedDiscount?.type === "percent"
       ? Math.round(
           (promoEligibleSubtotal * 100 * (selectedDiscount.percent ?? 0)) / 100,
         )
-      : Math.min(selectedDiscount.amountOffCents ?? 0, subtotalCents);
+      : 0;
+  const promoPercentCents =
+    appliedPromo?.type === "percent_off" ? discountCents : 0;
+  // Meme base que le paiement pour l'assurance et le plafond 500 € :
+  // articles apres remise en %, avant remise en euros.
+  const itemsAfterPercentCents = Math.max(
+    0,
+    subtotalCents - promoPercentCents - loyaltyPercentCents - grantedPercentCents,
+  );
+
+  const shippingBaseCents = MR_PRICE_BY_COUNTRY[country];
+  const shippingCents = shippingOffered ? 0 : shippingBaseCents;
+  const mondialRelayInsurance = getMondialRelayInsurance(itemsAfterPercentCents);
+  const insuranceFeeCents = insuranceOffered
+    ? 0
+    : (mondialRelayInsurance?.feeCents ?? 0);
+
+  // Remise en euros (points / remise client) : Stripe exige 0,50 € minimum,
+  // le paiement plafonne donc la remise. Meme plafond ici pour afficher le bon total.
+  const amountDiscountCapCents = Math.max(
+    0,
+    itemsAfterPercentCents + shippingCents + insuranceFeeCents - MIN_STRIPE_TOTAL_CENTS,
+  );
+  const loyaltyDiscountCents =
+    selectedTier?.type === "amount"
+      ? Math.min(selectedTier.rewardCents, amountDiscountCapCents)
+      : loyaltyPercentCents;
+  const grantedDiscountCents = !selectedDiscount
+    ? 0
+    : selectedDiscount.type === "percent"
+      ? grantedPercentCents
+      : Math.min(selectedDiscount.amountOffCents ?? 0, amountDiscountCapCents);
 
   const totalCents = Math.max(
     0,
     subtotalCents - discountCents - loyaltyDiscountCents - grantedDiscountCents,
   );
-  const shippingBaseCents = MR_PRICE_BY_COUNTRY[country];
-  const shippingCents = shippingOffered ? 0 : shippingBaseCents;
-  const mondialRelayInsurance = getMondialRelayInsurance(totalCents);
-  const insuranceFeeCents = insuranceOffered
-    ? 0
-    : (mondialRelayInsurance?.feeCents ?? 0);
   const estimatedTotalCents = totalCents + shippingCents + insuranceFeeCents;
   const estimatedTotal = estimatedTotalCents / 100;
-  const requiresManualShipping = totalCents > MONDIAL_RELAY_MAX_INSURANCE_CENTS;
+  const requiresManualShipping =
+    itemsAfterPercentCents > MONDIAL_RELAY_MAX_INSURANCE_CENTS;
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const checkoutDisabled =
     loading || !selectedRelay || !acceptedCgv || requiresManualShipping;
@@ -520,6 +549,29 @@ export default function CartPage() {
     }
 
     setLoading(true);
+
+    // Derniere verification de la promo livraison offerte juste avant Stripe :
+    // si elle vient de commencer / finir, on affiche le nouveau total d'abord.
+    const freshPromo = await loadSiteFreeShippingPromo();
+    if (freshPromo) {
+      const now = Date.now();
+      const wasLive = isFreeShippingPromoLive(siteFreeShippingPromo, clockNow || now);
+      const isLive = isFreeShippingPromoLive(freshPromo, now);
+      setSiteFreeShippingPromo(freshPromo);
+      setClockNow(now);
+      if (
+        wasLive !== isLive ||
+        (isLive &&
+          (freshPromo.insuranceIncluded !== siteFreeShippingPromo.insuranceIncluded ||
+            freshPromo.minItemsCents !== siteFreeShippingPromo.minItemsCents))
+      ) {
+        setLoading(false);
+        setError(
+          "La promo livraison offerte vient de changer : vérifie le nouveau total puis clique à nouveau sur payer.",
+        );
+        return;
+      }
+    }
 
     try {
       const res = await fetch("/api/checkout", {
@@ -1274,7 +1326,7 @@ export default function CartPage() {
             )}
           </div>
 
-          {siteFreeShippingPromo.live && siteFreeShippingMissingCents > 0 && (
+          {siteFreeShippingLive && siteFreeShippingMissingCents > 0 && (
             <p className="mt-3 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
               Plus que{" "}
               <strong>{formatPrice(siteFreeShippingMissingCents / 100)}</strong>{" "}

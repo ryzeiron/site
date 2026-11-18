@@ -14,11 +14,11 @@ export default function CartesPokemonPasCheresPage() {
     <SeoLandingPage
       eyebrow="Petits prix"
       title="Cartes Pokémon pas chères"
-      description="Une sélection de cartes Pokémon à l'unité pour compléter une collection sans exploser le budget, avec le code BIENVENUE pour la première commande."
+      description="Une sélection de cartes Pokémon à l'unité pour compléter une collection sans exploser le budget."
       highlights={[
         "Cartes dès 0,50 euro",
         "Idéal pour compléter un set",
-        "Code BIENVENUE",
+        "Livraison Mondial Relay",
       ]}
       cards={getSeoCards("cheap")}
     />

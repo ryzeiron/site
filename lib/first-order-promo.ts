@@ -5,6 +5,9 @@ import { getDb } from "@/lib/db/client";
 import { orders } from "@/lib/db/schema";
 
 const FIRST_ORDER_PROMO_CODES = new Set(["BIENVENUE"]);
+// Promo de bienvenue (-10 % premiere commande) arretee. Repasser a true pour la relancer
+// (et remettre <PromoBanner /> dans app/layout.tsx).
+const FIRST_ORDER_PROMO_ENABLED = false;
 
 function cleanPromoCode(code: string | undefined | null) {
   return code?.trim().toUpperCase() ?? "";
@@ -53,6 +56,10 @@ export async function getFirstOrderPromoError(
   customer: { userId?: string | null; email?: string | null },
 ) {
   if (!isFirstOrderPromoCode(code)) return null;
+
+  if (!FIRST_ORDER_PROMO_ENABLED) {
+    return "Le code BIENVENUE n'est plus disponible.";
+  }
 
   if (!customer.userId && !customer.email) {
     return "Connecte-toi pour utiliser le code BIENVENUE. Il est reserve a la premiere commande.";

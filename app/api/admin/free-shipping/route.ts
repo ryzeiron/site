@@ -31,7 +31,13 @@ export async function POST(request: Request) {
 
   const promo = sanitizeFreeShippingPromo(body);
 
-  if (promo.startsAt && promo.endsAt && Date.parse(promo.endsAt) <= Date.parse(promo.startsAt)) {
+  // Les dates ne sont verifiees qu'a l'activation : desactiver doit toujours marcher.
+  if (
+    promo.active &&
+    promo.startsAt &&
+    promo.endsAt &&
+    Date.parse(promo.endsAt) <= Date.parse(promo.startsAt)
+  ) {
     return NextResponse.json(
       { error: "La date de fin doit etre apres la date de debut." },
       { status: 400 },

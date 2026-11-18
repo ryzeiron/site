@@ -4,7 +4,6 @@ import "./globals.css";
 import ContactBanner from "@/components/ContactBanner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PromoBanner from "@/components/PromoBanner";
 import FreeShippingBanner from "@/components/FreeShippingBanner";
 import SiteBackground from "@/components/SiteBackground";
 import SplashIntro from "@/components/SplashIntro";
@@ -62,7 +61,6 @@ export default function RootLayout({
           <SplashIntro />
           <Header />
           <FreeShippingBanner />
-          <PromoBanner />
           <ContactBanner />
           <GlobalSearchBar />
           <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">

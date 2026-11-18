@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   formatPromoDate,
@@ -71,7 +71,10 @@ export default function AdminFreeShippingPromo({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [now, setNow] = useState(() => Date.now());
+  // 0 tant que le composant n'est pas monte : evite un ecart serveur / navigateur.
+  const [now, setNow] = useState(0);
+  const startRef = useRef<HTMLInputElement>(null);
+  const endRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setStartInput(isoToLocalInput(initialPromo.startsAt));
@@ -81,11 +84,17 @@ export default function AdminFreeShippingPromo({
 
   // Le badge passe tout seul de "programmée" a "en cours" puis "terminée".
   useEffect(() => {
+    setNow(Date.now());
     const timer = window.setInterval(() => setNow(Date.now()), 30_000);
     return () => window.clearInterval(timer);
   }, []);
 
-  const status = getFreeShippingPromoStatus(promo, now);
+  const status =
+    now === 0
+      ? promo.active
+        ? "live"
+        : "inactive"
+      : getFreeShippingPromoStatus(promo, now);
   const statusStyle = STATUS_STYLES[status];
   const dirty =
     mounted &&
@@ -104,10 +113,24 @@ export default function AdminFreeShippingPromo({
     setEndInput(isoToLocalInput(new Date(startTime + hours * 3_600_000).toISOString()));
   }
 
-  async function save(active: boolean) {
-    const minItemsCents = inputToCents(minInput);
+  // ACTIF / Enregistrer : prend les reglages du formulaire.
+  // INACTIF : coupe la promo en gardant les reglages enregistres, pour qu'un
+  // brouillon de date invalide ne puisse jamais empecher de la desactiver.
+  async function save(active: boolean, useDraft: boolean) {
+    const minItemsCents = useDraft ? inputToCents(minInput) : promo.minItemsCents;
     if (minItemsCents === null) {
       setError("Montant minimum invalide.");
+      return;
+    }
+
+    // Une date a moitie tapee est lue comme vide : on refuse au lieu de
+    // transformer en "tout de suite" / "sans fin".
+    if (useDraft && startRef.current?.validity.badInput) {
+      setError("Date de début incomplète.");
+      return;
+    }
+    if (useDraft && endRef.current?.validity.badInput) {
+      setError("Date de fin incomplète.");
       return;
     }
 
@@ -121,9 +144,9 @@ export default function AdminFreeShippingPromo({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           active,
-          startsAt: localInputToIso(startInput),
-          endsAt: localInputToIso(endInput),
-          insuranceIncluded,
+          startsAt: useDraft ? localInputToIso(startInput) : promo.startsAt,
+          endsAt: useDraft ? localInputToIso(endInput) : promo.endsAt,
+          insuranceIncluded: useDraft ? insuranceIncluded : promo.insuranceIncluded,
           minItemsCents,
         }),
       });
@@ -171,7 +194,7 @@ export default function AdminFreeShippingPromo({
         <button
           type="button"
           disabled={loading}
-          onClick={() => save(true)}
+          onClick={() => save(true, true)}
           className={`rounded-lg px-5 py-2 text-sm font-black transition disabled:opacity-60 ${
             promo.active
               ? "bg-emerald-500 text-zinc-950"
@@ -183,7 +206,7 @@ export default function AdminFreeShippingPromo({
         <button
           type="button"
           disabled={loading}
-          onClick={() => save(false)}
+          onClick={() => save(false, false)}
           className={`rounded-lg px-5 py-2 text-sm font-black transition disabled:opacity-60 ${
             !promo.active
               ? "bg-red-500/80 text-white"
@@ -232,6 +255,7 @@ export default function AdminFreeShippingPromo({
             <label className="space-y-1 text-xs text-gray-400">
               <span>Début (vide = tout de suite)</span>
               <input
+                ref={startRef}
                 type="datetime-local"
                 value={startInput}
                 onChange={(e) => setStartInput(e.target.value)}
@@ -241,6 +265,7 @@ export default function AdminFreeShippingPromo({
             <label className="space-y-1 text-xs text-gray-400">
               <span>Fin (vide = sans fin)</span>
               <input
+                ref={endRef}
                 type="datetime-local"
                 value={endInput}
                 onChange={(e) => setEndInput(e.target.value)}
@@ -301,7 +326,7 @@ export default function AdminFreeShippingPromo({
         <button
           type="button"
           disabled={loading || !dirty}
-          onClick={() => save(promo.active)}
+          onClick={() => save(promo.active, true)}
           className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-zinc-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "Enregistrement..." : "Enregistrer les réglages"}
