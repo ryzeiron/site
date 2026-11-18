@@ -124,6 +124,11 @@ export default function CartPage() {
   const [loyaltyBalance, setLoyaltyBalance] = useState(0);
   const [loyaltyConnected, setLoyaltyConnected] = useState(false);
   const [selectedTierPoints, setSelectedTierPoints] = useState(0);
+  const [siteFreeShippingPromo, setSiteFreeShippingPromo] = useState<{
+    live: boolean;
+    insuranceIncluded: boolean;
+    endsAt: string | null;
+  }>({ live: false, insuranceIncluded: false, endsAt: null });
 
   const [showRelayPicker, setShowRelayPicker] = useState(false);
   const [relayPostcode, setRelayPostcode] = useState("");
@@ -190,6 +195,36 @@ export default function CartPage() {
           setShowRelayPicker(false);
         }
       })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    let cancelled = false;
+
+    fetch("/api/free-shipping")
+      .then((r) => (r.ok ? r.json() : null))
+      .then(
+        (
+          data: {
+            live?: boolean;
+            insuranceIncluded?: boolean;
+            endsAt?: string | null;
+          } | null,
+        ) => {
+          if (cancelled || !data) return;
+          setSiteFreeShippingPromo({
+            live: Boolean(data.live),
+            insuranceIncluded: Boolean(data.insuranceIncluded),
+            endsAt: data.endsAt ?? null,
+          });
+        },
+      )
       .catch(() => {});
 
     return () => {
@@ -344,6 +379,13 @@ export default function CartPage() {
     grantedDiscounts.find((d) => d.id === selectedDiscountId) ?? null;
   const selectedTier = getTierByPoints(selectedTierPoints);
   const affordableTiers = getAffordableTiers(loyaltyBalance);
+  const siteFreeShipping = siteFreeShippingPromo.live;
+  const siteFreeInsurance =
+    siteFreeShipping && siteFreeShippingPromo.insuranceIncluded;
+  // Pendant la promo livraison offerte, le palier "livraison offerte" ne sert a rien.
+  const selectableTiers = siteFreeShipping
+    ? affordableTiers.filter((tier) => tier.type !== "free_shipping")
+    : affordableTiers;
 
   const subtotalCents = Math.round(subtotal * 100);
   const discountCents = Math.round(discount * 100);
@@ -353,9 +395,12 @@ export default function CartPage() {
       : selectedTier?.type === "percent"
         ? Math.round((promoEligibleSubtotal * 100 * selectedTier.percent) / 100)
         : 0;
+  // Port + assurance offerts par un code promo ou un palier de fidelite.
   const freeShipping =
     appliedPromo?.type === "free_shipping" ||
     selectedTier?.type === "free_shipping";
+  const shippingOffered = freeShipping || siteFreeShipping;
+  const insuranceOffered = freeShipping || siteFreeInsurance;
   // Remise attribuee depuis l'admin : meme calcul que les paliers de fidelite.
   const grantedDiscountCents = !selectedDiscount
     ? 0
@@ -370,9 +415,9 @@ export default function CartPage() {
     subtotalCents - discountCents - loyaltyDiscountCents - grantedDiscountCents,
   );
   const shippingBaseCents = MR_PRICE_BY_COUNTRY[country];
-  const shippingCents = freeShipping ? 0 : shippingBaseCents;
+  const shippingCents = shippingOffered ? 0 : shippingBaseCents;
   const mondialRelayInsurance = getMondialRelayInsurance(totalCents);
-  const insuranceFeeCents = freeShipping
+  const insuranceFeeCents = insuranceOffered
     ? 0
     : (mondialRelayInsurance?.feeCents ?? 0);
   const estimatedTotalCents = totalCents + shippingCents + insuranceFeeCents;
@@ -390,6 +435,12 @@ export default function CartPage() {
           ? "Passer au paiement"
           : "Accepter les CGV"
         : "Choisir un point relais";
+
+  useEffect(() => {
+    if (siteFreeShipping && selectedTier?.type === "free_shipping") {
+      setSelectedTierPoints(0);
+    }
+  }, [siteFreeShipping, selectedTier]);
 
   useEffect(() => {
     if (appliedPromo?.type !== "percent_off" || hasPromoEligibleItems) return;
@@ -911,7 +962,7 @@ export default function CartPage() {
               ) : (
                 <>
                   <div className="mt-2 grid gap-2">
-                    {affordableTiers.map((tier) => {
+                    {selectableTiers.map((tier) => {
                       const active = selectedTierPoints === tier.points;
 
                       return (
@@ -935,6 +986,14 @@ export default function CartPage() {
                       );
                     })}
                   </div>
+
+                  {siteFreeShipping &&
+                    selectableTiers.length < affordableTiers.length && (
+                      <p className="mt-2 text-xs text-emerald-200">
+                        La livraison est déjà offerte en ce moment : le palier
+                        « livraison offerte » n'est pas proposé.
+                      </p>
+                    )}
 
                   {selectedTier?.type === "percent" &&
                     hasPromoExcludedItems && (
@@ -1001,7 +1060,7 @@ export default function CartPage() {
                 Assurance Mondial Relay automatique jusqu'à{" "}
                 {formatPrice(mondialRelayInsurance.coverageCents / 100)} à
                 l'étape de paiement
-                {freeShipping
+                {insuranceOffered
                   ? " (incluse dans la livraison offerte)."
                   : ` (+${formatPrice(
                       mondialRelayInsurance.feeCents / 100,
@@ -1154,9 +1213,9 @@ export default function CartPage() {
             <div className="flex items-center justify-between text-gray-300">
               <span>Livraison Mondial Relay</span>
               <span
-                className={freeShipping ? "text-emerald-300" : "text-gray-200"}
+                className={shippingOffered ? "text-emerald-300" : "text-gray-200"}
               >
-                {freeShipping
+                {shippingOffered
                   ? "Offerte"
                   : formatPrice(shippingBaseCents / 100)}
               </span>
@@ -1166,7 +1225,7 @@ export default function CartPage() {
               <div className="flex items-center justify-between text-violet-200">
                 <span>Assurance Mondial Relay</span>
                 <span>
-                  {freeShipping
+                  {insuranceOffered
                     ? "Offerte"
                     : `+ ${formatPrice(
                         mondialRelayInsurance.feeCents / 100,
@@ -1215,7 +1274,11 @@ export default function CartPage() {
               ? "Livraison et assurance offertes par le code promo."
               : selectedTier?.type === "free_shipping"
                 ? "Livraison et assurance offertes par tes points de fidélité."
-                : "Total indicatif avec la livraison et l'assurance applicable."}
+                : siteFreeShipping
+                  ? siteFreeInsurance
+                    ? "Livraison et assurance offertes en ce moment sur tout le site."
+                    : "Livraison offerte en ce moment sur tout le site (assurance en plus dès 50 €)."
+                  : "Total indicatif avec la livraison et l'assurance applicable."}
           </p>
 
           {error && (

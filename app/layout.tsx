@@ -5,6 +5,7 @@ import ContactBanner from "@/components/ContactBanner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PromoBanner from "@/components/PromoBanner";
+import FreeShippingBanner from "@/components/FreeShippingBanner";
 import SiteBackground from "@/components/SiteBackground";
 import SplashIntro from "@/components/SplashIntro";
 import BackButton from "@/components/BackButton";
@@ -60,6 +61,7 @@ export default function RootLayout({
           <SiteBackground />
           <SplashIntro />
           <Header />
+          <FreeShippingBanner />
           <PromoBanner />
           <ContactBanner />
           <GlobalSearchBar />

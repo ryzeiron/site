@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import type Stripe from "stripe";
 import AdminCatalogTabs from "@/components/AdminCatalogTabs";
+import AdminFreeShippingPromo from "@/components/AdminFreeShippingPromo";
 import AdminPromoCreator from "@/components/AdminPromoCreator";
 import AdminPromoDeleteButton from "@/components/AdminPromoDeleteButton";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
+import { getFreeShippingPromo } from "@/lib/free-shipping-promo";
 import { getStripe } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +26,10 @@ type PromoRow = {
 export default async function AdminPromosPage() {
   if (!(await isAdmin())) redirect("/admin/login");
 
-  const promoResult = await getRecentPromos();
+  const [promoResult, freeShippingPromo] = await Promise.all([
+    getRecentPromos(),
+    getFreeShippingPromo(),
+  ]);
 
   return (
     <div className="py-6">
@@ -46,6 +51,8 @@ export default async function AdminPromosPage() {
         <AdminLink href="/admin/commandes">Commandes</AdminLink>
         <AdminLink href="/admin/analyse">Analyse</AdminLink>
       </div>
+
+      <AdminFreeShippingPromo initialPromo={freeShippingPromo} />
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <AdminPromoCreator />

@@ -20,6 +20,10 @@ import { getPointsBalance } from "@/lib/loyalty";
 import { getTierByPoints } from "@/lib/loyalty-tiers";
 import { getUserDiscount } from "@/lib/user-discounts";
 import {
+  getFreeShippingPromo,
+  isFreeShippingPromoLive,
+} from "@/lib/free-shipping-promo";
+import {
   attachStockReservationSession,
   getReservedStockReservationSessionIds,
   releaseStockReservation,
@@ -339,6 +343,13 @@ export async function POST(request: Request) {
       }
     }
 
+    // Promo "livraison offerte" reglee dans l'admin (lecture sans cache :
+    // le prix facture doit suivre l'etat exact au moment du paiement).
+    const siteFreeShippingPromo = await getFreeShippingPromo();
+    const siteFreeShipping = isFreeShippingPromoLive(siteFreeShippingPromo);
+    const siteFreeInsurance =
+      siteFreeShipping && siteFreeShippingPromo.insuranceIncluded;
+
     const requestedTierPoints =
       typeof body.loyaltyTierPoints === "number" ? body.loyaltyTierPoints : 0;
     let loyaltyTier = null;
@@ -373,6 +384,19 @@ export async function POST(request: Request) {
       if (!loyaltyTier) {
         return NextResponse.json(
           { error: "Palier de fidélité invalide." },
+          { status: 400 },
+        );
+      }
+
+      // Palier "livraison offerte" inutile pendant la promo site : on evite
+      // de depenser les points pour rien.
+      if (loyaltyTier.type === "free_shipping" && siteFreeShipping) {
+        return NextResponse.json(
+          {
+            error: siteFreeInsurance
+              ? "La livraison et l'assurance sont déjà offertes en ce moment : garde tes points."
+              : "La livraison est déjà offerte en ce moment : choisis un autre palier.",
+          },
           { status: 400 },
         );
       }
@@ -423,6 +447,9 @@ export async function POST(request: Request) {
       promo?.type === "free_shipping" || loyaltyTier?.type === "free_shipping"
         ? 0
         : 1;
+    // Port offert par la promo site ; l'assurance seulement si l'admin l'a choisi.
+    const relayMultiplier = siteFreeShipping ? 0 : shippingMultiplier;
+    const insuranceMultiplier = siteFreeInsurance ? 0 : shippingMultiplier;
 
     // Resolution groupee : couvre le catalogue statique et les cartes creees
     // depuis l'admin, sinon une carte creee serait introuvable au paiement.
@@ -625,7 +652,7 @@ export async function POST(request: Request) {
     const isFrance = country === "FR";
 
     const relayBase = MR_PRICE_BY_COUNTRY[country];
-    const relayCents = Math.round(relayBase * shippingMultiplier);
+    const relayCents = Math.round(relayBase * relayMultiplier);
     const lineItems =
       detailedLineItems.length > STRIPE_GROUPED_LINE_ITEM_THRESHOLD
         ? buildGroupedLineItems(pricedCardItems, pricedSleeveItems)
@@ -648,7 +675,7 @@ export async function POST(request: Request) {
     }
 
     const chargedInsuranceFeeCents = Math.round(
-      insuranceFeeCents * shippingMultiplier,
+      insuranceFeeCents * insuranceMultiplier,
     );
     // Seul le type "amount" passe par un coupon Stripe : le pourcentage est deja
     // applique sur les prix unitaires, et free_shipping sur les frais de port.
@@ -821,6 +848,7 @@ export async function POST(request: Request) {
             ? { loyalty_redeem_points: String(loyaltyTier.points) }
             : {}),
           ...(userDiscount ? { user_discount_id: userDiscount.id } : {}),
+          ...(siteFreeShipping ? { site_free_shipping: "1" } : {}),
         },
         success_url: `${origin}/suivi-commande/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/annule`,
