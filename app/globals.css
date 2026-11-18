@@ -132,3 +132,124 @@ body {
     animation: none;
   }
 }
+
+/* Bandeau "livraison offerte" (components/FreeShippingBanner.tsx) */
+@keyframes freeShipEnter {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes freeShipGradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes freeShipShine {
+  0% {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  60%,
+  100% {
+    transform: translateX(320%) skewX(-20deg);
+  }
+}
+
+@keyframes freeShipTruck {
+  0% {
+    transform: translateX(-60px);
+  }
+  100% {
+    transform: translateX(calc(100vw + 60px));
+  }
+}
+
+@keyframes freeShipBump {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
+@keyframes freeShipBadgePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(167, 243, 208, 0.55);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(167, 243, 208, 0);
+    transform: scale(1.05);
+  }
+}
+
+.free-ship-banner {
+  background-image: linear-gradient(
+    90deg,
+    #064e3b,
+    #047857,
+    #0d9488,
+    #059669,
+    #064e3b
+  );
+  background-size: 300% 100%;
+  animation:
+    freeShipEnter 500ms ease-out both,
+    freeShipGradient 9s ease-in-out infinite;
+}
+
+.free-ship-shine {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.22),
+    transparent
+  );
+  animation: freeShipShine 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.free-ship-truck {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  opacity: 0.35;
+  animation: freeShipTruck 14s linear infinite;
+  pointer-events: none;
+}
+
+.free-ship-truck > svg {
+  animation: freeShipBump 400ms ease-in-out infinite;
+}
+
+.free-ship-badge {
+  animation: freeShipBadgePulse 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .free-ship-banner,
+  .free-ship-badge,
+  .free-ship-truck > svg {
+    animation: none;
+  }
+  .free-ship-shine,
+  .free-ship-truck {
+    display: none;
+  }
+}

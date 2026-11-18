@@ -37,9 +37,16 @@ export default function FreeShippingBanner() {
   if (!promo || now === 0 || !isFreeShippingPromoLive(promo, now)) return null;
 
   return (
-    <div className="relative z-[150] border-b border-emerald-300/20 bg-gradient-to-r from-emerald-900 via-emerald-700 to-teal-700 text-white">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center text-xs sm:text-sm">
-        <span className="rounded-full bg-white/15 px-3 py-1 font-black tracking-wide ring-1 ring-white/20">
+    <div className="free-ship-banner relative z-[150] overflow-hidden border-b border-emerald-300/20 text-white">
+      {/* Decor anime : reflet qui balaie + camion qui traverse (voir globals.css) */}
+      <span aria-hidden="true" className="free-ship-shine" />
+      <span aria-hidden="true" className="free-ship-truck">
+        <TruckIcon />
+      </span>
+
+      <div className="relative mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center text-xs sm:text-sm">
+        <span className="free-ship-badge inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 font-black tracking-wide ring-1 ring-white/25">
+          <TruckIcon className="h-4 w-4" />
           LIVRAISON OFFERTE
         </span>
         <span className="font-semibold">
@@ -59,5 +66,25 @@ export default function FreeShippingBanner() {
         </Link>
       </div>
     </div>
+  );
+}
+
+function TruckIcon({ className = "h-5 w-6" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M1 4h13v11H1z" />
+      <path d="M14 8h4l3 3v4h-7z" />
+      <circle cx="5.5" cy="17.5" r="2" />
+      <circle cx="17.5" cy="17.5" r="2" />
+    </svg>
   );
 }
