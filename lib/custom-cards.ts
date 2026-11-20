@@ -11,7 +11,9 @@ import { customCards } from "@/lib/db/schema";
 // le reste du site n'ait pas a connaitre cette distinction.
 
 export const CUSTOM_CARDS_CACHE_TAG = "custom-cards";
-const CUSTOM_CARDS_CACHE_SECONDS = 300;
+// Rafraichi tout de suite par l'admin (revalidateTag) : la duree ne sert que
+// de filet de securite. Courte, elle reveillait la base a chaque visite.
+const CUSTOM_CARDS_CACHE_SECONDS = 86_400;
 
 type CustomCardRow = typeof customCards.$inferSelect;
 
@@ -44,13 +46,28 @@ async function loadRows(): Promise<CustomCardRow[]> {
   }
 }
 
-const loadCachedRows = unstable_cache(loadRows, ["custom-cards-v1"], {
-  revalidate: CUSTOM_CARDS_CACHE_SECONDS,
-  tags: [CUSTOM_CARDS_CACHE_TAG],
-});
+// Version cache : une panne n'est PAS memorisee (sinon les cartes creees
+// disparaitraient du site pendant toute la duree du cache).
+const loadCachedRows = unstable_cache(
+  async () => getDb().select().from(customCards),
+  ["custom-cards-v1"],
+  {
+    revalidate: CUSTOM_CARDS_CACHE_SECONDS,
+    tags: [CUSTOM_CARDS_CACHE_TAG],
+  },
+);
 
 export async function getCustomCards(options: { cache?: boolean } = {}) {
-  const rows = options.cache ? await loadCachedRows() : await loadRows();
+  let rows: CustomCardRow[];
+  if (options.cache) {
+    try {
+      rows = await loadCachedRows();
+    } catch {
+      rows = [];
+    }
+  } else {
+    rows = await loadRows();
+  }
   return rows.map(toCard);
 }
 

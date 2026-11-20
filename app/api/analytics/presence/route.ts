@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { lt, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { isBotUserAgent } from "@/lib/public-live-data";
 import { getDb } from "@/lib/db/client";
 import {
   activeVisitors,
@@ -20,6 +21,11 @@ const MAX_PATH_LENGTH = 180;
 const CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 
 export async function POST(request: Request) {
+  // Les robots (Google, Bing, outils SEO...) ne doivent pas reveiller la base.
+  if (isBotUserAgent(request.headers.get("user-agent"))) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   let body: Body;
 
   try {

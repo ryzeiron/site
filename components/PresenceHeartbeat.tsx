@@ -4,15 +4,12 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 const STORAGE_KEY = "pokedel-visitor-id";
-// Chaque ping ecrit trois lignes en base. A 60 s, un seul onglet ouvert
-// empechait la base de se mettre en veille et generait des milliers
-// d'ecritures par jour. A 5 minutes, la presence reste utilisable pour les
-// stats et la base peut s'endormir entre deux visiteurs.
-const HEARTBEAT_INTERVAL_MS = 300_000;
-
-// Un visiteur qui parcourt dix cartes declenchait dix pings. On n'en renvoie un
-// a la navigation que si le precedent date d'assez longtemps.
-const MIN_INTERVAL_BETWEEN_PINGS_MS = 120_000;
+// Plus de ping automatique en arriere-plan : un onglet laisse ouvert envoyait
+// un signal toutes les 5 minutes, ce qui empechait Neon de se mettre en veille
+// (il s'endort apres 5 minutes sans requete) et faisait payer la base 24 h/24.
+// On ne signale plus la presence qu'a la navigation, au plus une fois toutes
+// les 5 minutes par visiteur.
+const MIN_INTERVAL_BETWEEN_PINGS_MS = 300_000;
 
 function createVisitorId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -50,6 +47,8 @@ export default function PresenceHeartbeat() {
 
   useEffect(() => {
     if (!pathname || pathname.startsWith("/admin")) return;
+    // Robots / navigateurs automatises : pas de statistiques, pas de base.
+    if (navigator.webdriver) return;
 
     const visitorId = getVisitorId();
 
@@ -64,14 +63,6 @@ export default function PresenceHeartbeat() {
     }
 
     ping(pathname);
-
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") {
-        ping(window.location.pathname);
-      }
-    }, HEARTBEAT_INTERVAL_MS);
-
-    return () => window.clearInterval(interval);
   }, [pathname]);
 
   return null;

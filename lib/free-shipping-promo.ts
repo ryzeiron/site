@@ -42,7 +42,7 @@ async function loadFreeShippingPromo(): Promise<FreeShippingPromo> {
 const loadCachedFreeShippingPromo = unstable_cache(
   loadFreeShippingPromo,
   ["free-shipping-promo-v1"],
-  { revalidate: 300, tags: [FREE_SHIPPING_PROMO_CACHE_TAG] },
+  { revalidate: 86_400, tags: [FREE_SHIPPING_PROMO_CACHE_TAG] },
 );
 
 // Les dates sont comparees a chaque appel : le cache ne garde que le reglage,

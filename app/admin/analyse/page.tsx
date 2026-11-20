@@ -105,7 +105,7 @@ type VisitorPersonSummary = {
   isOnline: boolean;
 };
 
-const ONLINE_AFTER_MS = 2 * 60 * 1000;
+const ONLINE_AFTER_MS = 10 * 60 * 1000;
 const ACTIVE_CART_AFTER_MS = 30 * 60 * 1000;
 const RECENT_CART_AFTER_MS = 3 * 60 * 60 * 1000;
 const PARIS_TIME_ZONE = "Europe/Paris";
@@ -470,11 +470,11 @@ export default async function AdminAnalyticsPage() {
         <Panel title="Visiteurs en ligne">
           {visitorsResult.rows.length === 0 ? (
             <p className="text-sm text-gray-400">
-              Personne en ligne sur les 2 dernières minutes.
+              Personne en ligne sur les 10 dernières minutes.
             </p>
           ) : (
             <ResponsiveTable
-              empty="Personne en ligne sur les 2 dernières minutes."
+              empty="Personne en ligne sur les 10 dernières minutes."
               minWidth="560px"
               headers={["Visiteur", "Page", "Dernière activité"]}
             >
