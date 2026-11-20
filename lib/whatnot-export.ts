@@ -201,6 +201,7 @@ export function buildWhatnotCsvFromCards(cards: Card[], options: WhatnotExportOp
     }
   }
 
-  // BOM : Excel ouvre correctement les accents.
-  return { csv: `﻿${lines.join("\r\n")}\r\n`, rowCount, unitCount };
+  // Pas de BOM : l'import Whatnot peut lire la 1re colonne comme
+  // "<BOM>Category" au lieu de "Category". Le fichier reste en UTF-8.
+  return { csv: `${lines.join("\r\n")}\r\n`, rowCount, unitCount };
 }
