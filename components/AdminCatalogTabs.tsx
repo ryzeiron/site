@@ -7,7 +7,8 @@ type AdminCatalogTabsProps = {
     | "sleeves"
     | "carts"
     | "analytics"
-    | "promos";
+    | "promos"
+    | "whatnot";
   cardsCount?: number;
   sleevesCount?: number;
   cartsCount?: number;
@@ -96,6 +97,14 @@ export default function AdminCatalogTabs({
           aria-current={active === "promos" ? "page" : undefined}
         >
           <span>Codes promo</span>
+        </Link>
+
+        <Link
+          href="/admin/whatnot"
+          className={tabClass(active === "whatnot")}
+          aria-current={active === "whatnot" ? "page" : undefined}
+        >
+          <span>Export Whatnot</span>
         </Link>
       </div>
     </nav>
