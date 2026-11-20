@@ -78,7 +78,7 @@ export default async function AdminWhatnotPage() {
 
           <Field
             label="Ajustement du prix (%)"
-            hint="0 = prix du site. Ex. 10 pour +10 % (frais Whatnot), -5 pour -5 %."
+            hint="0 = prix du site. Ex. 10 pour +10 % (frais Whatnot). Whatnot n'accepte que des euros entiers : le prix est arrondi à l'euro supérieur (1 € minimum)."
           >
             <input
               name="priceAdjustPercent"

@@ -171,8 +171,12 @@ export function buildWhatnotCsvFromCards(cards: Card[], options: WhatnotExportOp
         options.maxQuantity > 0
           ? Math.min(variant.stock, options.maxQuantity)
           : variant.stock;
-      const price =
-        Math.round(variant.price * (1 + options.priceAdjustPercent / 100) * 100) / 100;
+      // Whatnot n'accepte que des prix entiers (pas de centimes). On arrondit a
+      // l'euro superieur pour ne jamais vendre moins cher que sur le site,
+      // avec 1 EUR minimum. Le -0,001 evite qu'un 2,00 calcule en 2,0000001
+      // devienne 3.
+      const adjusted = variant.price * (1 + options.priceAdjustPercent / 100);
+      const price = Math.max(1, Math.ceil(adjusted - 0.001));
 
       // "Commune" n'apporte rien dans le titre ; Reverse, Holo, etc. restent.
       const rarityInTitle = variant.rarity === "Commune" ? "" : variant.rarity;
@@ -209,7 +213,7 @@ export function buildWhatnotCsvFromCards(cards: Card[], options: WhatnotExportOp
         description,
         quantity,
         options.type,
-        price.toFixed(2),
+        String(price),
         options.shippingProfile,
         options.offerable ? "TRUE" : "FALSE",
         options.hazmat,
