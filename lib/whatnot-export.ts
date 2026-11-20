@@ -143,8 +143,10 @@ export function buildWhatnotCsvFromCards(cards: Card[], options: WhatnotExportOp
       const price =
         Math.round(variant.price * (1 + options.priceAdjustPercent / 100) * 100) / 100;
 
+      // "Commune" n'apporte rien dans le titre ; Reverse, Holo, etc. restent.
+      const rarityInTitle = variant.rarity === "Commune" ? "" : variant.rarity;
       const title = truncate(
-        `${card.name} ${card.number} ${variant.rarity} - ${serie?.name ?? ""} ${card.language}`
+        `${card.name} ${card.number} ${rarityInTitle} - ${serie?.name ?? ""} ${card.language}`
           .replace(/\s+/g, " ")
           .trim(),
         TITLE_MAX,
