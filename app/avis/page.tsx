@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { desc, eq, or } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import ReviewForm from "@/components/ReviewForm";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db/client";
-import { orders, reviews, users } from "@/lib/db/schema";
+import { orders, reviews } from "@/lib/db/schema";
 import { shouldUseLivePublicData } from "@/lib/public-live-data";
+import { getAllPublicReviews } from "@/lib/public-reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -29,16 +30,10 @@ function Stars({ rating }: { rating: number }) {
 export default async function AvisPage() {
   const useLiveData = await shouldUseLivePublicData();
   const session = useLiveData ? await auth() : null;
-  const db = useLiveData ? getDb() : null;
-
-  const [reviewRows, userRows] = db
-    ? await Promise.all([
-        db.select().from(reviews).orderBy(desc(reviews.createdAt)),
-        db.select().from(users),
-      ])
-    : [[], []];
-
-  const usersById = new Map(userRows.map((user) => [user.id, user]));
+  // Liste en cache (rafraichie a chaque nouvel avis) : visiteurs et robots
+  // ne reveillent plus la base. Seul un client connecte declenche une requete.
+  const reviewRows = await getAllPublicReviews();
+  const db = session?.user?.id ? getDb() : null;
   let hasBought = false;
   let currentReview: typeof reviews.$inferSelect | null = null;
 
@@ -136,7 +131,6 @@ export default async function AvisPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {reviewRows.map((review) => {
-              const user = usersById.get(review.userId);
 
               return (
                 <article
@@ -150,7 +144,7 @@ export default async function AvisPage() {
                   </p>
 
                   <div className="mt-4 text-xs text-gray-500">
-                    {user?.name || "Client PokeDel"} - {formatDate(review.createdAt)}
+                    {review.userName} - {formatDate(review.createdAt)}
                   </div>
                 </article>
               );

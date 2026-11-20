@@ -57,7 +57,10 @@ type ApplyStockOverridesOptions = {
   cache?: boolean;
 };
 
-export const PUBLIC_STOCK_CACHE_SECONDS = 3600;
+// Chaque modification (admin, paiement, webhook Stripe) vide le cache via
+// revalidateTag : la duree ne sert que de filet. Une heure reveillait Neon
+// en continu (une cle de cache par page de cartes).
+export const PUBLIC_STOCK_CACHE_SECONDS = 86_400;
 export const PUBLIC_STOCK_CACHE_TAG = "public-stock-overrides";
 const PUBLIC_STOCK_CACHE_CHUNK_SIZE = 200;
 const MAX_CACHED_IMAGE_TEXT_LENGTH = 2048;

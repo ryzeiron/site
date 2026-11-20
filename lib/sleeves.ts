@@ -17,7 +17,7 @@ type GetSleevesOptions = {
   cache?: boolean;
 };
 
-export const PUBLIC_SLEEVE_CACHE_SECONDS = 3600;
+export const PUBLIC_SLEEVE_CACHE_SECONDS = 86_400;
 export const PUBLIC_SLEEVE_CACHE_TAG = "public-sleeve-overrides";
 
 export type SleeveProduct = {
@@ -70,7 +70,10 @@ function withIds<T>(query: T, ids?: string[]) {
   );
 }
 
-async function getOverrideRows(ids?: string[]) {
+async function getOverrideRows(
+  ids?: string[],
+  { throwOnError = false }: { throwOnError?: boolean } = {},
+) {
   if (ids && ids.length === 0) return [];
 
   try {
@@ -92,14 +95,16 @@ async function getOverrideRows(ids?: string[]) {
         image: null,
         name: null,
       })) as SleeveOverride[];
-    } catch {
+    } catch (error) {
+      // Version cache : on relance l'erreur pour qu'elle ne soit pas memorisee.
+      if (throwOnError) throw error;
       return [];
     }
   }
 }
 
 const getCachedSleeveOverrideRows = unstable_cache(
-  () => getOverrideRows(),
+  () => getOverrideRows(undefined, { throwOnError: true }),
   ["public-sleeve-overrides-v2"],
   {
     revalidate: PUBLIC_SLEEVE_CACHE_SECONDS,
@@ -120,7 +125,7 @@ export async function getSleeves(options: GetSleevesOptions = {}) {
   // Toutes les lignes sont chargees, pas seulement celles du catalogue : sinon
   // les sleeves crees depuis l'admin seraient invisibles.
   const overrideRows = options.cache
-    ? await getCachedSleeveOverrideRows()
+    ? await getCachedSleeveOverrideRows().catch(() => [] as SleeveOverride[])
     : await getOverrideRows();
   const overrides = rowsToOverrideMap(overrideRows);
   const catalogIds = new Set(catalog.map((sleeve) => sleeve.id));

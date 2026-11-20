@@ -95,6 +95,12 @@ export async function getCardById(
   const fromCatalog = getCard(id);
   if (fromCatalog) return fromCatalog;
 
+  // Pages publiques : liste en cache (rafraichie par l'admin). Une carte
+  // inconnue (vieux lien, robot) ne coute plus aucune requete.
+  if (options.cache) {
+    return (await getCustomCards({ cache: true })).find((card) => card.id === id);
+  }
+
   const [row] = await getDb()
     .select()
     .from(customCards)
