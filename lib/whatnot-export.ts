@@ -1,5 +1,5 @@
 import "server-only";
-import { getBloc, getSerie, listVariants, type Card } from "./catalog";
+import { getBloc, getSerie, listVariants, type Card, type Condition } from "./catalog";
 import { getAllCards } from "./custom-cards";
 import { applyStockOverrides } from "./stock";
 import { getDb } from "./db/client";
@@ -61,6 +61,15 @@ export const WHATNOT_CONDITIONS = [
   "Graded",
 ] as const;
 
+// Etat du site -> valeur Whatnot (sous-categorie Cartes Pokemon).
+export const SITE_TO_WHATNOT_CONDITION: Record<Condition, (typeof WHATNOT_CONDITIONS)[number]> = {
+  Mint: "Mint",
+  "Near Mint": "Near Mint",
+  Excellent: "Light Played",
+  Good: "Moderately Played",
+  Played: "Heavily Played",
+};
+
 export const WHATNOT_TYPES = ["Buy it Now", "Auction", "Giveaway"] as const;
 export type WhatnotType = (typeof WHATNOT_TYPES)[number];
 
@@ -71,6 +80,7 @@ export type WhatnotExportOptions = {
   shippingProfile: string;
   offerable: boolean;
   hazmat: string;
+  // Utilise seulement si une carte n'a pas d'etat enregistre sur le site.
   condition: string;
   // Ajustement du prix du site en % (ex. 10 = +10 % pour couvrir les frais Whatnot).
   priceAdjustPercent: number;
@@ -201,6 +211,11 @@ export function buildWhatnotCsvFromCards(cards: Card[], options: WhatnotExportOp
         DESCRIPTION_MAX,
       );
 
+      // Etat enregistre sur le site pour cette carte / variante.
+      const siteCondition: Condition | undefined = variant.condition ?? card.condition;
+      const whatnotCondition =
+        (siteCondition && SITE_TO_WHATNOT_CONDITION[siteCondition]) || options.condition;
+
       const images = [
         absoluteUrl(variant.image ?? card.image, options.siteUrl),
         absoluteUrl(variant.imageBack ?? card.imageBack, options.siteUrl),
@@ -217,7 +232,7 @@ export function buildWhatnotCsvFromCards(cards: Card[], options: WhatnotExportOp
         options.shippingProfile,
         options.offerable ? "TRUE" : "FALSE",
         options.hazmat,
-        options.condition,
+        whatnotCondition,
         "",
         `${card.id}:${key}`,
         images[0],

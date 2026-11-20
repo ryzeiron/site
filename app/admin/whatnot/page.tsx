@@ -6,7 +6,6 @@ import { isAdmin } from "@/lib/admin/auth";
 import { BLOCS, SERIES } from "@/lib/catalog";
 import {
   DEFAULT_WHATNOT_OPTIONS,
-  WHATNOT_CONDITIONS,
   WHATNOT_SHIPPING_PROFILES,
 } from "@/lib/whatnot-export";
 
@@ -131,14 +130,11 @@ export default async function AdminWhatnotPage() {
                 <option value="Hazmat - Lithium Battery">Hazmat - Lithium Battery</option>
               </select>
             </Field>
-            <Field label="État">
-              <select name="condition" defaultValue={d.condition} className={inputClass}>
-                {WHATNOT_CONDITIONS.map((condition) => (
-                  <option key={condition} value={condition}>
-                    {condition}
-                  </option>
-                ))}
-              </select>
+            <Field
+              label="État"
+              hint="Repris de chaque carte du site : Mint → Mint, Near Mint → Near Mint, Excellent → Light Played, Good → Moderately Played, Played → Heavily Played."
+            >
+              <div className={`${inputClass} text-gray-400`}>Celui de chaque carte</div>
             </Field>
           </div>
 
