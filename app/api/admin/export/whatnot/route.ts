@@ -2,8 +2,10 @@ import { isAdmin } from "@/lib/admin/auth";
 import { normalizeSiteUrl } from "@/lib/site-url";
 import {
   DEFAULT_WHATNOT_OPTIONS,
+  WHATNOT_TYPES,
   buildWhatnotCsv,
   type WhatnotExportOptions,
+  type WhatnotType,
 } from "@/lib/whatnot-export";
 
 export const runtime = "nodejs";
@@ -31,8 +33,13 @@ export async function GET(request: Request) {
   const options: WhatnotExportOptions = {
     category: text(params, "category", d.category),
     subCategory: text(params, "subCategory", d.subCategory),
-    type: params.get("type") === "Auction" ? "Auction" : "Buy it Now",
-    shippingProfile: text(params, "shippingProfile", d.shippingProfile),
+    type: (WHATNOT_TYPES as readonly string[]).includes(params.get("type") ?? "")
+      ? (params.get("type") as WhatnotType)
+      : d.type,
+    // Profil perso (cree dans l'app Whatnot) prioritaire sur la liste.
+    shippingProfile:
+      text(params, "shippingProfileCustom", "") ||
+      text(params, "shippingProfile", d.shippingProfile),
     offerable: params.has("submitted") ? params.get("offerable") === "1" : d.offerable,
     hazmat: text(params, "hazmat", d.hazmat),
     condition: text(params, "condition", d.condition),

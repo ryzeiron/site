@@ -9,19 +9,20 @@ import { gt } from "drizzle-orm";
 // Export de l'inventaire au format du modele CSV Whatnot (Seller Hub >
 // Inventaire > Importer). Une ligne par carte ET par variante en stock.
 
+// En-tetes exacts du modele francais "FR_Whatnot_quick_add_CSV_format".
 export const WHATNOT_HEADERS = [
-  "Category",
-  "Sub Category",
-  "Title",
+  "Catégorie",
+  "Sous-catégorie",
+  "Titre",
   "Description",
-  "Quantity",
+  "Quantité",
   "Type",
-  "Price",
-  "Shipping Profile",
-  "Offerable",
-  "Hazmat",
-  "Condition",
-  "Cost Per Item",
+  "Prix",
+  "Profil de livraison",
+  "Offres Acceptées",
+  "Matières dangereuses",
+  "État",
+  "Coût par article",
   "SKU",
   "Image URL 1",
   "Image URL 2",
@@ -33,10 +34,40 @@ export const WHATNOT_HEADERS = [
   "Image URL 8",
 ] as const;
 
+// Valeurs autorisees par le modele (listes deroulantes). Attention : les
+// profils de livraison contiennent des espaces insecables (\u00a0).
+const NBSP = "\u00a0";
+export const WHATNOT_SHIPPING_PROFILES = [
+  `De 0 à <20${NBSP}grammes`,
+  `De 20${NBSP}g à <100${NBSP}g`,
+  `De 100${NBSP}g à <250${NBSP}g`,
+  `De 250${NBSP}g à <500${NBSP}g`,
+  `De 500${NBSP}g à <750${NBSP}g`,
+  `De 750${NBSP}g à <1${NBSP}kg`,
+  `De 1${NBSP}kg à <2${NBSP}kg`,
+  `De 0${NBSP}oz à 1${NBSP}oz`,
+  `De 1${NBSP}oz à 3${NBSP}oz`,
+  `De 4${NBSP}oz à 7${NBSP}oz`,
+] as const;
+
+export const WHATNOT_CONDITIONS = [
+  "Near Mint",
+  "Mint",
+  "New",
+  "Light Played",
+  "Moderately Played",
+  "Heavily Played",
+  "Damaged",
+  "Graded",
+] as const;
+
+export const WHATNOT_TYPES = ["Buy it Now", "Auction", "Giveaway"] as const;
+export type WhatnotType = (typeof WHATNOT_TYPES)[number];
+
 export type WhatnotExportOptions = {
   category: string;
   subCategory: string;
-  type: "Buy it Now" | "Auction";
+  type: WhatnotType;
   shippingProfile: string;
   offerable: boolean;
   hazmat: string;
@@ -54,9 +85,9 @@ export type WhatnotExportOptions = {
 
 export const DEFAULT_WHATNOT_OPTIONS: Omit<WhatnotExportOptions, "siteUrl"> = {
   category: "Trading Card Games",
-  subCategory: "Pokémon Cards",
+  subCategory: "Cartes Pokémon",
   type: "Buy it Now",
-  shippingProfile: "0-1 oz",
+  shippingProfile: WHATNOT_SHIPPING_PROFILES[0],
   offerable: true,
   hazmat: "Not Hazmat",
   condition: "Near Mint",

@@ -4,7 +4,11 @@ import AdminCatalogTabs from "@/components/AdminCatalogTabs";
 import LogoutButton from "@/components/LogoutButton";
 import { isAdmin } from "@/lib/admin/auth";
 import { BLOCS, SERIES } from "@/lib/catalog";
-import { DEFAULT_WHATNOT_OPTIONS } from "@/lib/whatnot-export";
+import {
+  DEFAULT_WHATNOT_OPTIONS,
+  WHATNOT_CONDITIONS,
+  WHATNOT_SHIPPING_PROFILES,
+} from "@/lib/whatnot-export";
 
 export const dynamic = "force-dynamic";
 
@@ -88,8 +92,7 @@ export default async function AdminWhatnotPage() {
         <section className="space-y-4">
           <h2 className="text-lg font-bold text-white">Champs Whatnot</h2>
           <p className="text-xs text-amber-200">
-            Ces valeurs doivent correspondre exactement à celles du modèle CSV de ton
-            compte Whatnot (Seller Hub, Inventaire, Importer, Télécharger le modèle).
+            Valeurs reprises du modèle Whatnot français (FR_Whatnot_quick_add_CSV_format).
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -103,16 +106,39 @@ export default async function AdminWhatnotPage() {
               <select name="type" defaultValue={d.type} className={inputClass}>
                 <option value="Buy it Now">Achat immédiat (Buy it Now)</option>
                 <option value="Auction">Enchère (Auction)</option>
+                <option value="Giveaway">Giveaway</option>
               </select>
             </Field>
-            <Field label="Profil d'expédition">
-              <input name="shippingProfile" defaultValue={d.shippingProfile} className={inputClass} />
+            <Field label="Profil de livraison">
+              <select name="shippingProfile" defaultValue={d.shippingProfile} className={inputClass}>
+                {WHATNOT_SHIPPING_PROFILES.map((profile) => (
+                  <option key={profile} value={profile}>
+                    {profile}
+                  </option>
+                ))}
+              </select>
             </Field>
-            <Field label="Produits dangereux">
-              <input name="hazmat" defaultValue={d.hazmat} className={inputClass} />
+            <Field
+              label="Ou profil perso (optionnel)"
+              hint="Nom exact d'un profil créé dans l'app Whatnot. Remplace la liste."
+            >
+              <input name="shippingProfileCustom" defaultValue="" className={inputClass} />
+            </Field>
+            <Field label="Matières dangereuses">
+              <select name="hazmat" defaultValue={d.hazmat} className={inputClass}>
+                <option value="Not Hazmat">Not Hazmat</option>
+                <option value="Hazmat - Standard">Hazmat - Standard</option>
+                <option value="Hazmat - Lithium Battery">Hazmat - Lithium Battery</option>
+              </select>
             </Field>
             <Field label="État">
-              <input name="condition" defaultValue={d.condition} className={inputClass} />
+              <select name="condition" defaultValue={d.condition} className={inputClass}>
+                {WHATNOT_CONDITIONS.map((condition) => (
+                  <option key={condition} value={condition}>
+                    {condition}
+                  </option>
+                ))}
+              </select>
             </Field>
           </div>
 
