@@ -10,6 +10,8 @@ import {
   type Card,
   type NamedVariant,
   type Rarity,
+  cardsForSerie,
+  getCard,
 } from "./catalog";
 
 type OverrideData = {
@@ -297,18 +299,55 @@ function mergeOverrideRows(chunks: OverrideRows[]): OverrideRows {
   };
 }
 
+// Cache par serie : une seule entree pour toute une serie (et non une par
+// carte). Avant, un robot qui parcourait les fiches une a une creait une
+// entree de cache - donc une requete Neon - par carte, toute la nuit.
+const loadCachedSerieOverrideRows = unstable_cache(
+  async (serieId: string) =>
+    sanitizeOverrideRowsForCache(
+      await loadOverrideRows(cardsForSerie(serieId).map((card) => card.id)),
+    ),
+  ["public-stock-overrides-by-serie-v1"],
+  {
+    revalidate: PUBLIC_STOCK_CACHE_SECONDS,
+    tags: [PUBLIC_STOCK_CACHE_TAG],
+  },
+);
+
+function keepRowsFor(data: OverrideRows, wanted: Set<string>): OverrideRows {
+  return {
+    rows: data.rows.filter((row) => wanted.has(row.cardId)),
+    metaRows: data.metaRows.filter((row) => wanted.has(row.cardId)),
+    hiddenRows: data.hiddenRows.filter((row) => wanted.has(row.cardId)),
+  };
+}
+
 async function loadCachedOverrideRows(ids: string[]) {
   const cleanIds = Array.from(new Set(ids)).sort();
   if (cleanIds.length === 0) return emptyOverrideRows();
 
-  const chunks: string[] = [];
-  for (let i = 0; i < cleanIds.length; i += PUBLIC_STOCK_CACHE_CHUNK_SIZE) {
-    chunks.push(cleanIds.slice(i, i + PUBLIC_STOCK_CACHE_CHUNK_SIZE).join("|"));
+  // Cartes du catalogue : regroupees par serie. Cartes creees dans l'admin
+  // (absentes du catalogue statique) : ancien cache par paquet d'ids.
+  const serieIds = new Set<string>();
+  const otherIds: string[] = [];
+  for (const id of cleanIds) {
+    const serieId = getCard(id)?.serieId;
+    if (serieId) serieIds.add(serieId);
+    else otherIds.push(id);
   }
 
-  return mergeOverrideRows(
-    await Promise.all(chunks.map((chunk) => loadCachedPublicOverrideRowsByIds(chunk))),
-  );
+  const chunks: string[] = [];
+  for (let i = 0; i < otherIds.length; i += PUBLIC_STOCK_CACHE_CHUNK_SIZE) {
+    chunks.push(otherIds.slice(i, i + PUBLIC_STOCK_CACHE_CHUNK_SIZE).join("|"));
+  }
+
+  const wanted = new Set(cleanIds);
+  const [serieData, chunkData] = await Promise.all([
+    Promise.all(Array.from(serieIds).map((serieId) => loadCachedSerieOverrideRows(serieId))),
+    Promise.all(chunks.map((chunk) => loadCachedPublicOverrideRowsByIds(chunk))),
+  ]);
+
+  return keepRowsFor(mergeOverrideRows([...serieData, ...chunkData]), wanted);
 }
 
 const loadCachedCardNameOverrides = unstable_cache(

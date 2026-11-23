@@ -15,6 +15,9 @@ export async function shouldUseLivePublicData() {
   const userAgent = requestHeaders.get("user-agent")?.trim() ?? "";
 
   if (!userAgent) return false;
+  // Un vrai navigateur envoie toujours sa langue. Les scripts qui imitent
+  // Chrome (aspirateurs de prix...) l'oublient presque toujours.
+  if (!requestHeaders.get("accept-language")) return false;
 
   return !BOT_USER_AGENT_PATTERN.test(userAgent);
 }
